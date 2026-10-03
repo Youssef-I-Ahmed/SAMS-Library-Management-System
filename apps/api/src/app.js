@@ -6,6 +6,7 @@ import { healthRouter } from './routes/health.routes.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { masterDataRouter } from './modules/master-data/master-data.routes.js';
 import { studentsRouter } from './modules/students/students.routes.js';
+import { catalogMasterRouter } from './modules/catalog-master/catalog-master.routes.js';
 import { notFound, errorHandler } from './middleware/error-handler.js';
 
 export const app = express();
@@ -22,6 +23,7 @@ app.use('/api/v1/health', healthRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/master-data', masterDataRouter);
 app.use('/api/v1/students', studentsRouter);
+app.use('/api/v1/catalog-master', catalogMasterRouter);
 
 app.use(notFound);
 app.use(errorHandler);
