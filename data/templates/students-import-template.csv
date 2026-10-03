@@ -1,0 +1,3 @@
+studentId,universityEmail,displayName,facultyName,departmentName,academicStatus,isActive
+20260001,student1@example.edu,Example Student One,DEV Faculty,DEV Department,ACTIVE,true
+20260002,student2@example.edu,Example Student Two,DEV Faculty,DEV Department,ACTIVE,true
