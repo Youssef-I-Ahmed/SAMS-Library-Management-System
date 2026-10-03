@@ -1,7 +1,14 @@
-import 'dotenv/config';
-import { PrismaClient } from '@prisma/client';
+import { loadEnvFile } from 'node:process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const prisma = new PrismaClient();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Always load the project-root .env, regardless of the current working directory.
+loadEnvFile(path.resolve(__dirname, '../../.env'));
+
+import { prisma } from '../../apps/api/src/config/prisma.js';
 
 async function main() {
   console.log('Cleaning Sprint 1 smoke-test data only...');
@@ -145,7 +152,7 @@ async function main() {
 main()
   .catch((error) => {
     console.error(error);
-    process.exit(1);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();

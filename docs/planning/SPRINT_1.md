@@ -171,7 +171,7 @@ data/templates/students-import-template.csv
 Importer:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\import-students-csv.ps1 -Path .\data\templates\students-import-template.csv
+powershell -ExecutionPolicy Bypass -File .\scripts\sprint1\import-students-csv.ps1 -Path .\data\templates\students-import-template.csv
 ```
 
 Do not import real university student data until the field mapping, access method, and university rules are confirmed.
@@ -253,7 +253,7 @@ The completed Sprint 1 was verified using:
 
 ```powershell
 npm test
-powershell -ExecutionPolicy Bypass -File .\scripts\sprint1-full-smoke.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\sprint1\sprint1-full-smoke.ps1
 ```
 
 The full integration smoke test verified:
@@ -279,7 +279,7 @@ Sprint 1 FULL integration smoke PASSED.
 Command:
 
 ```powershell
-node .\scripts\cleanup-sprint1-smoke-data.js
+node .\scripts\sprint1\cleanup-sprint1-smoke-data.js
 ```
 
 The cleanup targets only known Sprint 1 smoke-test records such as:
@@ -308,7 +308,7 @@ MAIN branch
 ### Persistent Seed Verification
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\sprint1-verify-dev-data.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\sprint1\sprint1-verify-dev-data.ps1
 ```
 
 Expected result:
@@ -380,23 +380,14 @@ SPRINT1D_APPLY.md
 SPRINT1E_APPLY.md
 ```
 
-The executable smoke-test and cleanup scripts should remain in `scripts/` because they are still useful for regression testing and development verification.
+The executable smoke-test, cleanup, verification, and import scripts remain under `scripts/sprint1/` because they are useful for regression testing and development verification.
 
 ---
 
-## Next Sprint
+## Follow-up
 
-**Sprint 2 — Catalog & Inventory**
-
-Planned areas:
+Sprint 2 — Catalog & Inventory has now been completed. See:
 
 ```text
-LibraryItem
-BookDetails
-AcademicWorkDetails
-Contributors
-ItemContributors
-PhysicalCopies
-Availability
-Inventory concurrency rules
+docs/planning/SPRINT_2.md
 ```
