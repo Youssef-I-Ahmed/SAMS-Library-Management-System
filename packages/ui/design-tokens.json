@@ -1,0 +1,102 @@
+{
+  "name": "SAMS Library Design System",
+  "version": "1.0",
+  "status": "working-baseline",
+  "colors": {
+    "primary": {
+      "950": "#071D35",
+      "900": "#0B2F57",
+      "800": "#104273",
+      "700": "#15558F",
+      "600": "#1E6AB0",
+      "500": "#2E7FC4",
+      "100": "#DCECF9",
+      "50": "#F2F8FD"
+    },
+    "neutral": {
+      "950": "#111827",
+      "800": "#1F2937",
+      "700": "#344054",
+      "500": "#667085",
+      "400": "#98A2B3",
+      "300": "#D0D5DD",
+      "200": "#E4E7EC",
+      "100": "#F2F4F7",
+      "50": "#F8FAFC",
+      "white": "#FFFFFF"
+    },
+    "semantic": {
+      "success": {"main": "#168A4B", "soft": "#EAF8F0"},
+      "warning": {"main": "#C77B00", "soft": "#FFF6DF"},
+      "danger": {"main": "#D92D20", "soft": "#FEECEC"},
+      "info": {"main": "#2563EB", "soft": "#EEF4FF"},
+      "purple": {"main": "#6941C6", "soft": "#F4F0FF"}
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "latin": "Inter",
+      "arabic": "Noto Sans Arabic",
+      "fallback": "Arial, sans-serif"
+    },
+    "scalePx": {
+      "display": 36,
+      "h1": 30,
+      "h2": 24,
+      "h3": 20,
+      "h4": 18,
+      "bodyLarge": 16,
+      "body": 14,
+      "small": 12,
+      "label": 14
+    }
+  },
+  "spacingPx": {
+    "xxs": 4,
+    "xs": 8,
+    "sm": 12,
+    "md": 16,
+    "lg": 20,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 40,
+    "4xl": 48,
+    "5xl": 64
+  },
+  "radiusPx": {
+    "sm": 6,
+    "md": 8,
+    "lg": 12,
+    "xl": 16
+  },
+  "breakpointsPx": {
+    "sm": 640,
+    "md": 768,
+    "lg": 1024,
+    "xl": 1280,
+    "2xl": 1536
+  },
+  "layout": {
+    "adminSidebarPx": 256,
+    "studentMaxContentPx": 1280,
+    "desktopPagePaddingPx": 32,
+    "mobilePagePaddingPx": 16,
+    "touchTargetMinPx": 44
+  },
+  "statusStyles": {
+    "AVAILABLE": "success",
+    "RESERVED": "warning",
+    "BORROWED": "info",
+    "UNAVAILABLE": "neutral",
+    "DAMAGED": "danger",
+    "LOST": "danger",
+    "ARCHIVED": "neutral",
+    "PENDING": "warning",
+    "ACTIVE": "success",
+    "FULFILLED": "success",
+    "CANCELLED": "neutral",
+    "EXPIRED": "danger",
+    "OVERDUE": "danger",
+    "RETURNED": "success"
+  }
+}

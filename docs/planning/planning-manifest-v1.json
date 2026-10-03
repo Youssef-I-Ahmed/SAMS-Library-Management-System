@@ -1,0 +1,20 @@
+{
+  "project": "SAMS Library Management System",
+  "version": "1.0",
+  "next_stage": "Sprint 0 - Project Foundation",
+  "mvp_demo_flow": [
+    "Login",
+    "Search",
+    "Reserve",
+    "Visit",
+    "Borrow",
+    "Return",
+    "Dashboard"
+  ],
+  "artifacts": [
+    "mvp-backlog-v1.md",
+    "mvp-backlog-v1.csv",
+    "sprint-plan-v1.md",
+    "development-roadmap-v1.md"
+  ]
+}

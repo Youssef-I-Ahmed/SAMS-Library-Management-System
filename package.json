@@ -1,0 +1,23 @@
+{
+  "name": "sams-library-system",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w @sams/web",
+    "dev:api": "npm run dev -w @sams/api",
+    "build": "npm run build -w @sams/web && npm run build -w @sams/api",
+    "db:generate": "npm run prisma:generate -w @sams/api",
+    "db:migrate": "npm run prisma:migrate -w @sams/api",
+    "db:seed": "npm run prisma:seed -w @sams/api",
+    "test": "npm run test -w @sams/api",
+    "db:validate": "npm run prisma:validate -w @sams/api"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module"
+}

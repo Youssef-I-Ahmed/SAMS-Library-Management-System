@@ -1,0 +1,43 @@
+:root {
+  --sams-primary-950: #071D35;
+  --sams-primary-900: #0B2F57;
+  --sams-primary-800: #104273;
+  --sams-primary-700: #15558F;
+  --sams-primary-600: #1E6AB0;
+  --sams-primary-500: #2E7FC4;
+  --sams-primary-100: #DCECF9;
+  --sams-primary-50: #F2F8FD;
+
+  --sams-text: #111827;
+  --sams-text-secondary: #344054;
+  --sams-text-muted: #667085;
+  --sams-border: #E4E7EC;
+  --sams-border-strong: #D0D5DD;
+  --sams-page: #F8FAFC;
+  --sams-surface: #FFFFFF;
+
+  --sams-success: #168A4B;
+  --sams-success-soft: #EAF8F0;
+  --sams-warning: #C77B00;
+  --sams-warning-soft: #FFF6DF;
+  --sams-danger: #D92D20;
+  --sams-danger-soft: #FEECEC;
+  --sams-info: #2563EB;
+  --sams-info-soft: #EEF4FF;
+
+  --sams-radius-sm: 6px;
+  --sams-radius-md: 8px;
+  --sams-radius-lg: 12px;
+  --sams-radius-xl: 16px;
+
+  --sams-space-1: 4px;
+  --sams-space-2: 8px;
+  --sams-space-3: 12px;
+  --sams-space-4: 16px;
+  --sams-space-5: 20px;
+  --sams-space-6: 24px;
+  --sams-space-8: 32px;
+
+  --sams-shadow-card: 0 1px 3px rgba(16, 24, 40, 0.08);
+  --sams-shadow-elevated: 0 4px 12px rgba(16, 24, 40, 0.10);
+}

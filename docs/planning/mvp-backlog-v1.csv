@@ -1,0 +1,62 @@
+﻿ID,Epic,Task,Priority,Target Sprint
+SAMS-001,E0,Create repository structure,P0,Sprint 0
+SAMS-002,E0,Configure React/Vite frontend,P0,Sprint 0
+SAMS-003,E0,Configure Node.js/Express backend,P0,Sprint 0
+SAMS-004,E0,Configure PostgreSQL + Prisma,P0,Sprint 0
+SAMS-010,E1,Build pluggable authentication adapter,P0,Sprint 1
+SAMS-011,E1,User synchronization,P0,Sprint 1
+SAMS-012,E1,Role-Based Access Control,P0,Sprint 1
+SAMS-013,E1,University SSO integration,P1,Post-MVP
+SAMS-020,E2,Faculties CRUD,P0,Sprint 1
+SAMS-021,E2,Departments CRUD,P0,Sprint 1
+SAMS-022,E2,Branches CRUD,P0,Sprint 1
+SAMS-023,E2,Student import/sync,P0,Sprint 1
+SAMS-030,E3,Categories management,P0,Sprint 2
+SAMS-031,E3,Dewey classifications,P0,Sprint 2
+SAMS-032,E3,Library Item CRUD,P0,Sprint 2
+SAMS-033,E3,Book details,P0,Sprint 2
+SAMS-034,E3,Academic work details,P0,Sprint 2
+SAMS-035,E3,Contributors,P0,Sprint 2
+SAMS-036,E3,Physical Copies,P0,Sprint 2
+SAMS-037,E3,Optimistic concurrency,P0,Sprint 2
+SAMS-040,E4,Student Home,P0,Sprint 3
+SAMS-041,E4,Catalog search API,P0,Sprint 3
+SAMS-042,E4,Filters,P0,Sprint 3
+SAMS-043,E4,Search Results UI,P0,Sprint 3
+SAMS-044,E4,Item Details UI,P0,Sprint 3
+SAMS-050,E5,Reservation eligibility,P0,Sprint 4
+SAMS-051,E5,Transaction-safe reservation creation,P0,Sprint 4
+SAMS-052,E5,Reservation expiration,P0,Sprint 4
+SAMS-053,E5,Reservation cancellation,P0,Sprint 4
+SAMS-054,E5,My Reservations UI,P0,Sprint 4
+SAMS-060,E6,Borrowing eligibility,P0,Sprint 5
+SAMS-061,E6,Borrow Item transaction,P0,Sprint 5
+SAMS-062,E6,Borrow UI,P0,Sprint 5
+SAMS-063,E6,Return Item transaction,P0,Sprint 5
+SAMS-064,E6,Return UI,P0,Sprint 5
+SAMS-065,E6,Overdue calculation,P0,Sprint 5
+SAMS-066,E6,My Borrowings,P0,Sprint 5
+SAMS-070,E7,Visit Check-in,P0,Sprint 5
+SAMS-071,E7,Visit Check-out,P0,Sprint 5
+SAMS-072,E7,Library Visits UI,P0,Sprint 5
+SAMS-080,E8,KPI API,P0,Sprint 6
+SAMS-081,E8,Management Dashboard,P0,Sprint 6
+SAMS-082,E8,Analytics database views,P0,Sprint 6
+SAMS-083,E8,Data Analysis integration,P1,Sprint 6/Post-MVP
+SAMS-090,E9,Circulation Policies API,P1,Post-MVP
+SAMS-091,E9,Circulation Policies UI,P1,Post-MVP
+SAMS-092,E9,Audit logging service,P0,Sprint 2-5
+SAMS-093,E9,Audit Log UI,P1,Post-MVP
+SAMS-094,E9,User & Role Management,P1,Post-MVP
+SAMS-100,E10,Acquire legacy application folders,P0,External
+SAMS-101,E10,Legacy system profiling,P0,Sprint 7
+SAMS-102,E10,Staging import,P0,Sprint 7
+SAMS-103,E10,Transform & clean,P0,Sprint 7
+SAMS-104,E10,Sample migration validation,P0,Sprint 7
+SAMS-105,E10,Full migration,P1,Post-MVP
+SAMS-110,E11,Unit tests,P0,All Sprints
+SAMS-111,E11,Integration tests,P0,All Sprints
+SAMS-112,E11,Concurrency tests,P0,Sprint 4-5
+SAMS-113,E11,API validation/security,P0,All Sprints
+SAMS-114,E11,Backup & restore procedure,P0,Sprint 8
+SAMS-115,E11,Deployment,P0,Sprint 8

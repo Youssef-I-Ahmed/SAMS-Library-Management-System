@@ -1,0 +1,15 @@
+{
+  "name": "@sams/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "src",
+    "design-tokens.json"
+  ],
+  "exports": {
+    ".": "./src/index.js",
+    "./design-tokens.css": "./src/design-tokens.css",
+    "./design-tokens.json": "./design-tokens.json"
+  }
+}

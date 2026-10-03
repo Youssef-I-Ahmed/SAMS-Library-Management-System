@@ -1,0 +1,469 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AcademicStatus {
+  ACTIVE
+  GRADUATED
+  SUSPENDED
+  INACTIVE
+
+  @@map("academic_status")
+}
+
+enum ItemType {
+  BOOK
+  THESIS
+  PROJECT
+
+  @@map("item_type")
+}
+
+enum ContributorRole {
+  AUTHOR
+  RESEARCHER
+  SUPERVISOR
+  PROJECT_MEMBER
+
+  @@map("contributor_role")
+}
+
+enum CopyStatus {
+  AVAILABLE
+  RESERVED
+  BORROWED
+  UNAVAILABLE
+  DAMAGED
+  LOST
+  ARCHIVED
+
+  @@map("copy_status")
+}
+
+enum CopyCondition {
+  GOOD
+  FAIR
+  DAMAGED
+
+  @@map("copy_condition")
+}
+
+enum ReservationStatus {
+  PENDING
+  ACTIVE
+  FULFILLED
+  CANCELLED
+  EXPIRED
+
+  @@map("reservation_status")
+}
+
+enum BorrowingStatus {
+  ACTIVE
+  RETURNED
+  LOST
+
+  @@map("borrowing_status")
+}
+
+enum VisitSource {
+  MANUAL
+  BARCODE
+  QR
+
+  @@map("visit_source")
+}
+
+model User {
+  id                    String              @id @default(uuid()) @db.Uuid
+  universityEmail       String              @unique @map("university_email")
+  externalAuthId        String?             @unique @map("external_auth_id")
+  displayName           String              @map("display_name")
+  isActive              Boolean             @default(true) @map("is_active")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  student               Student?
+  userRoles             UserRole[]
+
+  cancelledReservations Reservation[]       @relation("ReservationCancelledBy")
+  checkedOutBorrowings  Borrowing[]         @relation("BorrowingCheckedOutBy")
+  returnedBorrowings    Borrowing[]         @relation("BorrowingReturnedBy")
+  registeredVisits      LibraryVisit[]      @relation("VisitRegisteredBy")
+  checkedOutVisits      LibraryVisit[]      @relation("VisitCheckedOutBy")
+  auditLogs             AuditLog[]
+  idempotencyRecords    IdempotencyRecord[]
+
+  @@map("users")
+}
+
+model Role {
+  id        Int        @id @default(autoincrement()) @db.SmallInt
+  name      String     @unique
+  userRoles UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId String @map("user_id") @db.Uuid
+  roleId Int    @map("role_id") @db.SmallInt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model Faculty {
+  id        String           @id @default(uuid()) @db.Uuid
+  name      String           @unique
+  isActive  Boolean          @default(true) @map("is_active")
+
+  departments  Department[]
+  students     Student[]
+  academicWorks AcademicWorkDetails[]
+
+  @@map("faculties")
+}
+
+model Department {
+  id        String   @id @default(uuid()) @db.Uuid
+  facultyId String   @map("faculty_id") @db.Uuid
+  name      String
+  isActive  Boolean  @default(true) @map("is_active")
+
+  faculty       Faculty               @relation(fields: [facultyId], references: [id], onDelete: Restrict)
+  students      Student[]
+  academicWorks AcademicWorkDetails[]
+
+  @@unique([facultyId, name])
+  @@index([facultyId])
+  @@map("departments")
+}
+
+model Student {
+  userId         String         @id @map("user_id") @db.Uuid
+  studentId      String         @unique @map("student_id")
+  facultyId      String?        @map("faculty_id") @db.Uuid
+  departmentId   String?        @map("department_id") @db.Uuid
+  academicStatus AcademicStatus @default(ACTIVE) @map("academic_status")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  faculty     Faculty?    @relation(fields: [facultyId], references: [id], onDelete: Restrict)
+  department  Department? @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+
+  reservations  Reservation[]
+  borrowings    Borrowing[]
+  visits        LibraryVisit[]
+
+  @@index([facultyId])
+  @@index([departmentId])
+  @@map("students")
+}
+
+model Branch {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  name      String
+  location  String?
+  isActive  Boolean  @default(true) @map("is_active")
+  version   Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  physicalCopies      PhysicalCopy[]
+  reservations        Reservation[]
+  borrowings          Borrowing[]
+  visits              LibraryVisit[]
+  circulationPolicies CirculationPolicy[]
+  auditLogs           AuditLog[]
+
+  @@map("branches")
+}
+
+model Category {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+
+  libraryItems LibraryItem[]
+
+  @@map("categories")
+}
+
+model DeweyClassification {
+  id       String  @id @default(uuid()) @db.Uuid
+  code     String  @unique
+  name     String?
+  parentId String? @map("parent_id") @db.Uuid
+
+  parent   DeweyClassification?  @relation("DeweyHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children DeweyClassification[] @relation("DeweyHierarchy")
+  items    LibraryItem[]
+
+  @@index([parentId])
+  @@map("dewey_classifications")
+}
+
+model LibraryItem {
+  id                    String   @id @default(uuid()) @db.Uuid
+  type                  ItemType
+  title                 String
+  categoryId            String?  @map("category_id") @db.Uuid
+  deweyClassificationId String?  @map("dewey_classification_id") @db.Uuid
+  deweyCodeRaw          String?  @map("dewey_code_raw")
+  callNumber            String?  @map("call_number")
+  language              String?
+  publicationYear       Int?     @map("publication_year") @db.SmallInt
+  abstractDescription   String?  @map("abstract_description")
+  isActive              Boolean  @default(true) @map("is_active")
+  version               Int      @default(1)
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  category            Category?             @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  deweyClassification DeweyClassification? @relation(fields: [deweyClassificationId], references: [id], onDelete: Restrict)
+
+  bookDetails         BookDetails?
+  academicWorkDetails AcademicWorkDetails?
+  itemContributors    ItemContributor[]
+  physicalCopies      PhysicalCopy[]
+  reservations        Reservation[]
+
+  @@index([title])
+  @@index([type])
+  @@index([categoryId])
+  @@index([deweyClassificationId])
+  @@index([callNumber])
+  @@map("library_items")
+}
+
+model BookDetails {
+  itemId    String  @id @map("item_id") @db.Uuid
+  isbn      String?
+  publisher String?
+  edition   String?
+
+  item LibraryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([isbn])
+  @@map("book_details")
+}
+
+model AcademicWorkDetails {
+  itemId       String   @id @map("item_id") @db.Uuid
+  facultyId    String?  @map("faculty_id") @db.Uuid
+  departmentId String?  @map("department_id") @db.Uuid
+  academicYear String?  @map("academic_year")
+  workType     ItemType @map("work_type")
+
+  item       LibraryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  faculty    Faculty?    @relation(fields: [facultyId], references: [id], onDelete: Restrict)
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+
+  @@index([facultyId])
+  @@index([departmentId])
+  @@map("academic_work_details")
+}
+
+model Contributor {
+  id       String @id @default(uuid()) @db.Uuid
+  fullName String @map("full_name")
+
+  itemContributors ItemContributor[]
+
+  @@index([fullName])
+  @@map("contributors")
+}
+
+model ItemContributor {
+  itemId        String          @map("item_id") @db.Uuid
+  contributorId String          @map("contributor_id") @db.Uuid
+  role          ContributorRole
+
+  item        LibraryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  contributor Contributor @relation(fields: [contributorId], references: [id], onDelete: Restrict)
+
+  @@id([itemId, contributorId, role])
+  @@index([contributorId])
+  @@map("item_contributors")
+}
+
+model PhysicalCopy {
+  id            String         @id @default(uuid()) @db.Uuid
+  itemId        String         @map("item_id") @db.Uuid
+  branchId      String         @map("branch_id") @db.Uuid
+  copyCode      String?        @map("copy_code")
+  barcode       String?        @unique
+  shelfLocation String?        @map("shelf_location")
+  status        CopyStatus     @default(AVAILABLE)
+  condition     CopyCondition?
+  version       Int            @default(1)
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  item        LibraryItem @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  branch      Branch      @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  reservations Reservation[] @relation("AllocatedReservationCopy")
+  borrowings   Borrowing[]
+
+  @@index([itemId])
+  @@index([branchId])
+  @@index([status])
+  @@index([itemId, branchId, status])
+  @@map("physical_copies")
+}
+
+model Reservation {
+  id                String            @id @default(uuid()) @db.Uuid
+  studentId         String            @map("student_id") @db.Uuid
+  itemId            String            @map("item_id") @db.Uuid
+  branchId          String            @map("branch_id") @db.Uuid
+  allocatedCopyId   String?           @map("allocated_copy_id") @db.Uuid
+  status            ReservationStatus @default(PENDING)
+  reservedAt        DateTime          @default(now()) @map("reserved_at") @db.Timestamptz(6)
+  expiresAt         DateTime          @map("expires_at") @db.Timestamptz(6)
+  fulfilledAt       DateTime?         @map("fulfilled_at") @db.Timestamptz(6)
+  cancelledAt       DateTime?         @map("cancelled_at") @db.Timestamptz(6)
+  cancelledByUserId String?           @map("cancelled_by_user_id") @db.Uuid
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  student     Student       @relation(fields: [studentId], references: [userId], onDelete: Restrict)
+  item        LibraryItem   @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  branch      Branch        @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  allocatedCopy PhysicalCopy? @relation("AllocatedReservationCopy", fields: [allocatedCopyId], references: [id], onDelete: Restrict)
+  cancelledBy User?         @relation("ReservationCancelledBy", fields: [cancelledByUserId], references: [id], onDelete: Restrict)
+  borrowing   Borrowing?
+
+  @@index([studentId])
+  @@index([itemId])
+  @@index([branchId])
+  @@index([allocatedCopyId])
+  @@index([status, expiresAt])
+  @@map("reservations")
+}
+
+model Borrowing {
+  id             String          @id @default(uuid()) @db.Uuid
+  studentId      String          @map("student_id") @db.Uuid
+  copyId         String          @map("copy_id") @db.Uuid
+  branchId       String          @map("branch_id") @db.Uuid
+  reservationId  String?         @unique @map("reservation_id") @db.Uuid
+  borrowedAt     DateTime        @default(now()) @map("borrowed_at") @db.Timestamptz(6)
+  dueAt          DateTime        @map("due_at") @db.Timestamptz(6)
+  returnedAt     DateTime?       @map("returned_at") @db.Timestamptz(6)
+  checkedOutById String          @map("checked_out_by") @db.Uuid
+  returnedById   String?         @map("returned_by") @db.Uuid
+  status         BorrowingStatus @default(ACTIVE)
+  returnCondition String?        @map("return_condition")
+  notes          String?
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  student      Student      @relation(fields: [studentId], references: [userId], onDelete: Restrict)
+  copy         PhysicalCopy @relation(fields: [copyId], references: [id], onDelete: Restrict)
+  branch       Branch       @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  reservation  Reservation? @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  checkedOutBy User         @relation("BorrowingCheckedOutBy", fields: [checkedOutById], references: [id], onDelete: Restrict)
+  returnedBy   User?        @relation("BorrowingReturnedBy", fields: [returnedById], references: [id], onDelete: Restrict)
+
+  @@index([studentId])
+  @@index([copyId])
+  @@index([branchId])
+  @@index([status])
+  @@index([dueAt])
+  @@map("borrowings")
+}
+
+model LibraryVisit {
+  id             String      @id @default(uuid()) @db.Uuid
+  studentId      String      @map("student_id") @db.Uuid
+  branchId       String      @map("branch_id") @db.Uuid
+  checkedInAt    DateTime    @default(now()) @map("checked_in_at") @db.Timestamptz(6)
+  checkedOutAt   DateTime?   @map("checked_out_at") @db.Timestamptz(6)
+  registeredById String      @map("registered_by") @db.Uuid
+  checkoutById   String?     @map("checkout_by") @db.Uuid
+  source         VisitSource @default(MANUAL)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  student      Student @relation(fields: [studentId], references: [userId], onDelete: Restrict)
+  branch       Branch  @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  registeredBy User    @relation("VisitRegisteredBy", fields: [registeredById], references: [id], onDelete: Restrict)
+  checkoutBy   User?   @relation("VisitCheckedOutBy", fields: [checkoutById], references: [id], onDelete: Restrict)
+
+  @@index([studentId])
+  @@index([branchId])
+  @@index([checkedInAt])
+  @@map("library_visits")
+}
+
+model CirculationPolicy {
+  id                    String   @id @default(uuid()) @db.Uuid
+  branchId              String?  @map("branch_id") @db.Uuid
+  itemType              ItemType? @map("item_type")
+  loanDays              Int      @map("loan_days")
+  reservationHoldHours  Int      @map("reservation_hold_hours")
+  maxActiveLoans        Int      @map("max_active_loans")
+  maxActiveReservations Int      @map("max_active_reservations")
+  renewalLimit          Int      @default(0) @map("renewal_limit")
+  effectiveFrom         DateTime @map("effective_from") @db.Date
+  effectiveTo           DateTime? @map("effective_to") @db.Date
+  isActive              Boolean  @default(true) @map("is_active")
+
+  branch Branch? @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@index([branchId, itemType])
+  @@map("circulation_policies")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String
+  entityType  String   @map("entity_type")
+  entityId    String   @map("entity_id")
+  branchId    String?  @map("branch_id") @db.Uuid
+  oldValues   Json?    @map("old_values") @db.JsonB
+  newValues   Json?    @map("new_values") @db.JsonB
+  metadata    Json?    @db.JsonB
+  requestId   String?  @map("request_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  actor  User?   @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  branch Branch? @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@index([actorUserId])
+  @@index([entityType, entityId])
+  @@index([branchId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model IdempotencyRecord {
+  id              String   @id @default(uuid()) @db.Uuid
+  key             String
+  userId          String   @map("user_id") @db.Uuid
+  operation       String
+  resultReference String?  @map("result_reference")
+  responseBody    Json?    @map("response_body") @db.JsonB
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt       DateTime @map("expires_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, operation, key])
+  @@index([expiresAt])
+  @@map("idempotency_records")
+}

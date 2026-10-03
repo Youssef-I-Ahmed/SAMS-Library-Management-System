@@ -1,0 +1,946 @@
+{
+  "project": "SAMS Library Management System",
+  "version": "1.0",
+  "status": "draft-baseline",
+  "database": "PostgreSQL",
+  "orm": "Prisma",
+  "architecture": {
+    "multiBranch": true,
+    "centralized": true,
+    "webBased": true,
+    "legacyMigration": true,
+    "analyticsReady": true
+  },
+  "enums": {
+    "item_type": [
+      "BOOK",
+      "THESIS",
+      "PROJECT"
+    ],
+    "academic_status": [
+      "ACTIVE",
+      "GRADUATED",
+      "SUSPENDED",
+      "INACTIVE"
+    ],
+    "contributor_role": [
+      "AUTHOR",
+      "RESEARCHER",
+      "SUPERVISOR",
+      "PROJECT_MEMBER"
+    ],
+    "copy_status": [
+      "AVAILABLE",
+      "RESERVED",
+      "BORROWED",
+      "UNAVAILABLE",
+      "DAMAGED",
+      "LOST",
+      "ARCHIVED"
+    ],
+    "copy_condition": [
+      "GOOD",
+      "FAIR",
+      "DAMAGED"
+    ],
+    "reservation_status": [
+      "PENDING",
+      "ACTIVE",
+      "FULFILLED",
+      "CANCELLED",
+      "EXPIRED"
+    ],
+    "borrowing_status": [
+      "ACTIVE",
+      "RETURNED",
+      "LOST"
+    ],
+    "visit_source": [
+      "MANUAL",
+      "BARCODE",
+      "QR"
+    ]
+  },
+  "tables": {
+    "users": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "university_email": {
+          "type": "varchar",
+          "nullable": false,
+          "unique": true
+        },
+        "external_auth_id": {
+          "type": "varchar",
+          "nullable": true,
+          "unique": true
+        },
+        "display_name": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": true
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    },
+    "roles": {
+      "columns": {
+        "id": {
+          "type": "smallint",
+          "pk": true,
+          "nullable": false
+        },
+        "name": {
+          "type": "varchar",
+          "nullable": false,
+          "unique": true
+        }
+      },
+      "seed": [
+        "STUDENT",
+        "LIBRARIAN",
+        "MANAGEMENT"
+      ]
+    },
+    "user_roles": {
+      "columns": {
+        "user_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "users.id"
+        },
+        "role_id": {
+          "type": "smallint",
+          "nullable": false,
+          "fk": "roles.id"
+        }
+      },
+      "primaryKey": [
+        "user_id",
+        "role_id"
+      ]
+    },
+    "faculties": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "name": {
+          "type": "varchar",
+          "nullable": false,
+          "unique": true
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      }
+    },
+    "departments": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "faculty_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "faculties.id"
+        },
+        "name": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      },
+      "unique": [
+        [
+          "faculty_id",
+          "name"
+        ]
+      ]
+    },
+    "students": {
+      "columns": {
+        "user_id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false,
+          "fk": "users.id"
+        },
+        "student_id": {
+          "type": "varchar",
+          "nullable": false,
+          "unique": true
+        },
+        "faculty_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "faculties.id"
+        },
+        "department_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "departments.id"
+        },
+        "academic_status": {
+          "type": "academic_status",
+          "nullable": false,
+          "default": "ACTIVE"
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    },
+    "branches": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "code": {
+          "type": "varchar",
+          "nullable": false,
+          "unique": true
+        },
+        "name": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "location": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": true
+        },
+        "version": {
+          "type": "integer",
+          "nullable": false,
+          "default": 1
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    },
+    "categories": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "name": {
+          "type": "varchar",
+          "nullable": false,
+          "unique": true
+        },
+        "description": {
+          "type": "text",
+          "nullable": true
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      }
+    },
+    "dewey_classifications": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "code": {
+          "type": "varchar",
+          "nullable": false,
+          "unique": true
+        },
+        "name": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "parent_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "dewey_classifications.id"
+        }
+      }
+    },
+    "library_items": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "type": {
+          "type": "item_type",
+          "nullable": false
+        },
+        "title": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "category_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "categories.id"
+        },
+        "dewey_classification_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "dewey_classifications.id"
+        },
+        "dewey_code_raw": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "call_number": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "language": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "publication_year": {
+          "type": "smallint",
+          "nullable": true
+        },
+        "abstract_description": {
+          "type": "text",
+          "nullable": true
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": true
+        },
+        "version": {
+          "type": "integer",
+          "nullable": false,
+          "default": 1
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    },
+    "book_details": {
+      "columns": {
+        "item_id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false,
+          "fk": "library_items.id"
+        },
+        "isbn": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "publisher": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "edition": {
+          "type": "varchar",
+          "nullable": true
+        }
+      }
+    },
+    "academic_work_details": {
+      "columns": {
+        "item_id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false,
+          "fk": "library_items.id"
+        },
+        "faculty_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "faculties.id"
+        },
+        "department_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "departments.id"
+        },
+        "academic_year": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "work_type": {
+          "type": "item_type",
+          "nullable": false,
+          "allowed": [
+            "THESIS",
+            "PROJECT"
+          ]
+        }
+      }
+    },
+    "contributors": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "full_name": {
+          "type": "varchar",
+          "nullable": false
+        }
+      }
+    },
+    "item_contributors": {
+      "columns": {
+        "item_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "library_items.id"
+        },
+        "contributor_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "contributors.id"
+        },
+        "role": {
+          "type": "contributor_role",
+          "nullable": false
+        }
+      },
+      "primaryKey": [
+        "item_id",
+        "contributor_id",
+        "role"
+      ]
+    },
+    "physical_copies": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "item_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "library_items.id"
+        },
+        "branch_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "branches.id"
+        },
+        "copy_code": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "barcode": {
+          "type": "varchar",
+          "nullable": true,
+          "unique": true
+        },
+        "shelf_location": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "status": {
+          "type": "copy_status",
+          "nullable": false,
+          "default": "AVAILABLE"
+        },
+        "condition": {
+          "type": "copy_condition",
+          "nullable": true
+        },
+        "version": {
+          "type": "integer",
+          "nullable": false,
+          "default": 1
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    },
+    "reservations": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "student_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "students.user_id"
+        },
+        "item_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "library_items.id"
+        },
+        "branch_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "branches.id"
+        },
+        "allocated_copy_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "physical_copies.id"
+        },
+        "status": {
+          "type": "reservation_status",
+          "nullable": false
+        },
+        "reserved_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "expires_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "fulfilled_at": {
+          "type": "timestamptz",
+          "nullable": true
+        },
+        "cancelled_at": {
+          "type": "timestamptz",
+          "nullable": true
+        },
+        "cancelled_by_user_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "users.id"
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      },
+      "partialUnique": [
+        {
+          "columns": [
+            "student_id",
+            "item_id"
+          ],
+          "where": "status IN ('PENDING','ACTIVE')"
+        }
+      ]
+    },
+    "borrowings": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "student_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "students.user_id"
+        },
+        "copy_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "physical_copies.id"
+        },
+        "branch_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "branches.id"
+        },
+        "reservation_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "reservations.id"
+        },
+        "borrowed_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "due_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "returned_at": {
+          "type": "timestamptz",
+          "nullable": true
+        },
+        "checked_out_by": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "users.id"
+        },
+        "returned_by": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "users.id"
+        },
+        "status": {
+          "type": "borrowing_status",
+          "nullable": false,
+          "default": "ACTIVE"
+        },
+        "return_condition": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "notes": {
+          "type": "text",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      },
+      "partialUnique": [
+        {
+          "columns": [
+            "copy_id"
+          ],
+          "where": "status = 'ACTIVE'"
+        }
+      ],
+      "derived": {
+        "overdue": "returned_at IS NULL AND due_at < NOW()"
+      }
+    },
+    "library_visits": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "student_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "students.user_id"
+        },
+        "branch_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "branches.id"
+        },
+        "checked_in_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "checked_out_at": {
+          "type": "timestamptz",
+          "nullable": true
+        },
+        "registered_by": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "users.id"
+        },
+        "checkout_by": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "users.id"
+        },
+        "source": {
+          "type": "visit_source",
+          "nullable": false,
+          "default": "MANUAL"
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      },
+      "partialUnique": [
+        {
+          "columns": [
+            "student_id"
+          ],
+          "where": "checked_out_at IS NULL"
+        }
+      ]
+    },
+    "circulation_policies": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "branch_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "branches.id"
+        },
+        "item_type": {
+          "type": "item_type",
+          "nullable": true
+        },
+        "loan_days": {
+          "type": "integer",
+          "nullable": false,
+          "min": 0
+        },
+        "reservation_hold_hours": {
+          "type": "integer",
+          "nullable": false,
+          "min": 0
+        },
+        "max_active_loans": {
+          "type": "integer",
+          "nullable": false,
+          "min": 0
+        },
+        "max_active_reservations": {
+          "type": "integer",
+          "nullable": false,
+          "min": 0
+        },
+        "renewal_limit": {
+          "type": "integer",
+          "nullable": false,
+          "min": 0,
+          "default": 0
+        },
+        "effective_from": {
+          "type": "date",
+          "nullable": false
+        },
+        "effective_to": {
+          "type": "date",
+          "nullable": true
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": true
+        }
+      }
+    },
+    "audit_logs": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "nullable": false
+        },
+        "actor_user_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "users.id"
+        },
+        "action": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "entity_type": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "entity_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "branch_id": {
+          "type": "uuid",
+          "nullable": true,
+          "fk": "branches.id"
+        },
+        "old_values": {
+          "type": "jsonb",
+          "nullable": true
+        },
+        "new_values": {
+          "type": "jsonb",
+          "nullable": true
+        },
+        "metadata": {
+          "type": "jsonb",
+          "nullable": true
+        },
+        "request_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      },
+      "appendOnly": true,
+      "forbiddenSecrets": [
+        "passwords",
+        "access_tokens",
+        "refresh_tokens",
+        "otp_codes",
+        "authentication_secrets"
+      ]
+    },
+    "idempotency_records": {
+      "recommended": true,
+      "columns": {
+        "key": {
+          "type": "varchar",
+          "pk": true,
+          "nullable": false
+        },
+        "user_id": {
+          "type": "uuid",
+          "nullable": false,
+          "fk": "users.id"
+        },
+        "operation": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "result_reference": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "expires_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    }
+  },
+  "concurrency": {
+    "defaultIsolation": "READ COMMITTED",
+    "reservationAllocation": [
+      "transaction",
+      "SELECT ... FOR UPDATE SKIP LOCKED",
+      "partial unique index"
+    ],
+    "borrowing": [
+      "transaction",
+      "row lock",
+      "one active borrowing per copy"
+    ],
+    "return": [
+      "transaction",
+      "borrow/ copy row locks",
+      "idempotent state check"
+    ],
+    "adminEditing": [
+      "optimistic locking using version"
+    ],
+    "duplicateRequests": [
+      "idempotency keys"
+    ]
+  },
+  "plannedViews": [
+    "v_item_availability",
+    "v_current_borrowings",
+    "v_overdue_borrowings",
+    "v_active_reservations",
+    "v_monthly_library_visits",
+    "v_borrowings_by_item",
+    "v_borrowings_by_category",
+    "v_branch_activity"
+  ],
+  "legacyMigration": {
+    "preserveRawValues": true,
+    "callNumberExample": "658.3 / ا.م",
+    "expectedFiles": [
+      ".exe",
+      ".dll",
+      ".mdb",
+      ".accdb",
+      ".db",
+      ".dbf",
+      ".dat",
+      ".ini",
+      ".cfg",
+      ".xml",
+      ".bak"
+    ],
+    "separatePCDatasets": true
+  },
+  "tbc": [
+    "phase 1 branch scope",
+    "university SSO provider",
+    "student database integration method",
+    "reservation duration",
+    "maximum active reservations",
+    "maximum active loans",
+    "loan duration by item type",
+    "renewals",
+    "reservation queue for already-borrowed items",
+    "thesis/project borrowability",
+    "visitor checkout requirement",
+    "lost/damaged/fines process",
+    "exact legacy call-number convention"
+  ]
+}
