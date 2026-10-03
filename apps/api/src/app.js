@@ -11,12 +11,16 @@ import { libraryItemsRouter } from './modules/catalog/library-items.routes.js';
 import { contributorsRouter } from './modules/catalog/contributors.routes.js';
 import { physicalCopiesRouter } from './modules/inventory/physical-copies.routes.js';
 import { availabilityRouter } from './modules/availability/availability.routes.js';
+import { discoveryRouter } from './modules/discovery/discovery.routes.js';
 import { notFound, errorHandler } from './middleware/error-handler.js';
 
 export const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: env.WEB_ORIGIN, credentials: true }));
+app.use(cors({
+  origin: env.WEB_ORIGIN,
+  credentials: true
+}));
 app.use(express.json({ limit: '2mb' }));
 
 app.get('/', (_req, res) => {
@@ -33,14 +37,16 @@ app.use('/api/v1/students', studentsRouter);
 app.use('/api/v1/catalog-master', catalogMasterRouter);
 app.use('/api/v1/catalog/contributors', contributorsRouter);
 
-/*
- * Keep this before the generic library-items router so
- * /:itemId/availability is resolved explicitly.
- */
 app.use('/api/v1/catalog/items', availabilityRouter);
 app.use('/api/v1/catalog/items', libraryItemsRouter);
 
 app.use('/api/v1/inventory/copies', physicalCopiesRouter);
+
+/*
+ * Student-facing read model.
+ * Keeps discovery/search separate from librarian catalog mutation APIs.
+ */
+app.use('/api/v1/discovery', discoveryRouter);
 
 app.use(notFound);
 app.use(errorHandler);
