@@ -1,0 +1,19 @@
+dataset,sourceField,target,action,confidence,notes
+BOOKS_RECONSTRUCTED,BOOK_CODE,legacy source key,PRESERVE,HIGH,Do not use as new-system primary key. Preserve for traceability/reconciliation.
+BOOKS_RECONSTRUCTED,TITLE,LibraryItem.title,DIRECT_WHEN_PRESENT,HIGH,Required target field. Missing legacy titles are blockers.
+BOOKS_RECONSTRUCTED,PUBLISHING_DATE,LibraryItem.publicationYear,PARSE_4_DIGIT_YEAR,HIGH,Preserve source value in staging even when parse succeeds.
+BOOKS_RECONSTRUCTED,CALL_NUM,LibraryItem.callNumber,PRESERVE_RAW,HIGH,Do not parse/normalize Dewey automatically.
+BOOKS_RECONSTRUCTED,ISBN,BookDetails.isbn,TRIM_ONLY,HIGH,Validation/normalization can be added later without changing raw staging.
+BOOKS_RECONSTRUCTED,PUBLISHERS,BookDetails.publisher,DIRECT_WHEN_SINGLE_VALUE,MEDIUM,Legacy field can contain recovered/combined evidence; review multi-value cases.
+BOOKS_RECONSTRUCTED,EDITION_STATEMENT,BookDetails.edition,TRIM_ONLY,MEDIUM,Keep original statement text.
+BOOKS_RECONSTRUCTED,BOOK_TYPE,LibraryItem.type,CANDIDATE_BOOK,MEDIUM,"Current recovered titled book rows use B, but legacy semantics should still be confirmed before full migration."
+BOOKS_RECONSTRUCTED,LANG_CODE,LibraryItem.language,REQUIRES_CODE_MAP,LOW,Do not guess language-code meanings from title text.
+BOOKS_RECONSTRUCTED,AUTHORS_EDITORS,Contributor + ItemContributor,REQUIRES_NAME_AND_ROLE_PARSING,LOW,Pipe-separated names and legacy role semantics require controlled parsing.
+BOOKS_RECONSTRUCTED,RECOVERED_COPY_COUNT,PhysicalCopy count,REQUIRES_RECONCILIATION,LOW,Use copy evidence fields and complete source folders before generating final physical copies.
+ACADEMIC_WORKS_RECOVERED,BOOK_CODE,legacy source key,PRESERVE,HIGH,Traceability only.
+ACADEMIC_WORKS_RECOVERED,TITLE,LibraryItem.title,DIRECT_WHEN_PRESENT,HIGH,All current pilot rows contain a title.
+ACADEMIC_WORKS_RECOVERED,PUBLISHING_DATE,LibraryItem.publicationYear,PARSE_4_DIGIT_YEAR,HIGH,Preserve source value in staging.
+ACADEMIC_WORKS_RECOVERED,CALL_NUM,LibraryItem.callNumber,PRESERVE_RAW,HIGH,Comma/dot variants must remain untouched until classification rules are confirmed.
+ACADEMIC_WORKS_RECOVERED,BOOK_TYPE + RECORD_CATEGORY,LibraryItem.type,BLOCKED_PROJECT_VS_THESIS,NONE,Current export groups project/thesis/research together and does not reliably distinguish target PROJECT vs THESIS.
+ACADEMIC_WORKS_RECOVERED,LANG_CODE,LibraryItem.language,REQUIRES_CODE_MAP,LOW,"Observed codes are preserved, not interpreted."
+ACADEMIC_WORKS_RECOVERED,NUM_OF_COPIES,PhysicalCopy count,REQUIRES_VALIDATION,MEDIUM,Negative/invalid values are blockers. No copy rows are generated in Sprint 7A.

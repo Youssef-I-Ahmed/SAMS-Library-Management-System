@@ -1,0 +1,50 @@
+{
+  "generatedAt": "2026-10-04T02:06:32.217Z",
+  "mutationPolicy": "DRY_RUN_ONLY_NO_APPLICATION_DB_WRITES",
+  "source": {
+    "dataset": "BOOKS_RECONSTRUCTED",
+    "sourceRows": 2130,
+    "titledTransformCandidates": 22,
+    "missingTitleRows": 2108
+  },
+  "canonical": {
+    "canonicalBookRows": 22,
+    "publicationYearParsed": 21,
+    "isbnPresent": 13,
+    "publisherPresent": 21,
+    "languageMapped": 0,
+    "contributorRowsCreated": 0,
+    "deweyCodesParsed": 0
+  },
+  "dedupe": {
+    "strongCollisionGroups": 0,
+    "reviewCollisionGroups": 1,
+    "reviewCollisionRows": 2,
+    "autoMergedRows": 0
+  },
+  "copies": {
+    "recoveredCurrentCopyCount": 34,
+    "explicitCopyPreviewRows": 34,
+    "copyCountMismatchItems": 0,
+    "deletedCopyEvidenceCount": 1,
+    "branchMappingResolved": false,
+    "legacyStatusMappingResolved": false
+  },
+  "corroboration": {
+    "partialReferenceRows": 22,
+    "reconstructedCandidatesMatchedToPartial": 22,
+    "reconciliationReviewRows": 0
+  },
+  "importGate": {
+    "applicationDatabaseWritten": false,
+    "canonicalBibliographicCandidates": 22,
+    "physicalCopiesImportReady": false,
+    "blockers": [
+      "BRANCH_MAPPING_UNRESOLVED",
+      "LEGACY_COPY_STATUS_MAPPING_UNRESOLVED",
+      "LANGUAGE_CODE_MAPPING_UNRESOLVED",
+      "CONTRIBUTOR_ROLE_MAPPING_UNRESOLVED"
+    ],
+    "nextSafeStep": "CONTROLLED_IMPORT_PLAN_WITH_EXPLICIT_BRANCH_AND_STATUS_MAPPING"
+  }
+}

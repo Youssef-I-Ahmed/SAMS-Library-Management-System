@@ -1,0 +1,154 @@
+{
+  "generatedAt": "2026-10-04T02:06:34.220Z",
+  "sprint": "Sprint 7 — Legacy Migration Pilot",
+  "status": "PILOT_EVIDENCE_COMPLETE_FULL_MIGRATION_NOT_APPROVED",
+  "principles": {
+    "rawInputModified": false,
+    "stagedOneToOne": true,
+    "destructiveNormalization": false,
+    "ambiguousProjectThesisGuessed": false,
+    "productionBranchMappingApproved": false,
+    "productionStatusMappingApproved": false,
+    "fullMigrationApproved": false
+  },
+  "sourceSnapshot": {
+    "sourceFiles": 3,
+    "rawRows": 6042,
+    "sources": [
+      {
+        "dataset": "BOOKS_PARTIAL_REFERENCE",
+        "fileName": "books-extracted-partial.csv",
+        "sha256": "4f02384aff6e4a07d21e04e6b0b1c11c2319d9824269c91f3b047b8d061eac97",
+        "rowCount": 22
+      },
+      {
+        "dataset": "BOOKS_RECONSTRUCTED",
+        "fileName": "books-reconstructed-recovery.csv",
+        "sha256": "6d7117f0100f55dc3346d648adfeb6a2d84b6fafabe745084bb5079b3e688081",
+        "rowCount": 2130
+      },
+      {
+        "dataset": "ACADEMIC_WORKS_RECOVERED",
+        "fileName": "projects-theses-extracted.csv",
+        "sha256": "150ced30b3b3d3068b66b6b27ff0fb137ec9b8dd6386e5f2278639595bf3f411",
+        "rowCount": 3890
+      }
+    ]
+  },
+  "transformSnapshot": {
+    "canonicalBooks": 22,
+    "explicitCopyPreviewRows": 34,
+    "autoMergedRows": 0,
+    "reviewCollisionGroups": 1,
+    "academicWorksImportReady": 0
+  },
+  "dbPilotSnapshot": {
+    "sampleBooks": 3,
+    "proposedCopies": 4,
+    "collisionBlockers": 0,
+    "importedItems": 3,
+    "importedCopies": 4,
+    "pilotTag": "SPRINT7C_LEGACY_DB_PILOT",
+    "cleanupRequiredAfterImport": true
+  },
+  "unresolvedProductionDecisions": [
+    "RECOVER_MISSING_MASTER_TITLES_FOR_2108_BOOK_ROWS",
+    "PROJECT_VS_THESIS_MAPPING_FOR_3890_ACADEMIC_WORK_ROWS",
+    "LEGACY_SOURCE_OR_PC_TO_REAL_SAMS_BRANCH_MAPPING",
+    "LEGACY_COPY_STATUS_CODE_SEMANTICS",
+    "LANG_CODE_MAPPING",
+    "CONTRIBUTOR_ROLE_MAPPING",
+    "CONFIRM_CALL_NUMBER_ITEM_VS_COPY_SCOPE"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "data/processed/legacy-pilot/source-manifest.json",
+      "bytes": 4647,
+      "sha256": "bdda591c5236995886e237af0f8994ee2cbe4b2939078f9b73822de1f338b4cb"
+    },
+    {
+      "path": "data/processed/legacy-pilot/profile-summary.json",
+      "bytes": 2415,
+      "sha256": "150dc14236c99a426b126a462ce64a0284bc7e00c4df81116b3e3ad6c7ea6540"
+    },
+    {
+      "path": "data/processed/legacy-pilot/field-profile.csv",
+      "bytes": 17194,
+      "sha256": "7805c69416e5b80bfd842eef806b28230f30164875d5563a108a87556755d8af"
+    },
+    {
+      "path": "data/processed/legacy-pilot/mapping-readiness.csv",
+      "bytes": 2642,
+      "sha256": "96dbc1000609c007c89d5e843c133fee48c5122ae9516aa59d07700e36700933"
+    },
+    {
+      "path": "data/processed/legacy-pilot/exceptions.csv",
+      "bytes": 1789730,
+      "sha256": "097d2325053fb2bdef3f8b467a7c68285a767414e3dd8bab7e732e7734c71b19"
+    },
+    {
+      "path": "data/processed/legacy-pilot/staging/BOOKS_PARTIAL_REFERENCE.jsonl",
+      "bytes": 38170,
+      "sha256": "9569915b7dc3efba2d41dfa1e1f37e651c059bee608557a185a24d0645798704",
+      "rowCount": 22
+    },
+    {
+      "path": "data/processed/legacy-pilot/staging/BOOKS_RECONSTRUCTED.jsonl",
+      "bytes": 2822081,
+      "sha256": "4acee7d21bb6f4433ef432396fcc9fd9657cab73f0e501a936f3dcc09b98be4e",
+      "rowCount": 2130
+    },
+    {
+      "path": "data/processed/legacy-pilot/staging/ACADEMIC_WORKS_RECOVERED.jsonl",
+      "bytes": 6629791,
+      "sha256": "325cb01f3f608e96310179e56ae40ecf1515f3a5ba26cc8a831e920f28a41b80",
+      "rowCount": 3890
+    },
+    {
+      "path": "data/processed/legacy-pilot/transform/canonical-books.jsonl",
+      "bytes": 40956,
+      "sha256": "fb83e586f4c6af6e7d9a99160283699260d573c7d14bc25902494109ec67754a",
+      "rowCount": 22
+    },
+    {
+      "path": "data/processed/legacy-pilot/transform/book-import-preview.csv",
+      "bytes": 4849,
+      "sha256": "5bea9a8ea4b427d10158e5f5e36f53ceb21cb1e49aa8fedd36ee529c7640406d"
+    },
+    {
+      "path": "data/processed/legacy-pilot/transform/physical-copy-preview.csv",
+      "bytes": 4277,
+      "sha256": "a7b0eca4109afeffcba3150153f12d06aba7c475e08e611f1e0d5bd8d9efb450"
+    },
+    {
+      "path": "data/processed/legacy-pilot/transform/copy-reconciliation.csv",
+      "bytes": 2547,
+      "sha256": "1658423d69e47721eb3a44de829d645d910619b31d1272da5a86a5e89bf4d988"
+    },
+    {
+      "path": "data/processed/legacy-pilot/transform/dedupe-review.csv",
+      "bytes": 530,
+      "sha256": "a997e9606e557df9ae39d4e8c8bdcecafeb61da84eaa23cef801ad525da5958b"
+    },
+    {
+      "path": "data/processed/legacy-pilot/transform/partial-vs-reconstructed-reconciliation.csv",
+      "bytes": 1763,
+      "sha256": "6c3add84a8bd04fab63764d1f940346a7374ced91aac16c5b56a6fb87ee84d70"
+    },
+    {
+      "path": "data/processed/legacy-pilot/transform/dry-run-summary.json",
+      "bytes": 1417,
+      "sha256": "7dc6d27ba85730e1538d05a6a5b36265879d8284b538637cd9052ce1bc4358a1"
+    },
+    {
+      "path": "data/processed/legacy-pilot/db-pilot/db-pilot-plan.json",
+      "bytes": 1486,
+      "sha256": "44db001b56e6a39f2fd52d0dcaacdb00d92ed05ff46d53927eaca9b7688fa6d1"
+    },
+    {
+      "path": "data/processed/legacy-pilot/db-pilot/db-pilot-import-result.json",
+      "bytes": 796,
+      "sha256": "06072be15c41b55b617daa85b7a0e7049004c5a8423a280d49d9ee0938e52bd8"
+    }
+  ]
+}

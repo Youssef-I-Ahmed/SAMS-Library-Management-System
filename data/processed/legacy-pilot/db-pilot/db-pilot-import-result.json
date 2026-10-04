@@ -1,0 +1,31 @@
+{
+  "importedAt": "2026-10-04T02:06:33.116Z",
+  "pilotTag": "SPRINT7C_LEGACY_DB_PILOT",
+  "items": [
+    {
+      "legacyBookCode": "12",
+      "itemId": "17777b2e-f287-4bc7-b032-0c469c2b9dba",
+      "branchCode": "LEGACY_PILOT_DIGI1",
+      "copies": [
+        "9752a1e0-8bde-48f7-a94e-6fbbf1d145ae"
+      ]
+    },
+    {
+      "legacyBookCode": "19",
+      "itemId": "0eb7b890-693e-4a03-bc33-31200dbac79c",
+      "branchCode": "LEGACY_PILOT_DIGI1",
+      "copies": [
+        "b434e1b0-761d-441b-8704-782a57ecf739",
+        "14b66c44-9790-4088-9766-b3e45952f49b"
+      ]
+    },
+    {
+      "legacyBookCode": "1021",
+      "itemId": "f09182f8-4fe8-4bef-a1be-fa9b36d98fad",
+      "branchCode": "LEGACY_PILOT_SSS",
+      "copies": [
+        "551f8470-c70b-4ddc-a6a3-b60ec49df0fb"
+      ]
+    }
+  ]
+}

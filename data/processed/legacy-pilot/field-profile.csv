@@ -1,0 +1,127 @@
+dataset,sourceFile,field,totalRows,nonEmptyCount,emptyCount,distinctNonEmptyCount,sampleValues
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,PUBLISHING_DATE,22,21,1,5,2009 | 2008 | 2005 | 2007 | 2006
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,PERIODICAL_NOTES,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,RECORD_TYPE,22,21,1,1,1
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,LOCATION,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,H_YEAR,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,H_MONTH,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,FREE_GDATE,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,FREE_HDATE,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,USER_NAME,22,22,0,1,ADMIN
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,ENTER_DATE,22,22,0,4,2002-01-01 | 2010-02-11 | 2010-03-09 | 2011-04-16
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,PURE_TITLE,22,22,0,21,تانا | التمويلالمعاصر=contemporaryfinance | الشطحالابداعىضرورةحياتية | تبيسطاجراءاتالعمل:الاساليبوالاليات | الحكمالمحلىفىالوطنالعربىواتجاهاتالتطوير
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,BOOK_CODE,22,22,0,22,1 | 2 | 4 | 5 | 6
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,LANG_CODE,22,22,0,1,1
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,BOOK_TYPE,22,22,0,1,B
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,ISBN,22,13,9,13,977-281-385-8 | 977-5673-43-7 | 977-5433-54-1 | 977-337-210-3 | 977-17-2768-0
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,PRICE,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,CODE_PAGE,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,TITLE,22,22,0,21,تانا | التمويل المعاصر = contemporary finance | الشطح الابداعى ضرورة حياتية | تبيسط اجراءات العمل : الاساليب والاليات | الحكم المحلى فى الوطن العربى واتجاهات التطوير
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,SUB_TITLE,22,4,18,4,الواقع المتعثر والبديل الأفضل | رؤية علمية منهجية شاملة للمنظومة الأمنية لحماية الدولة ومشاريع الاستثمار والمستثمرين من الجريمة والإرهاب فى عصر العولمة | عرض طريف ومشوق للمفاهيم الاقتصادية | مرتكزات فكرية ومتطلبات تأسيس عملية
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,SECTION_NUM,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,SECTION_TITLE,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,EXTENT,22,21,1,21,559 ص | 256 ص | 103 ص | 428 ص | 203
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,OTHER_PHYSICAL_DETAILS,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,DIMENSION,22,21,1,11,24*17 سم | 23*16 سم | 30*20 | 23×17 سم | 23*17 سم
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,ACCOMP_MATERIAL,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,GENERAL_NOTE,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,CALL_NUM,22,22,0,22,2425 | 336.014 / ف.ت | 153.35 | 342.006 | 352.14 / م.ج
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,STRN,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,EDITION_STATMENT,22,21,1,2,1 | 2
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,REMAN_EDITION_STATMENT,22,2,20,2,كود المكتبة 2 | كود المكتبة 1
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,NUM_OF_COPIES,22,22,0,4,1 | 3 | 2 | 4
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,SUMMARY,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,NUM_OF_VOLUMES,22,22,0,2,1 | 2
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,TRANS_TITLE,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,REMAIN_TRANS_TITLE,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,TRANS_TITLE_SECTION_NUM,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,TRANS_TITLE_SECTION_NAME,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,COLLECTIVE_TITLE,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,COLLECTIVE_TITLE_SECTION_NUM,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,COLLECTIVE_TITLE_SECTION_NAME,22,0,22,0,
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,EDITOR_TYPE,22,21,1,1,p
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,AUTHORS_EDITORS,22,21,1,20,فريد النجار | انكة ماير - جراسهورن | طارق عبد البارى | مصطفى ماهر | اسامة جرادات | محمد محمود الطعامنة | سمير محمد عبد الوهاب | مجموعة خبراء
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,PUBLISHERS,22,21,1,11,الدار الجامعية | المكتبة الاكاديمية | المنظمة العربية للتنمية الادارية | مركز الخبرات المهنية للادارة (بميك) | السحاب للنشر والتوزيع
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,SUBJECTS,22,21,1,21,التمويل | التمويل الدولى | القوائم المالية | الشركات المساهمة | التحليل المالى | العقارات - تمويل | دراسة الجدوى | الابداع | العبقرية | الاجراءات الادارية | الادارة المحلية - الوطن العربى | تقييم الاداء | الادارة العامة | الخدمة المدنية | القانون الادارى | تقييم الوظائف
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,COPY_GENERAL_CODES,22,22,0,22,1/1/1 | 2/2/1 | 2/1/1 | 2/3/1 | 4/1/1 | 5/1/1 | 5/2/1 | 6/1/1 | 6/2/1
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,COPY_STATUSES,22,22,0,1,A
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,EXTRACTED_COPY_COUNT,22,22,0,3,1 | 3 | 2
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,SOURCE_DB,22,22,0,2,digi1.DB | sss.DB
+BOOKS_PARTIAL_REFERENCE,books-extracted-partial.csv,EXTRACTION_STATUS,22,22,0,1,Partial legacy extraction; full library program folder required for final recovery
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,BOOK_CODE,2130,2130,0,2130,1 | 2 | 3 | 4 | 5
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,TITLE,2130,22,2108,21,تانا | التمويل المعاصر = contemporary finance | الشطح الابداعى ضرورة حياتية | تبيسط اجراءات العمل : الاساليب والاليات | الحكم المحلى فى الوطن العربى واتجاهات التطوير
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,TITLE_RECOVERY_STATUS,2130,2130,0,2,Recovered from BOOK table | Missing from available BOOK master records
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,PUBLISHING_DATE,2130,21,2109,5,2009 | 2008 | 2005 | 2007 | 2006
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,ISBN,2130,13,2117,13,977-281-385-8 | 977-5673-43-7 | 977-5433-54-1 | 977-337-210-3 | 977-17-2768-0
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,CALL_NUM,2130,22,2108,22,2425 | 336.014 / ف.ت | 153.35 | 342.006 | 352.14 / م.ج
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,BOOK_TYPE,2130,22,2108,1,B
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,LANG_CODE,2130,22,2108,1,1
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,EDITION_STATEMENT,2130,21,2109,2,1 | 2
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,EXTENT,2130,21,2109,21,559 ص | 256 ص | 103 ص | 428 ص | 203
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,DIMENSION,2130,21,2109,11,24*17 سم | 23*16 سم | 30*20 | 23×17 سم | 23*17 سم
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,GENERAL_NOTE,2130,0,2130,0,
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,AUTHORS_EDITORS,2130,1487,643,934,فريد النجار | انكة ماير - جراسهورن | طارق عبد البارى | مصطفى ماهر | اسامة جرادات | محمد محمود الطعامنة | سمير محمد عبد الوهاب | مجموعة خبراء
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,EDITOR_CODES,2130,1487,643,934,1 | 2 | 4 | 3 | 5 | 6 | 7 | 8
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,UNRESOLVED_EDITOR_CODES,2130,0,2130,0,
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,PUBLISHERS,2130,2035,95,164,الدار الجامعية | المكتبة الاكاديمية | المنظمة العربية للتنمية الادارية | مركز الخبرات المهنية للادارة (بميك) | السحاب للنشر والتوزيع
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,PUBLISHER_CODES,2130,2035,95,164,1 | 2 | 3 | 6 | 7
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,UNRESOLVED_PUBLISHER_CODES,2130,0,2130,0,
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,SUBJECTS,2130,730,1400,697,التمويل | التمويل الدولى | القوائم المالية | الشركات المساهمة | التحليل المالى | العقارات - تمويل | دراسة الجدوى | الابداع | العبقرية | الاجراءات الادارية | الادارة المحلية - الوطن العربى | تقييم الاداء | الادارة العامة | الخدمة المدنية | القانون الادارى | تقييم الوظائف
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,SUBJECT_CODES,2130,730,1400,697,1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 17
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,UNRESOLVED_SUBJECT_CODES,2130,0,2130,0,
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,RECOVERED_COPY_COUNT,2130,2130,0,8,1 | 3 | 0 | 2 | 7
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,COPY_GENERAL_CODES,2130,1299,831,1299,1/1/1 | 2/2/1 | 2/1/1 | 2/3/1 | 4/1/1 | 5/1/1 | 5/2/1 | 6/1/1 | 6/2/1
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,COPY_STATUSES,2130,1299,831,1,A
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,COPY_CLASSIFICATION_OTHER_NUMBER,2130,1284,846,376,336.014 | 153.35 | 342.006 | 352.14 | 658.4
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,COPY_GENERAL_NUMBERS,2130,1265,865,1265,17598 | 18012 | 92671 | 17698 | 17700 | 17610 | 14503
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,DELETED_COPY_COUNT,2130,2130,0,2,0 | 1
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,ALTERNATE_TITLES,2130,0,2130,0,
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,SERIAL_NUMBERS,2130,169,1961,36,401 | 1 | 0 | 352 | 451
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,MASTER_SOURCE_DB,2130,22,2108,2,digi1.DB | sss.DB
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,SOURCE_EVIDENCE,2130,2130,0,27,digi1.DB:BOOK | digi1.DB:BOOK_OTHER_TITLES | digi1.DB:COPIES_VOLUMES | digi1.DB:BOOK | digi1.DB:BOOK_OTHER_TITLES | digi1.DB:BOOK_SUBJECT | digi1.DB:COPIES_VOLUMES | digi1.DB:COPIES_VOLUMES_DELETED | digi1.DB:EDITOR_BOOK | digi1.DB:PUBL_BOOK | sss.DB:COPIES_VOLUMES_DELETED | digi1.DB:COPIES_VOLUMES_DELETED | sss.DB:COPIES_VOLUMES_DELETED | digi1.DB:BOOK | digi1.DB:BOOK_OTHER_TITLES | digi1.DB:BOOK_SUBJECT | digi1.DB:COPIES_VOLUMES | digi1.DB:EDITOR_BOOK | digi1.DB:PUBL_BOOK | digi1.DB:BOOK | digi1.DB:BOOK_OTHER_TITLES | digi1.DB:BOOK_SUBJECT | digi1.DB:COPIES_VOLUMES | digi1.DB:EDITOR_BOOK | digi1.DB:PUBL_BOOK | digi1.DB:SERIAL_BOOK
+BOOKS_RECONSTRUCTED,books-reconstructed-recovery.csv,RECOVERY_STATUS,2130,2130,0,2,MASTER_RECORD_RECOVERED | MASTER_TITLE_MISSING_RELATIONS_RECOVERED
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,PUBLISHING_DATE,3890,3880,10,30,2003 | 2002 | 2001 | 2004 | 2005
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,PERIODICAL_NOTES,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,RECORD_TYPE,3890,3265,625,3,1 | 4 | 6
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,LOCATION,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,H_YEAR,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,H_MONTH,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,FREE_GDATE,3890,1,3889,1,2020
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,FREE_HDATE,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,USER_NAME,3890,3890,0,2,RAGAA | ADMIN
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,ENTER_DATE,3890,3890,0,435,2003-02-24 | 2003-02-18 | 2003-02-20 | 2003-02-23 | 2003-04-29
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,PURE_TITLE,3890,3890,0,3883,البنوكوالخدماتالمصرفيةالجديدة/نسمةعادلعنتر،نسمةفؤادجابر | الخصخصةوالتحليلالمالى/علاءالدينصبحىعبدالعال،سعدالدينعبدالفتاحسلام | دورالجهازالمصرفىفىمنحالتسهيلاتالإئتمانية | دورالمؤسساتالمصرفيةالمصريةفىتنشيطالصادراتالمصرية | التجارةالإلكترونيةوانعكاسهاعلىتنشيطالتجارةالدولية
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,BOOK_CODE,3890,3890,0,3890,1 | 2 | 3 | 4 | 5
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,LANG_CODE,3890,3890,0,4,1 | 2 | 3 | 04
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,BOOK_TYPE,3890,3890,0,2,1 | B
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,ISBN,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,PRICE,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,CODE_PAGE,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,TITLE,3890,3890,0,3884,البنوك والخدمات المصرفية الجديدة / نسمة عادل عنتر ، نسمة فؤاد جابر | الخصخصة و التحليل المالى / علاء الدين صبحى عبد العال ، سعد الدين عبد الفتاح سلام | دور الجهاز المصرفى فى منح التسهيلات الإئتمانية | دور المؤسسات المصرفية المصرية فى تنشيط الصادرات المصرية | التجارة الإلكترونية و انعكاسها على تنشيط التجارة الدولية
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,SUB_TITLE,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,SECTION_NUM,3890,2,3888,2,2011 | 2018
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,SECTION_TITLE,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,EXTENT,3890,2988,902,585,198 ص | 85 ص | 291 ص | 173 ص | 224 ص
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,OTHER_PHYSICAL_DETAILS,3890,2,3888,2,C.D. | CD
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,DIMENSION,3890,3204,686,129,30*20 سم | 15 × 12 | 30 × 20 سم | 30×20 سم | 30×20سم
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,ACCOMP_MATERIAL,3890,2334,1556,8,CD | C.D | C.D. | ِC.D. | C.D./
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,GENERAL_NOTE,3890,23,3867,6,-C.D. | - C.D. | C.D | C.D. | - C.D
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,CALL_NUM,3890,3890,0,57,332 | 322 | 338.27 | 004 | 332.1
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,STRN,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,EDITION_STATMENT,3890,1199,2691,2,1 | الاولي
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,REMAN_EDITION_STATMENT,3890,1,3889,1,/
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,NUM_OF_COPIES,3890,3890,0,2,-1 | 1
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,SUMMARY,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,NUM_OF_VOLUMES,3890,3889,1,1,1
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,TRANS_TITLE,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,REMAIN_TRANS_TITLE,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,TRANS_TITLE_SECTION_NUM,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,TRANS_TITLE_SECTION_NAME,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,COLLECTIVE_TITLE,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,COLLECTIVE_TITLE_SECTION_NUM,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,COLLECTIVE_TITLE_SECTION_NAME,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,EDITOR_TYPE,3890,3843,47,1,p
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,RECORD_CATEGORY,3890,3890,0,1,Project/Thesis/Research (legacy library DB)
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,SOURCE_DB,3890,3890,0,3,digi3.DB | digi3.DB;slis2.db | slis2.db
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,MERGE_CONFLICT_FIELDS,3890,0,3890,0,
+ACADEMIC_WORKS_RECOVERED,projects-theses-extracted.csv,EXTRACTION_STATUS,3890,3890,0,1,Recovered from legacy DB files; final validation requires full library program folder

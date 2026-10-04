@@ -16,31 +16,94 @@ import { reservationsRouter } from './modules/reservations/reservations.routes.j
 import { borrowingsRouter } from './modules/borrowings/borrowings.routes.js';
 import { visitsRouter } from './modules/visits/visits.routes.js';
 import { analyticsRouter } from './modules/analytics/analytics.routes.js';
-import { notFound, errorHandler } from './middleware/error-handler.js';
+import { requestContext } from './middleware/request-context.js';
+import { requestLogger } from './middleware/request-logger.js';
+import {
+  corsOptions,
+  rejectTrace
+} from './middleware/security.js';
+import {
+  notFound,
+  errorHandler
+} from './middleware/error-handler.js';
 
-export const app = express();
+export const app =
+  express();
 
-app.use(helmet());
-app.use(cors({
-  origin: env.WEB_ORIGIN,
-  credentials: true
-}));
-app.use(express.json({
-  limit: '2mb'
-}));
+// Correlation ID comes first so even rejected requests
+// and parser errors can be traced safely.
+app.use(
+  requestContext
+);
 
-app.get('/', (_req, res) => {
-  res.json({
-    service: 'SAMS Library API',
-    version: 'v1'
-  });
-});
+app.use(
+  requestLogger
+);
 
-app.use('/api/v1/health', healthRouter);
-app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/master-data', masterDataRouter);
-app.use('/api/v1/students', studentsRouter);
-app.use('/api/v1/catalog-master', catalogMasterRouter);
+app.use(
+  helmet()
+);
+
+app.use(
+  rejectTrace
+);
+
+app.use(
+  cors(
+    corsOptions
+  )
+);
+
+app.use(
+  express.json({
+    limit:
+      env.API_JSON_LIMIT,
+    strict: true,
+    type:
+      'application/json'
+  })
+);
+
+app.get(
+  '/',
+  (
+    _req,
+    res
+  ) => {
+    res.json({
+      service:
+        'SAMS Library API',
+      version:
+        'v1'
+    });
+  }
+);
+
+app.use(
+  '/api/v1/health',
+  healthRouter
+);
+
+app.use(
+  '/api/v1/auth',
+  authRouter
+);
+
+app.use(
+  '/api/v1/master-data',
+  masterDataRouter
+);
+
+app.use(
+  '/api/v1/students',
+  studentsRouter
+);
+
+app.use(
+  '/api/v1/catalog-master',
+  catalogMasterRouter
+);
+
 app.use(
   '/api/v1/catalog/contributors',
   contributorsRouter
@@ -50,6 +113,7 @@ app.use(
   '/api/v1/catalog/items',
   availabilityRouter
 );
+
 app.use(
   '/api/v1/catalog/items',
   libraryItemsRouter
@@ -85,5 +149,10 @@ app.use(
   analyticsRouter
 );
 
-app.use(notFound);
-app.use(errorHandler);
+app.use(
+  notFound
+);
+
+app.use(
+  errorHandler
+);

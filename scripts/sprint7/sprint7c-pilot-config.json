@@ -1,0 +1,25 @@
+{
+  "pilotTag": "SPRINT7C_LEGACY_DB_PILOT",
+  "mappingPurpose": "TEST_ONLY_SYNTHETIC_QUARANTINE",
+  "sampleLegacyBookCodes": ["12", "19", "1021"],
+  "sourceDbToPilotBranch": {
+    "digi1.DB": {
+      "code": "LEGACY_PILOT_DIGI1",
+      "name": "[PILOT] Legacy digi1.DB"
+    },
+    "sss.DB": {
+      "code": "LEGACY_PILOT_SSS",
+      "name": "[PILOT] Legacy sss.DB"
+    }
+  },
+  "legacyStatusHandling": {
+    "A": "UNAVAILABLE"
+  },
+  "notes": [
+    "This mapping exists only to test migration mechanics.",
+    "It does NOT assert that legacy status A means SAMS UNAVAILABLE.",
+    "UNAVAILABLE is used as a quarantine target so pilot copies cannot become lendable.",
+    "Pilot branches are temporary and are deleted by cleanup.",
+    "Production source-to-branch and legacy-status mappings remain unresolved."
+  ]
+}

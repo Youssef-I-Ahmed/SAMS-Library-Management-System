@@ -1,0 +1,35 @@
+legacyBookCode,title,copyOrdinal,legacyCopyCode,legacyStatusEvidence,sourceDb,targetBranchCode,proposedTargetStatus,copyCode,barcode,shelfLocation,action
+1,تانا,1,1/1/1,A,digi1.DB,,,1/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+2,التمويل المعاصر = contemporary finance,1,2/2/1,A,digi1.DB,,,2/2/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+2,التمويل المعاصر = contemporary finance,2,2/1/1,A,digi1.DB,,,2/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+2,التمويل المعاصر = contemporary finance,3,2/3/1,A,digi1.DB,,,2/3/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+4,الشطح الابداعى ضرورة حياتية,1,4/1/1,A,digi1.DB,,,4/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+5,تبيسط اجراءات العمل : الاساليب والاليات,1,5/1/1,A,digi1.DB,,,5/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+5,تبيسط اجراءات العمل : الاساليب والاليات,2,5/2/1,A,digi1.DB,,,5/2/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+6,الحكم المحلى فى الوطن العربى واتجاهات التطوير,1,6/1/1,A,digi1.DB,,,6/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+6,الحكم المحلى فى الوطن العربى واتجاهات التطوير,2,6/2/1,A,digi1.DB,,,6/2/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+7,"فلسفة الوظيفة العامة والموظف العام : بحوث واوراق عمل "" ندوة التشريعات الحاكمة للخدمة المدنية فى الوطن العربى""",1,7/1/1,A,digi1.DB,,,7/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+8,مهارات ادارة الاجتماعات,1,8/1/1,A,digi1.DB,,,8/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+8,مهارات ادارة الاجتماعات,2,8/2/1,A,digi1.DB,,,8/2/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+9,6 سيجما ومصفوفة الاداء المتوازن لمن ينشد الاداء الامثل,1,9/1/1,A,digi1.DB,,,9/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+10,اقتصاديات الموارد والبيئة,1,10/1/1,A,digi1.DB,,,10/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+11,التنمية فى مصر,1,11/1/1,A,digi1.DB,,,11/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+12,الإدارة الإلكترونية,1,12/1/1,A,digi1.DB,,,12/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+13,كل شئ عن صيانة الكمبيوتر وتجميعه,1,13/1/1,A,digi1.DB,,,13/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+14,مبادئ علم الاقتصاد,1,14/1/1,A,digi1.DB,,,14/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+14,مبادئ علم الاقتصاد,2,14/2/1,A,digi1.DB,,,14/2/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+14,مبادئ علم الاقتصاد,3,14/3/1,A,digi1.DB,,,14/3/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+15,التسويق المتقدم,1,15/1/1,A,digi1.DB,,,15/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+16,أمن الاستثمار,1,16/2/1,A,digi1.DB,,,16/2/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+16,أمن الاستثمار,2,16/1/1,A,digi1.DB,,,16/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+16,أمن الاستثمار,3,16/3/1,A,digi1.DB,,,16/3/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+17,تنمية المهارات الإدارية السلوكية للعاملين الجدد,1,17/1/1,A,digi1.DB,,,17/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+17,تنمية المهارات الإدارية السلوكية للعاملين الجدد,2,17/2/1,A,digi1.DB,,,17/2/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+18,الاقتصاد عارياً,1,18/1/1,A,digi1.DB,,,18/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+19,الإدارة الإلكترونية,1,19/1/1,A,digi1.DB,,,19/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+19,الإدارة الإلكترونية,2,19/2/1,A,digi1.DB,,,19/2/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+20,الاقتصاد الجزئى,1,20/1/1,A,digi1.DB,,,20/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+20,الاقتصاد الجزئى,2,20/2/1,A,digi1.DB,,,20/2/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+21,المشتقات والهندسة المالية,1,21/1/1,A,digi1.DB,,,21/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+1021,تحديد مخاطر الائتمان,1,1021/1/1,A,sss.DB,,,1021/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING
+1022,ادارة جودة الخدمة فى الضيافة والسياحة ووقت الفراغ,1,1022/1/1,A,sss.DB,,,1022/1/1,,,BLOCKED_BRANCH_AND_STATUS_MAPPING

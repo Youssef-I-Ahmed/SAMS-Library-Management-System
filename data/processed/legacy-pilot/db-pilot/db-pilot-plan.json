@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-10-04T02:06:32.949Z",
+  "pilotTag": "SPRINT7C_LEGACY_DB_PILOT",
+  "mappingPurpose": "TEST_ONLY_SYNTHETIC_QUARANTINE",
+  "applicationDatabaseWritePlanned": true,
+  "sampleBookCount": 3,
+  "proposedCopyCount": 4,
+  "collisionBlockerCount": 0,
+  "collisionChecks": [
+    {
+      "legacyBookCode": "12",
+      "title": "الإدارة الإلكترونية",
+      "sourceDb": "digi1.DB",
+      "pilotBranchCode": "LEGACY_PILOT_DIGI1",
+      "legacyStatus": "A",
+      "pilotTargetStatus": "UNAVAILABLE",
+      "proposedCopyCount": 1,
+      "exactExistingCount": 0,
+      "existingIds": []
+    },
+    {
+      "legacyBookCode": "19",
+      "title": "الإدارة الإلكترونية",
+      "sourceDb": "digi1.DB",
+      "pilotBranchCode": "LEGACY_PILOT_DIGI1",
+      "legacyStatus": "A",
+      "pilotTargetStatus": "UNAVAILABLE",
+      "proposedCopyCount": 2,
+      "exactExistingCount": 0,
+      "existingIds": []
+    },
+    {
+      "legacyBookCode": "1021",
+      "title": "تحديد مخاطر الائتمان",
+      "sourceDb": "sss.DB",
+      "pilotBranchCode": "LEGACY_PILOT_SSS",
+      "legacyStatus": "A",
+      "pilotTargetStatus": "UNAVAILABLE",
+      "proposedCopyCount": 1,
+      "exactExistingCount": 0,
+      "existingIds": []
+    }
+  ],
+  "safety": {
+    "pilotBranchesTemporary": true,
+    "copyTargetStatus": "UNAVAILABLE",
+    "lendableCopiesCreated": false,
+    "productionMappingApproved": false,
+    "autoMergeDuplicates": false
+  }
+}

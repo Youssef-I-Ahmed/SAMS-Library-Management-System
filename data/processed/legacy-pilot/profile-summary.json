@@ -1,0 +1,79 @@
+{
+  "generatedAt": "2026-10-04T02:06:31.543Z",
+  "totals": {
+    "sourceFiles": 3,
+    "sourceRows": 6042,
+    "exceptionCount": 8264,
+    "severityCounts": {
+      "INFO": 22,
+      "BLOCKER": 8107,
+      "WARNING": 135
+    }
+  },
+  "datasets": [
+    {
+      "dataset": "BOOKS_PARTIAL_REFERENCE",
+      "sourceRole": "REFERENCE_EVIDENCE_ONLY",
+      "fileName": "books-extracted-partial.csv",
+      "sha256": "4f02384aff6e4a07d21e04e6b0b1c11c2319d9824269c91f3b047b8d061eac97",
+      "columnCount": 49,
+      "rowCount": 22,
+      "malformedRowCount": 0,
+      "missingTitleCount": 0,
+      "importCandidateRows": 0,
+      "blockedRows": 22,
+      "callNumberCommaCount": 0,
+      "negativeCopyCount": 0,
+      "blockerExceptionCount": 0,
+      "warningExceptionCount": 0,
+      "uniqueNonEmptyTitles": 21,
+      "duplicateTitleGroups": 1,
+      "duplicateExtraRows": 1
+    },
+    {
+      "dataset": "BOOKS_RECONSTRUCTED",
+      "sourceRole": "PRIMARY_BOOK_RECOVERY",
+      "fileName": "books-reconstructed-recovery.csv",
+      "sha256": "6d7117f0100f55dc3346d648adfeb6a2d84b6fafabe745084bb5079b3e688081",
+      "columnCount": 32,
+      "rowCount": 2130,
+      "malformedRowCount": 0,
+      "missingTitleCount": 2108,
+      "importCandidateRows": 22,
+      "blockedRows": 2108,
+      "callNumberCommaCount": 0,
+      "negativeCopyCount": 0,
+      "blockerExceptionCount": 4216,
+      "warningExceptionCount": 0,
+      "uniqueNonEmptyTitles": 21,
+      "duplicateTitleGroups": 1,
+      "duplicateExtraRows": 1
+    },
+    {
+      "dataset": "ACADEMIC_WORKS_RECOVERED",
+      "sourceRole": "PRIMARY_ACADEMIC_WORK_RECOVERY",
+      "fileName": "projects-theses-extracted.csv",
+      "sha256": "150ced30b3b3d3068b66b6b27ff0fb137ec9b8dd6386e5f2278639595bf3f411",
+      "columnCount": 45,
+      "rowCount": 3890,
+      "malformedRowCount": 0,
+      "missingTitleCount": 0,
+      "importCandidateRows": 0,
+      "blockedRows": 3890,
+      "callNumberCommaCount": 135,
+      "negativeCopyCount": 1,
+      "blockerExceptionCount": 3891,
+      "warningExceptionCount": 135,
+      "uniqueNonEmptyTitles": 3884,
+      "duplicateTitleGroups": 6,
+      "duplicateExtraRows": 6
+    }
+  ],
+  "migrationGate": {
+    "applicationDatabaseWritten": false,
+    "rawFilesModified": false,
+    "booksReadyForNextTransformPilot": 22,
+    "academicWorksReadyForImport": 0,
+    "unresolvedDecision": "PROJECT_VS_THESIS_MAPPING_REQUIRED"
+  }
+}
