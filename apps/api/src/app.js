@@ -12,6 +12,10 @@ import { contributorsRouter } from './modules/catalog/contributors.routes.js';
 import { physicalCopiesRouter } from './modules/inventory/physical-copies.routes.js';
 import { availabilityRouter } from './modules/availability/availability.routes.js';
 import { discoveryRouter } from './modules/discovery/discovery.routes.js';
+import { reservationsRouter } from './modules/reservations/reservations.routes.js';
+import { borrowingsRouter } from './modules/borrowings/borrowings.routes.js';
+import { visitsRouter } from './modules/visits/visits.routes.js';
+import { analyticsRouter } from './modules/analytics/analytics.routes.js';
 import { notFound, errorHandler } from './middleware/error-handler.js';
 
 export const app = express();
@@ -21,7 +25,9 @@ app.use(cors({
   origin: env.WEB_ORIGIN,
   credentials: true
 }));
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({
+  limit: '2mb'
+}));
 
 app.get('/', (_req, res) => {
   res.json({
@@ -35,18 +41,49 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/master-data', masterDataRouter);
 app.use('/api/v1/students', studentsRouter);
 app.use('/api/v1/catalog-master', catalogMasterRouter);
-app.use('/api/v1/catalog/contributors', contributorsRouter);
+app.use(
+  '/api/v1/catalog/contributors',
+  contributorsRouter
+);
 
-app.use('/api/v1/catalog/items', availabilityRouter);
-app.use('/api/v1/catalog/items', libraryItemsRouter);
+app.use(
+  '/api/v1/catalog/items',
+  availabilityRouter
+);
+app.use(
+  '/api/v1/catalog/items',
+  libraryItemsRouter
+);
 
-app.use('/api/v1/inventory/copies', physicalCopiesRouter);
+app.use(
+  '/api/v1/inventory/copies',
+  physicalCopiesRouter
+);
 
-/*
- * Student-facing read model.
- * Keeps discovery/search separate from librarian catalog mutation APIs.
- */
-app.use('/api/v1/discovery', discoveryRouter);
+app.use(
+  '/api/v1/discovery',
+  discoveryRouter
+);
+
+app.use(
+  '/api/v1/reservations',
+  reservationsRouter
+);
+
+app.use(
+  '/api/v1/borrowings',
+  borrowingsRouter
+);
+
+app.use(
+  '/api/v1/visits',
+  visitsRouter
+);
+
+app.use(
+  '/api/v1/analytics',
+  analyticsRouter
+);
 
 app.use(notFound);
 app.use(errorHandler);
