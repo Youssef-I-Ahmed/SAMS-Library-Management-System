@@ -1,4 +1,8 @@
 import { PrismaClient, AcademicStatus } from '@prisma/client';
+import { seedFrontendFixtures, assertFrontendSeedEnvironment } from './seed-frontend.js';
+
+const includeFrontend = process.argv.includes('--frontend');
+if (includeFrontend) assertFrontendSeedEnvironment(process.env);
 
 const prisma = new PrismaClient();
 
@@ -126,6 +130,16 @@ async function main() {
   });
 
   await ensureUserRole(managementUser.id, roles.MANAGEMENT.id);
+
+  if (includeFrontend) {
+    await seedFrontendFixtures(prisma, {
+      studentId: studentUser.id,
+      librarianId: librarianUser.id,
+      studentRoleId: roles.STUDENT.id,
+      facultyId: faculty.id,
+      departmentId: department.id
+    });
+  }
 
   console.log('Seeded roles and Sprint 1 development users');
   console.log('  student@sams.dev');

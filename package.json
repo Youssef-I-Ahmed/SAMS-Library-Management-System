@@ -13,6 +13,7 @@
     "db:generate": "npm run prisma:generate -w @sams/api",
     "db:migrate": "npm run prisma:migrate -w @sams/api",
     "db:seed": "npm run prisma:seed -w @sams/api",
+    "db:seed:frontend": "npm run prisma:seed -w @sams/api -- --frontend",
     "test": "npm run test -w @sams/api",
     "db:validate": "npm run prisma:validate -w @sams/api"
   },
