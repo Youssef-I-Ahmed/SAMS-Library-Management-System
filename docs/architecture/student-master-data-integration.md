@@ -1,6 +1,6 @@
 # Student Master Data Integration Decision
 
-**Status:** Approved architecture direction  
+**Status:** Approved architecture direction
 **Integration source:** TBD
 
 ## Ownership

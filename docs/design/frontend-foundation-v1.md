@@ -1,6 +1,6 @@
 # SAMS Library Frontend Foundation v1
 
-**Sprint:** 9A  
+**Sprint:** 9A
 **Scope:** Frontend architecture, localization, theming, branding and responsive baseline.
 
 ## Core rules
