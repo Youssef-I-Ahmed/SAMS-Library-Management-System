@@ -132,8 +132,11 @@ export async function getDiscoveryFacets() {
     ...new Set(branchItemGroups.map((row) => row.branchId))
   ];
 
+  // These lookups are optional. When one of the ID collections is empty,
+  // the fallback is a native Promise.resolve([]). Prisma array transactions
+  // only accept PrismaPromise values, so use Promise.all here instead.
   const [categories, deweyClassifications, branches] =
-    await prisma.$transaction([
+    await Promise.all([
       categoryIds.length
         ? prisma.category.findMany({
             where: {
