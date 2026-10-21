@@ -1,0 +1,419 @@
+/* Sprint 9G3: final UI/UX, responsive, RTL and accessibility polish. */
+
+:root {
+  --interactive-min: 44px;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  outline-offset: 3px;
+}
+
+button:not(:disabled),
+select:not(:disabled),
+input[type='checkbox']:not(:disabled),
+input[type='radio']:not(:disabled) {
+  cursor: pointer;
+}
+
+input:not([type='checkbox']):not([type='radio']),
+select,
+textarea {
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+input:not([type='checkbox']):not([type='radio']):focus,
+select:focus,
+textarea:focus {
+  border-color: var(--brand-accent) !important;
+  box-shadow:
+    0 0 0 3px var(--focus-ring);
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+}
+
+.student-shell__nav a,
+.student-mobile-nav a,
+.staff-sidebar__nav a,
+.control-button,
+.language-switcher__option,
+.user-menu__trigger {
+  min-height: var(--interactive-min);
+}
+
+/* Student mobile navigation: the desktop nav used to disappear below 1100px. */
+.student-mobile-nav {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .student-shell__nav {
+    display: flex;
+    max-width: 52vw;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  .student-shell__nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .student-shell__nav a {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .student-shell {
+    padding-block-end: 72px;
+  }
+
+  .student-shell__nav {
+    display: none;
+  }
+
+  .student-mobile-nav {
+    position: fixed;
+    z-index: 55;
+    inset-inline: 10px;
+    inset-block-end: 10px;
+
+    min-height: 56px;
+    padding: 5px;
+
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+
+    border: 1px solid var(--border-default);
+    border-radius: 18px;
+
+    background:
+      color-mix(
+        in srgb,
+        var(--surface) 92%,
+        transparent
+      );
+
+    box-shadow: var(--shadow-soft);
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .student-mobile-nav a {
+    min-width: 0;
+    padding: 6px 4px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 12px;
+
+    color: var(--text-muted);
+
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .student-mobile-nav a.is-active {
+    color: var(--brand-primary);
+    background: var(--surface-muted);
+  }
+}
+
+/* Compact staff navigation on small screens instead of a tall 4-row menu. */
+@media (max-width: 820px) {
+  .staff-sidebar {
+    padding: 9px 10px;
+  }
+
+  .staff-sidebar__brand,
+  .staff-sidebar__eyebrow {
+    display: none;
+  }
+
+  .staff-sidebar__nav {
+    display: flex;
+    gap: 6px;
+
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  .staff-sidebar__nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .staff-sidebar__nav a {
+    flex: 0 0 auto;
+    min-height: 42px;
+    padding-inline: 12px;
+    white-space: nowrap;
+  }
+
+  .staff-topbar {
+    min-height: 68px;
+  }
+}
+
+/* Content rhythm and readable page width. */
+.student-shell__main,
+.staff-content {
+  scroll-margin-block-start: 90px;
+}
+
+.staff-content {
+  max-width: 1600px;
+  margin-inline: auto;
+}
+
+.staff-page__header,
+.admin-page__header,
+.circulation-page__header,
+.catalog-page__header {
+  max-width: 920px;
+}
+
+/* Cards and rows get clearer hover affordance without changing layout. */
+.discovery-item-card,
+.circulation-card,
+.staff-operation-row,
+.admin-table tbody tr,
+.metric-card {
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+@media (hover: hover) {
+  .staff-operation-row:hover,
+  .circulation-card:hover,
+  .metric-card:hover {
+    border-color: var(--border-strong);
+  }
+
+  .admin-table tbody tr:hover {
+    background: var(--surface-subtle);
+  }
+}
+
+/* Tables */
+.admin-table-wrap {
+  border-radius: var(--sams-radius-lg);
+  scrollbar-gutter: stable;
+}
+
+.admin-table th {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+
+  background: var(--surface);
+}
+
+.admin-table tbody tr:last-child td {
+  border-block-end: 0;
+}
+
+/* Action controls should be easy to tap. */
+.admin-row-actions button,
+.admin-table td > button,
+.staff-danger-link {
+  min-height: 38px;
+  padding-inline: 7px;
+  border-radius: var(--sams-radius-sm, 6px);
+}
+
+.staff-primary-button,
+.staff-secondary-action,
+.admin-primary-button,
+.admin-secondary-button {
+  min-height: var(--interactive-min);
+}
+
+/* Modal polish */
+.admin-modal-backdrop,
+.staff-modal-backdrop {
+  overscroll-behavior: contain;
+}
+
+.admin-modal {
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-modal__heading {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+
+  background: var(--surface);
+}
+
+.admin-modal__actions {
+  position: sticky;
+  z-index: 2;
+  bottom: 0;
+
+  background: var(--surface);
+}
+
+.admin-modal__close {
+  width: 44px;
+  height: 44px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50% !important;
+}
+
+.admin-modal__close:hover {
+  background: var(--surface-muted);
+}
+
+/* Notices */
+.admin-notice,
+.admin-source-notice,
+.staff-operation-notice,
+.inline-alert {
+  overflow-wrap: anywhere;
+}
+
+/* RTL refinements */
+html[dir='rtl'] .staff-sidebar__nav a,
+html[dir='rtl'] .student-shell__nav a,
+html[dir='rtl'] .student-mobile-nav a {
+  text-align: right;
+}
+
+html[dir='rtl'] .staff-operation-row__facts,
+html[dir='rtl'] .circulation-card__meta {
+  direction: rtl;
+}
+
+html[dir='rtl'] input[type='email'],
+html[dir='rtl'] input[dir='ltr'],
+html[dir='rtl'] [dir='ltr'] {
+  direction: ltr;
+  text-align: left;
+}
+
+html[dir='rtl'] .admin-table th,
+html[dir='rtl'] .admin-table td {
+  text-align: right;
+}
+
+/* Smaller screens */
+@media (max-width: 720px) {
+  .staff-content {
+    padding: 16px;
+  }
+
+  .staff-workflow-card,
+  .admin-card {
+    padding: 16px;
+  }
+
+  .staff-page__header h1,
+  .admin-page__header h1 {
+    font-size: clamp(28px, 9vw, 38px);
+  }
+
+  .admin-modal-backdrop,
+  .staff-modal-backdrop {
+    padding: 8px;
+    align-items: end;
+  }
+
+  .admin-modal,
+  .staff-modal {
+    width: 100%;
+    max-height: 92dvh;
+
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  .admin-modal__body {
+    padding: 16px;
+  }
+
+  .admin-modal__heading,
+  .admin-modal__actions {
+    padding-inline: 16px;
+  }
+
+  .staff-operation-row__facts {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-pagination,
+  .staff-pagination {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .student-shell__header-inner {
+    min-height: 64px;
+  }
+
+  .student-shell__logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .language-switcher__option {
+    min-width: 38px;
+  }
+
+  .metric-card {
+    min-height: 108px;
+  }
+
+  .metric-card strong {
+    font-size: 26px;
+  }
+}
+
+/* High contrast support */
+@media (prefers-contrast: more) {
+  :root {
+    --border-default: var(--border-strong);
+  }
+
+  .admin-status,
+  .staff-status,
+  .availability-badge,
+  .status-badge {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Motion is already globally reduced; keep fixed navigation non-animated too. */
+@media (prefers-reduced-motion: reduce) {
+  .student-mobile-nav,
+  .staff-sidebar__nav {
+    scroll-behavior: auto;
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "name": "SAMS Sprint 9A Clean Frontend Foundation",
+  "target_branch_baseline": "dev",
+  "does_not_include": [
+    "node_modules",
+    "dist",
+    ".env",
+    "database changes",
+    "backend changes",
+    "brand image binaries (already present in apps/web/public/brand)"
+  ],
+  "ports_changed": false,
+  "dependencies_added": false,
+  "key_features": [
+    "light/dark theme",
+    "English/Arabic",
+    "LTR/RTL",
+    "surface-aware SAMS logos",
+    "clean frontend source architecture",
+    "responsive foundation preview",
+    "smoke test"
+  ],
+  "files_in_patch": [
+    "apps/web/index.html",
+    "apps/web/src/App.jsx",
+    "apps/web/src/app/providers/AppProviders.jsx",
+    "apps/web/src/app/providers/LanguageProvider.jsx",
+    "apps/web/src/app/providers/ThemeProvider.jsx",
+    "apps/web/src/app/router/AppRouter.jsx",
+    "apps/web/src/components/brand/BrandLogo.jsx",
+    "apps/web/src/components/brand/brand-assets.js",
+    "apps/web/src/components/layout/FoundationHeader.jsx",
+    "apps/web/src/components/ui/LanguageSwitcher.jsx",
+    "apps/web/src/components/ui/ThemeToggle.jsx",
+    "apps/web/src/features/foundation/FoundationPage.jsx",
+    "apps/web/src/hooks/useLanguage.js",
+    "apps/web/src/hooks/useTheme.js",
+    "apps/web/src/i18n/index.js",
+    "apps/web/src/i18n/locales/ar.js",
+    "apps/web/src/i18n/locales/en.js",
+    "apps/web/src/main.jsx",
+    "apps/web/src/styles.css",
+    "apps/web/src/styles/base.css",
+    "apps/web/src/styles/layout.css",
+    "apps/web/src/styles/themes.css",
+    "apps/web/src/styles/utilities.css",
+    "docs/design/frontend-foundation-v1.md",
+    "docs/planning/SPRINT_9.md",
+    "docs/planning/sprint-9-checklist.md",
+    "scripts/sprint9/sprint9a-foundation-contract-smoke.js",
+    "scripts/sprint9/sprint9a-frontend-foundation-smoke.ps1"
+  ]
+}

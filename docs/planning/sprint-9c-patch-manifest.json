@@ -1,0 +1,39 @@
+{
+  "name": "SAMS Sprint 9C Student Discovery",
+  "prerequisites": [
+    "Sprint 9A",
+    "Sprint 9B"
+  ],
+  "backend_changes": false,
+  "database_changes": false,
+  "dependencies_added": false,
+  "commit_now": false,
+  "backend_contracts": [
+    "GET /api/v1/discovery/facets",
+    "GET /api/v1/discovery/items",
+    "GET /api/v1/discovery/items/:id"
+  ],
+  "files": [
+    "SPRINT9C_APPLY.md",
+    "apps/web/src/app/router/AppRouter.jsx",
+    "apps/web/src/components/discovery/AvailabilityBadge.jsx",
+    "apps/web/src/components/discovery/DiscoveryFilters.jsx",
+    "apps/web/src/components/discovery/DiscoveryItemCard.jsx",
+    "apps/web/src/features/discovery/discovery-api.js",
+    "apps/web/src/features/discovery/discovery-format.js",
+    "apps/web/src/features/discovery/discovery-query.js",
+    "apps/web/src/i18n/index.js",
+    "apps/web/src/i18n/locales/ar-discovery.js",
+    "apps/web/src/i18n/locales/en-discovery.js",
+    "apps/web/src/pages/student/CatalogPage.jsx",
+    "apps/web/src/pages/student/ItemDetailsPage.jsx",
+    "apps/web/src/pages/student/StudentHomePage.jsx",
+    "apps/web/src/styles.css",
+    "apps/web/src/styles/student-discovery.css",
+    "docs/frontend/STUDENT_DISCOVERY_v1.md",
+    "docs/planning/sprint-9-checklist.md",
+    "scripts/sprint9/sprint9c-discovery-contract-smoke.js",
+    "scripts/sprint9/sprint9c-live-discovery-smoke.js",
+    "scripts/sprint9/sprint9c-student-discovery-smoke.ps1"
+  ]
+}

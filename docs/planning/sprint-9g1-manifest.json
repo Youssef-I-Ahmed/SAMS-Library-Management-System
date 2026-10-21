@@ -1,0 +1,10 @@
+{
+  "name": "SAMS Sprint 9G1 Student Ownership + Code Splitting",
+  "studentMasterDataOwner": "University",
+  "integrationSource": "TBD",
+  "librarianStudentAccess": "read-only",
+  "backendChanges": false,
+  "databaseChanges": false,
+  "dependenciesAdded": false,
+  "commitNow": false
+}

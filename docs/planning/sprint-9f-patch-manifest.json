@@ -1,0 +1,33 @@
+{
+  "name": "SAMS Sprint 9F Admin + Analytics",
+  "backend_changes": false,
+  "database_schema_changes": false,
+  "dependencies_added": false,
+  "commit_now": false,
+  "files": [
+    "SPRINT9F_APPLY.md",
+    "apps/web/src/app/router/AppRouter.jsx",
+    "apps/web/src/components/admin/AdminModal.jsx",
+    "apps/web/src/components/admin/AdminStatusBadge.jsx",
+    "apps/web/src/components/admin/MetricCard.jsx",
+    "apps/web/src/features/admin/admin-api.js",
+    "apps/web/src/features/admin/admin-format.js",
+    "apps/web/src/features/admin/admin-query.js",
+    "apps/web/src/i18n/index.js",
+    "apps/web/src/i18n/locales/ar-admin.js",
+    "apps/web/src/i18n/locales/en-admin.js",
+    "apps/web/src/layouts/StaffShell.jsx",
+    "apps/web/src/pages/librarian/CatalogAdminPage.jsx",
+    "apps/web/src/pages/librarian/StudentsAdminPage.jsx",
+    "apps/web/src/pages/management/ManagementBorrowingsPage.jsx",
+    "apps/web/src/pages/management/ManagementVisitsPage.jsx",
+    "apps/web/src/pages/shared/AnalyticsDashboardPage.jsx",
+    "apps/web/src/styles.css",
+    "apps/web/src/styles/admin-analytics.css",
+    "docs/frontend/ADMIN_ANALYTICS_v1.md",
+    "docs/planning/sprint-9-checklist.md",
+    "scripts/sprint9/sprint9f-admin-analytics-smoke.ps1",
+    "scripts/sprint9/sprint9f-admin-contract-smoke.js",
+    "scripts/sprint9/sprint9f-live-admin-smoke.js"
+  ]
+}

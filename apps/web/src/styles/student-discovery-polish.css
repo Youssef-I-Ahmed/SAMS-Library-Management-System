@@ -1,0 +1,37 @@
+.item-detail-hero {
+  padding: clamp(20px, 3vw, 30px);
+  gap: 18px;
+}
+
+.item-detail-hero h1 {
+  margin: 10px 0 12px;
+  font-size: clamp(28px, 3.4vw, 44px);
+  line-height: 1.16;
+}
+
+.item-contributors > span {
+  padding: 7px 9px;
+}
+
+.discovery-item-card__footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.details-link-arrow {
+  display: inline-block;
+  transition: transform 140ms ease;
+}
+
+.discovery-item-card__footer a:hover .details-link-arrow {
+  transform: translateX(2px);
+}
+
+html[dir='rtl'] .details-link-arrow {
+  transform: rotate(180deg);
+}
+
+html[dir='rtl'] .discovery-item-card__footer a:hover .details-link-arrow {
+  transform: rotate(180deg) translateX(2px);
+}

@@ -1,0 +1,17 @@
+.admin-managed-copy-note {
+  margin: 0;
+  padding: 12px 14px;
+
+  border: 1px solid var(--border-default);
+  border-radius: var(--sams-radius-md);
+
+  color: var(--text-secondary);
+  background: var(--surface-subtle);
+
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.role-home__next > span {
+  color: var(--brand-accent);
+}

@@ -1,0 +1,16 @@
+{
+  "name": "SAMS Sprint 9G4 Final Closeout",
+  "backend_changes": false,
+  "database_changes": false,
+  "dependencies_added": false,
+  "commit_now": false,
+  "fixes": [
+    "avoid manual resend/change of circulation-managed RESERVED/BORROWED branch/status",
+    "remove internal Sprint/checkpoint wording from role home"
+  ],
+  "adds": [
+    "frontend RC1 release notes",
+    "final checklist",
+    "final closeout smoke"
+  ]
+}

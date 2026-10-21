@@ -1,0 +1,25 @@
+{
+  "name": "SAMS Sprint 9C Final Polish",
+  "backend_changes": false,
+  "database_changes": false,
+  "dependencies_added": false,
+  "commit_now": false,
+  "changes": [
+    "localize contributor roles",
+    "localize en/ar language values",
+    "remove internal Sprint wording from student UI",
+    "tighten item-detail hero spacing",
+    "improve details arrow and RTL behavior"
+  ],
+  "files": [
+    "SPRINT9C_FINAL_POLISH_APPLY.md",
+    "apps/web/src/components/discovery/DiscoveryItemCard.jsx",
+    "apps/web/src/features/discovery/discovery-format.js",
+    "apps/web/src/i18n/locales/ar-discovery.js",
+    "apps/web/src/i18n/locales/en-discovery.js",
+    "apps/web/src/pages/student/ItemDetailsPage.jsx",
+    "apps/web/src/styles.css",
+    "apps/web/src/styles/student-discovery-polish.css",
+    "scripts/sprint9/sprint9c-polish-contract-smoke.js"
+  ]
+}

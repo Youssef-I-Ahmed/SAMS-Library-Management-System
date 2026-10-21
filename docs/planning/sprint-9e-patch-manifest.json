@@ -1,0 +1,48 @@
+{
+  "name": "SAMS Sprint 9E Librarian Operations",
+  "prerequisites": [
+    "Sprint 9A",
+    "Sprint 9B",
+    "Sprint 9C",
+    "Sprint 9D"
+  ],
+  "backend_changes": false,
+  "database_schema_changes": false,
+  "dependencies_added": false,
+  "commit_now": false,
+  "contracts": [
+    "POST /api/v1/borrowings/checkout",
+    "POST /api/v1/borrowings/:id/return",
+    "GET /api/v1/borrowings",
+    "GET /api/v1/reservations",
+    "POST /api/v1/reservations/:id/cancel",
+    "POST /api/v1/visits/check-in",
+    "POST /api/v1/visits/:id/check-out",
+    "GET /api/v1/visits",
+    "GET /api/v1/inventory/copies",
+    "GET /api/v1/master-data/branches"
+  ],
+  "files": [
+    "SPRINT9E_APPLY.md",
+    "apps/web/src/app/router/AppRouter.jsx",
+    "apps/web/src/components/staff/StaffOperationNotice.jsx",
+    "apps/web/src/components/staff/StaffStatusBadge.jsx",
+    "apps/web/src/features/staff/staff-api.js",
+    "apps/web/src/features/staff/staff-format.js",
+    "apps/web/src/features/staff/staff-query.js",
+    "apps/web/src/i18n/index.js",
+    "apps/web/src/i18n/locales/ar-staff.js",
+    "apps/web/src/i18n/locales/en-staff.js",
+    "apps/web/src/pages/librarian/BorrowPage.jsx",
+    "apps/web/src/pages/librarian/ReservationsOperationsPage.jsx",
+    "apps/web/src/pages/librarian/ReturnPage.jsx",
+    "apps/web/src/pages/librarian/VisitsPage.jsx",
+    "apps/web/src/styles.css",
+    "apps/web/src/styles/staff-operations.css",
+    "docs/frontend/LIBRARIAN_OPERATIONS_v1.md",
+    "docs/planning/sprint-9-checklist.md",
+    "scripts/sprint9/sprint9e-librarian-operations-smoke.ps1",
+    "scripts/sprint9/sprint9e-live-operations-smoke.js",
+    "scripts/sprint9/sprint9e-staff-contract-smoke.js"
+  ]
+}

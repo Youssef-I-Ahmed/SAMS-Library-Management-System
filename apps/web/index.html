@@ -1,5 +1,50 @@
 <!doctype html>
-<html lang="en">
-<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>SAMS Library System</title></head>
-<body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body>
+<html lang="en" dir="ltr" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="SAMS Library Management System"
+    />
+    <meta name="theme-color" content="#F8FAFC" />
+    <title>SAMS Library System</title>
+
+    <script>
+      (() => {
+        const THEME_KEY = 'sams.theme';
+        const LANGUAGE_KEY = 'sams.language';
+
+        try {
+          const storedTheme = localStorage.getItem(THEME_KEY);
+          const theme = storedTheme === 'dark' ? 'dark' : 'light';
+
+          const storedLanguage = localStorage.getItem(LANGUAGE_KEY);
+          const browserLanguage =
+            navigator.language?.toLowerCase().startsWith('ar')
+              ? 'ar'
+              : 'en';
+
+          const language =
+            storedLanguage === 'ar' || storedLanguage === 'en'
+              ? storedLanguage
+              : browserLanguage;
+
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.lang = language;
+          document.documentElement.dir =
+            language === 'ar' ? 'rtl' : 'ltr';
+        } catch {
+          document.documentElement.dataset.theme = 'light';
+          document.documentElement.lang = 'en';
+          document.documentElement.dir = 'ltr';
+        }
+      })();
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

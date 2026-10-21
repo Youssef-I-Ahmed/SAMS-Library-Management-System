@@ -1,0 +1,70 @@
+:root,
+html[data-theme='light'] {
+  color-scheme: light;
+
+  --app-bg: #f6f9fd;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-muted: #eef5fb;
+  --surface-subtle: #f8fafc;
+
+  --text-primary: #10213d;
+  --text-secondary: #52667e;
+  --text-muted: #75879a;
+  --text-on-brand: #ffffff;
+
+  --border-default: #dce5ef;
+  --border-strong: #c5d3e2;
+
+  --brand-primary: var(--sams-primary-900);
+  --brand-hover: var(--sams-primary-800);
+  --brand-accent: var(--sams-primary-600);
+
+  --header-bg: rgba(255, 255, 255, 0.88);
+  --header-border: rgba(208, 213, 221, 0.78);
+
+  --hero-start: #071d35;
+  --hero-end: #104273;
+
+  --focus-ring: rgba(46, 127, 196, 0.34);
+
+  --shadow-soft:
+    0 18px 60px rgba(11, 47, 87, 0.08);
+  --shadow-card:
+    0 8px 28px rgba(16, 33, 61, 0.07);
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+
+  --app-bg: #07111f;
+  --surface: #0c1a2a;
+  --surface-elevated: #10243a;
+  --surface-muted: #0f2a43;
+  --surface-subtle: #091726;
+
+  --text-primary: #f4f8fc;
+  --text-secondary: #b4c3d3;
+  --text-muted: #8297ab;
+  --text-on-brand: #ffffff;
+
+  --border-default: #1f3850;
+  --border-strong: #2a4b68;
+
+  --brand-primary: #72afe0;
+  --brand-hover: #98c7eb;
+  --brand-accent: #5ea0d5;
+
+  --header-bg: rgba(7, 17, 31, 0.88);
+  --header-border: rgba(42, 75, 104, 0.72);
+
+  --hero-start: #061426;
+  --hero-end: #0c3761;
+
+  --focus-ring: rgba(114, 175, 224, 0.4);
+
+  --shadow-soft:
+    0 18px 64px rgba(0, 0, 0, 0.28);
+  --shadow-card:
+    0 12px 30px rgba(0, 0, 0, 0.18);
+}
