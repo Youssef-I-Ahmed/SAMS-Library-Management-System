@@ -1,0 +1,60 @@
+/* 10B.5: confirmed QA corrections, preserving the approved page compositions. */
+.student-shell {
+  --student-focus-start: 100px;
+  --student-focus-end: 20px;
+}
+.student-shell :is(a[href], button, input, select, textarea, [tabindex]),
+.student-shell .item-detail-page h2[id] {
+  scroll-margin-block: var(--student-focus-start) var(--student-focus-end);
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .student-shell { --student-focus-start: 170px; }
+  .catalog-page .discovery-filters { top: 170px; }
+}
+@media (max-width: 760px) {
+  .student-shell {
+    --student-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --student-focus-start: 96px;
+    --student-focus-end: calc(100px + var(--student-safe-bottom));
+    padding-block-end: calc(80px + var(--student-safe-bottom));
+  }
+  .student-mobile-nav { inset-block-end: max(8px, var(--student-safe-bottom)); }
+  .student-home__eyebrow { font-size: 11px; }
+}
+.student-home__media figcaption,
+.student-shell .user-menu__identity small,
+.student-shell .discovery-cover__book > span,
+.item-detail-page .item-detail-section > span,
+.item-detail-page .availability-panel > span:first-child,
+.catalog-page .discovery-cover small,
+.catalog-page .discovery-item-card__meta dt,
+.catalog-page .discovery-filters__heading span { font-size: 11px; }
+.catalog-page,
+.item-detail-page .availability-panel { font-variant-numeric: tabular-nums; }
+
+/* One semantic palette for student, staff and administration status primitives. */
+:is(.status-badge, .staff-status, .admin-status) {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--surface-muted);
+}
+:is(.status-badge--success, .staff-status--success, .admin-status--success) {
+  color: var(--status-success-ink);
+  background: var(--status-success-surface);
+}
+:is(.status-badge--warning, .staff-status--warning, .admin-status--warning) {
+  color: var(--status-warning-ink);
+  background: var(--status-warning-surface);
+}
+:is(.status-badge--danger, .staff-status--danger, .admin-status--danger) {
+  color: var(--status-danger-ink);
+  background: var(--status-danger-surface);
+}
+:is(.status-badge--info, .staff-status--info, .admin-status--info) {
+  color: var(--status-info-ink);
+  background: var(--status-info-surface);
+}
+:is(.danger-link-button, .staff-danger-link) { color: var(--status-danger-ink); }
+:is(.status-badge, .staff-status, .admin-status) > span { flex-shrink: 0; }
+.staff-topbar .user-avatar { color: #fff; }
+.inline-alert > small { opacity: 1; }

@@ -20,6 +20,22 @@ export const enDiscovery = {
   },
 
   studentHome: {
+    titleLead: 'Knowledge Today,',
+    titleLine: 'A Brighter',
+    titleAccent: 'Tomorrow.',
+    imageCaption: 'Campus concept illustration',
+    browseAll: 'Explore the catalog',
+    collectionNavigation: 'Browse collections',
+    explore: 'Explore collection',
+    collectionTitles: { BOOK: 'Books & references', THESIS: 'Theses & research', PROJECT: 'Graduation projects' },
+    experienceEyebrow: 'The library experience',
+    experienceTitle: 'Every idea starts with discovery.',
+    steps: {
+      discover: { title: 'Discover', body: 'Find a title, author or subject in the catalog.' },
+      reserve: { title: 'Reserve', body: 'Manage your holds and review recorded availability.' },
+      learn: { title: 'Keep learning', body: 'Follow your borrowings and return dates.' }
+    },
+    footerLine: 'Knowledge builds better futures.',
     eyebrow: 'Student discovery',
     greeting: 'Welcome',
     subtitle:
@@ -31,7 +47,7 @@ export const enDiscovery = {
     searchHint:
       'Search by title, contributor, ISBN, publisher, Dewey classification or call number.',
     browseEyebrow: 'Collections',
-    browseTitle: 'Browse by material type',
+    browseTitle: 'Find your next perspective.',
     collection: {
       BOOK: 'Published books and reference material.',
       THESIS: 'Academic theses and research work.',
@@ -44,21 +60,31 @@ export const enDiscovery = {
       eyebrow: 'Library catalog',
       title: 'Discover the collection',
       subtitle:
-        'Search the active SAMS catalog and check safe branch-level availability.',
+        'Search the SAMS catalog and review recorded branch availability.',
       searchPlaceholder:
         'Title, contributor, ISBN, call number, Dewey...',
       searchLabel: 'Catalog search',
       search: 'Search',
       loading: 'Loading catalog...',
+      loaded: 'Catalog loaded.',
       results: 'results',
       for: 'for',
-      sort: 'Sort by'
+      sort: 'Sort by',
+      headerNote: 'A place for curiosity. A collection to explore.',
+      allResources: 'All resources',
+      resultsHeading: 'Catalog results',
+      view: 'Results layout',
+      grid: 'Grid view',
+      list: 'List view',
+      retry: 'Try again'
     },
 
     filters: {
       eyebrow: 'Refine',
       title: 'Filters',
       clear: 'Clear filters',
+      show: 'Show filters',
+      hide: 'Hide filters',
       all: 'All',
       type: 'Material type',
       category: 'Category',
@@ -66,9 +92,9 @@ export const enDiscovery = {
       language: 'Language',
       year: 'Publication year',
       branch: 'Branch',
-      availableOnly: 'Available now',
+      availableOnly: 'Listed as available',
       availableOnlyHint:
-        'Only show items with an available physical copy.'
+        'Show items with a copy recorded as available, including any demo copies.'
     },
 
     sort: {
@@ -80,18 +106,26 @@ export const enDiscovery = {
     },
 
     card: {
+      noCover: 'Cover not supplied',
+      noContributor: 'Contributor not listed',
       year: 'Year',
       language: 'Language',
       dewey: 'Dewey',
       callNumber: 'Call number',
-      branches: 'branches',
+      branches: 'listed branches',
       details: 'View details'
     },
 
     availability: {
-      available: 'Available',
-      unavailable: 'Currently unavailable',
+      available: 'Available in records',
+      unavailable: 'Unavailable in records',
       noCopies: 'No listed copies'
+    },
+
+    inventoryNotice: {
+      title: 'Confirm physical availability',
+      body:
+        'System availability may include demo copies and does not confirm physical stock. Check with the library before visiting, even with a reservation.'
     },
 
     empty: {
@@ -109,15 +143,21 @@ export const enDiscovery = {
     },
 
     detail: {
+      sections: 'Item sections',
+      loaded: 'Item details loaded.',
+      missingTitle: 'Item not found',
+      missingBody: 'This library record is unavailable. Return to the catalog to explore other items.',
+      requestId: 'Request ID',
+      refreshError: 'Recorded availability could not be refreshed',
       loading: 'Loading item details...',
       back: 'Back to catalog',
       metadataEyebrow: 'Bibliographic data',
       metadataTitle: 'Item information',
       descriptionEyebrow: 'About this item',
       descriptionTitle: 'Description / abstract',
-      availabilityEyebrow: 'Live availability',
-      availabilityTitle: 'Availability by branch',
-      availableCopies: 'available copies',
+      availabilityEyebrow: 'Recorded availability',
+      availabilityTitle: 'Records by branch',
+      availableCopies: 'listed as available',
       totalCopies: 'listed copies',
       noBranchCopies:
         'No active branch currently has a listed copy.',

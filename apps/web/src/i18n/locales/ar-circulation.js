@@ -10,7 +10,7 @@ export const arCirculation = {
       loading: 'جارٍ تحميل الحجوزات...',
       emptyTitle: 'لا توجد حجوزات',
       emptyBody:
-        'يمكنك حجز مادة متاحة من صفحة تفاصيلها.'
+        'يمكنك حجز نسخة مسجلة من صفحة تفاصيل المادة.'
     },
 
     status: {
@@ -30,25 +30,26 @@ export const arCirculation = {
     },
 
     detail: {
+      checkError: 'تعذر التحقق من حالة حجزك',
       checking: 'جارٍ التحقق من حالة حجزك...',
       eyebrow: 'الحجز',
-      title: 'احجز نسخة متاحة',
+      title: 'احجز نسخة مسجلة',
       body:
-        'اختر فرع الاستلام وسيتم الاحتفاظ بنسخة متاحة خلال مدة الحجز.',
+        'اختر فرع الاستلام لحجز نسخة في النظام.',
       start: 'احجز هذه المادة',
       pickupBranch: 'فرع الاستلام',
-      available: 'متاح',
+      available: 'مسجلة كمتاحة',
       confirm: 'تأكيد الحجز',
       reserving: 'جارٍ الحجز...',
       keepBrowsing: 'ليس الآن',
       currentEyebrow: 'حجزك الحالي',
       alreadyReserved: 'لديك حجز نشط بالفعل لهذه المادة.',
-      successTitle: 'تم تأكيد الحجز.',
+      successTitle: 'تم تسجيل الحجز في النظام.',
       holdUntil: 'الحجز صالح حتى',
       viewReservations: 'عرض حجوزاتي',
-      unavailableTitle: 'لا توجد نسخة متاحة للحجز',
+      unavailableTitle: 'لا توجد نسخة مسجلة للحجز',
       unavailableBody:
-        'لا توجد نسخة فعلية متاحة حاليًا في أحد الفروع النشطة.'
+        'لا توجد نسخة مسجلة كمتاحة في فرع نشط. تواصل مع المكتبة لمعرفة المخزون الفعلي.'
     },
 
     cancel: {
@@ -67,7 +68,7 @@ export const arCirculation = {
       limitReached:
         'وصلت إلى الحد الأقصى للحجوزات النشطة.',
       noAvailableCopy:
-        'لم تعد هناك نسخة متاحة في الفرع المحدد.',
+        'لم يعد الفرع المحدد يسجل نسخة كمتاحة.',
       notEligible:
         'حالتك الأكاديمية لا تسمح بإنشاء حجز.',
       accountInactive:

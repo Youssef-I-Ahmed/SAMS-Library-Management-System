@@ -10,7 +10,7 @@ export const enCirculation = {
       loading: 'Loading reservations...',
       emptyTitle: 'No reservations found',
       emptyBody:
-        'Reserve an available library item from its details page.'
+        'Reserve a listed copy from an item’s details page.'
     },
 
     status: {
@@ -30,25 +30,26 @@ export const enCirculation = {
     },
 
     detail: {
+      checkError: 'Your reservation status could not be checked',
       checking: 'Checking your reservation status...',
       eyebrow: 'Reservation',
-      title: 'Reserve an available copy',
+      title: 'Reserve a listed copy',
       body:
-        'Choose a pickup branch. The library will hold one available copy for the reservation period.',
+        'Choose a pickup branch to reserve a copy in the system.',
       start: 'Reserve this item',
       pickupBranch: 'Pickup branch',
-      available: 'available',
+      available: 'listed as available',
       confirm: 'Confirm reservation',
       reserving: 'Reserving...',
       keepBrowsing: 'Not now',
       currentEyebrow: 'Your hold',
       alreadyReserved: 'You already have an active reservation for this item.',
-      successTitle: 'Reservation confirmed.',
+      successTitle: 'Reservation recorded in the system.',
       holdUntil: 'Hold valid until',
       viewReservations: 'View my reservations',
-      unavailableTitle: 'No copy available to reserve',
+      unavailableTitle: 'No copy listed for reservation',
       unavailableBody:
-        'There is no available physical copy at an active branch right now.'
+        'No copy is listed as available at an active branch. Check physical stock with the library.'
     },
 
     cancel: {
@@ -67,7 +68,7 @@ export const enCirculation = {
       limitReached:
         'You have reached the maximum number of active reservations.',
       noAvailableCopy:
-        'The selected branch no longer has an available copy.',
+        'The selected branch no longer lists an available copy.',
       notEligible:
         'Your academic status is not eligible for reservations.',
       accountInactive:

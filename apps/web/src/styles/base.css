@@ -16,13 +16,7 @@ body {
   min-height: 100vh;
   margin: 0;
 
-  font-family:
-    Inter,
-    "Noto Sans Arabic",
-    "Segoe UI",
-    Tahoma,
-    Arial,
-    sans-serif;
+  font-family: var(--sams-font-ui);
 
   color: var(--text-primary);
   background: var(--app-bg);
@@ -95,6 +89,27 @@ p {
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+html[lang='ar'] {
+  --sams-font-display: "Segoe UI", "Noto Sans Arabic", Tahoma, Arial, sans-serif;
+}
+
+.skip-link {
+  position: fixed;
+  inset-block-start: 12px;
+  inset-inline-start: 16px;
+  z-index: 100;
+  padding: 12px 18px;
+  transform: translateY(-180%);
+  border-radius: var(--sams-radius-md);
+  color: var(--text-primary);
+  background: var(--surface);
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

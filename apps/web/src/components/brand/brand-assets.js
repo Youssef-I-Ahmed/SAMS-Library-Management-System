@@ -1,16 +1,16 @@
 export const BRAND_ASSETS = {
   mark: {
     navy:
-      '/brand/sams-logo-navy.png',
+      '/brand/sams-logo-navy.webp',
     white:
-      '/brand/sams-logo-white.png'
+      '/brand/sams-logo-white.webp'
   },
 
   full: {
     navy:
-      '/brand/sams-full-logo-navy.png',
+      '/brand/sams-full-logo-navy.webp',
     white:
-      '/brand/sams-full-logo-white.png'
+      '/brand/sams-full-logo-white.webp'
   }
 };
 

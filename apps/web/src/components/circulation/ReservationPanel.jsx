@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { InlineAlert } from '../ui/InlineAlert';
@@ -42,7 +42,8 @@ function getReservationErrorMessage(error, t) {
 
 export function ReservationPanel({
   item,
-  onReservationCreated
+  onReservationCreated,
+  inventoryDescriptionId
 }) {
   const auth = useAuth();
   const { t, language } = useLanguage();
@@ -59,6 +60,21 @@ export function ReservationPanel({
   const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState(null);
   const [error, setError] = useState(null);
+  const [checkError, setCheckError] = useState(null);
+  const startRef = useRef(null);
+  const branchRef = useRef(null);
+  const successLinkRef = useRef(null);
+  const wasConfirming = useRef(false);
+
+  useEffect(() => {
+    if (confirming) branchRef.current?.focus();
+    else if (wasConfirming.current && !existing) startRef.current?.focus();
+    wasConfirming.current = confirming;
+  }, [confirming, existing]);
+
+  useEffect(() => {
+    if (created) successLinkRef.current?.focus();
+  }, [created]);
 
   const selectedCandidate = useMemo(
     () =>
@@ -73,6 +89,7 @@ export function ReservationPanel({
     const controller = new AbortController();
 
     setCheckingExisting(true);
+    setCheckError(null);
 
     listMyReservations(
       auth.token,
@@ -80,6 +97,7 @@ export function ReservationPanel({
       controller.signal
     )
       .then((response) => {
+        if (controller.signal.aborted) return;
         const match = response.data?.find(
           (reservation) =>
             reservation.item?.id === item.id &&
@@ -89,8 +107,8 @@ export function ReservationPanel({
         setExisting(match || null);
       })
       .catch((nextError) => {
-        if (nextError.name !== 'AbortError') {
-          setError(nextError);
+        if (!controller.signal.aborted && nextError.name !== 'AbortError') {
+          setCheckError(nextError);
         }
       })
       .finally(() => {
@@ -148,124 +166,102 @@ export function ReservationPanel({
     }
   }
 
-  if (checkingExisting) {
-    return (
-      <div className="reservation-panel reservation-panel--quiet">
-        <strong>{t('reservations.detail.checking')}</strong>
+  const unavailable = !item.reservationReadiness?.hasAvailableCopy || candidates.length === 0;
+  return (
+    <div className={`reservation-panel${existing ? ' reservation-panel--existing' : checkingExisting || unavailable ? ' reservation-panel--quiet' : ''}`}>
+      <div className={`reservation-panel__status${checkingExisting || created ? '' : ' sr-only'}`}
+        role="status" aria-live="polite" aria-atomic="true">
+        {checkingExisting ? t('reservations.detail.checking') : submitting ? t('reservations.detail.reserving') : created ? t('reservations.detail.successTitle') : ''}
       </div>
-    );
-  }
-
-  if (existing) {
-    return (
-      <div className="reservation-panel reservation-panel--existing">
+      {!checkingExisting && (existing ? <>
         <span>{t('reservations.detail.currentEyebrow')}</span>
-        <strong>
-          {created
-            ? t('reservations.detail.successTitle')
-            : t('reservations.detail.alreadyReserved')}
-        </strong>
-
-        <p>
-          {t('reservations.detail.holdUntil')}{' '}
-          <b>{formatDateTime(existing.expiresAt, language)}</b>
-        </p>
-
-        <Link to="/student/reservations">
-          {t('reservations.detail.viewReservations')} →
+        {!created && <strong>{t('reservations.detail.alreadyReserved')}</strong>}
+        <p>{t('reservations.detail.holdUntil')}{' '}<b>{formatDateTime(existing.expiresAt, language)}</b></p>
+        <Link to="/student/reservations" ref={successLinkRef}>
+          {t('reservations.detail.viewReservations')} <span className="reservation-link-arrow" aria-hidden="true">→</span>
         </Link>
-      </div>
-    );
-  }
-
-  if (!item.reservationReadiness?.hasAvailableCopy || candidates.length === 0) {
-    return (
-      <div className="reservation-panel reservation-panel--quiet">
+      </> : unavailable ? <>
         <strong>{t('reservations.detail.unavailableTitle')}</strong>
         <p>{t('reservations.detail.unavailableBody')}</p>
-      </div>
-    );
-  }
+      </> : <>
+        <span>{t('reservations.detail.eyebrow')}</span>
+        <strong>{t('reservations.detail.title')}</strong>
+        <p>{t('reservations.detail.body')}</p>
 
-  return (
-    <div className="reservation-panel">
-      <span>{t('reservations.detail.eyebrow')}</span>
-      <strong>{t('reservations.detail.title')}</strong>
-      <p>{t('reservations.detail.body')}</p>
+        {!confirming ? (
+          <button
+            type="button"
+            className="reservation-primary-button"
+            ref={startRef}
+            aria-describedby={inventoryDescriptionId}
+            onClick={() => setConfirming(true)}
+          >
+            {t('reservations.detail.start')}
+          </button>
+        ) : (
+          <div className="reservation-confirmation" aria-busy={submitting}>
+            <label>
+              <span>{t('reservations.detail.pickupBranch')}</span>
+              <select
+                ref={branchRef}
+                value={selectedBranchId}
+                onChange={(event) =>
+                  setSelectedBranchId(event.target.value)
+                }
+              >
+                {candidates.map((candidate) => (
+                  <option
+                    key={candidate.branch.id}
+                    value={candidate.branch.id}
+                  >
+                    {candidate.branch.name}
+                    {' · '}
+                    {candidate.availableCopies}
+                    {' '}
+                    {t('reservations.detail.available')}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-      {error && (
-        <InlineAlert
-          title={t('reservations.errors.title')}
-          message={getReservationErrorMessage(error, t)}
-          requestId={error.requestId}
-        />
-      )}
+            {selectedCandidate?.branch.location && (
+              <small dir="auto">
+                {selectedCandidate.branch.location}
+              </small>
+            )}
 
-      {!confirming ? (
-        <button
-          type="button"
-          className="reservation-primary-button"
-          onClick={() => setConfirming(true)}
-        >
-          {t('reservations.detail.start')}
-        </button>
-      ) : (
-        <div className="reservation-confirmation">
-          <label>
-            <span>{t('reservations.detail.pickupBranch')}</span>
-            <select
-              value={selectedBranchId}
-              onChange={(event) =>
-                setSelectedBranchId(event.target.value)
-              }
-            >
-              {candidates.map((candidate) => (
-                <option
-                  key={candidate.branch.id}
-                  value={candidate.branch.id}
-                >
-                  {candidate.branch.name}
-                  {' · '}
-                  {candidate.availableCopies}
-                  {' '}
-                  {t('reservations.detail.available')}
-                </option>
-              ))}
-            </select>
-          </label>
+            <div className="reservation-confirmation__actions">
+              <button
+                type="button"
+                className="reservation-primary-button"
+                aria-describedby={inventoryDescriptionId}
+                disabled={submitting}
+                onClick={submitReservation}
+              >
+                {submitting
+                  ? t('reservations.detail.reserving')
+                  : t('reservations.detail.confirm')}
+              </button>
 
-          {selectedCandidate?.branch.location && (
-            <small dir="auto">
-              {selectedCandidate.branch.location}
-            </small>
-          )}
-
-          <div className="reservation-confirmation__actions">
-            <button
-              type="button"
-              className="reservation-primary-button"
-              disabled={submitting}
-              onClick={submitReservation}
-            >
-              {submitting
-                ? t('reservations.detail.reserving')
-                : t('reservations.detail.confirm')}
-            </button>
-
-            <button
-              type="button"
-              className="reservation-secondary-button"
-              disabled={submitting}
-              onClick={() => {
-                setConfirming(false);
-                setError(null);
-              }}
-            >
-              {t('reservations.detail.keepBrowsing')}
-            </button>
+              <button
+                type="button"
+                className="reservation-secondary-button"
+                disabled={submitting}
+                onClick={() => {
+                  setConfirming(false);
+                  setError(null);
+                }}
+              >
+                {t('reservations.detail.keepBrowsing')}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </>)}
+      {checkError && <InlineAlert title={t('reservations.detail.checkError')}
+        message={checkError.message} requestId={checkError.requestId} />}
+      {error && <InlineAlert title={t('reservations.errors.title')}
+        message={getReservationErrorMessage(error, t)} requestId={error.requestId} />}
     </div>
   );
 }

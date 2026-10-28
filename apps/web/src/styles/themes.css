@@ -2,31 +2,41 @@
 html[data-theme='light'] {
   color-scheme: light;
 
-  --app-bg: #f6f9fd;
+  --app-bg: var(--sams-ivory);
   --surface: #ffffff;
   --surface-elevated: #ffffff;
-  --surface-muted: #eef5fb;
-  --surface-subtle: #f8fafc;
+  --surface-muted: #eeece6;
+  --surface-subtle: #faf9f6;
 
   --text-primary: #10213d;
-  --text-secondary: #52667e;
-  --text-muted: #75879a;
+  --text-secondary: #485767;
+  --text-muted: #5d6b78;
   --text-on-brand: #ffffff;
 
-  --border-default: #dce5ef;
-  --border-strong: #c5d3e2;
+  --status-success-ink: #16633f;
+  --status-success-surface: #edf6f0;
+  --status-warning-ink: #805300;
+  --status-warning-surface: #fcf2dc;
+  --status-danger-ink: #9d241d;
+  --status-danger-surface: #fcebea;
+  --status-info-ink: #0b2f57;
+  --status-info-surface: #e9f1f8;
+
+  --border-default: #deded7;
+  --border-strong: #74808a;
 
   --brand-primary: var(--sams-primary-900);
   --brand-hover: var(--sams-primary-800);
-  --brand-accent: var(--sams-primary-600);
+  --brand-accent: var(--sams-gold-700);
+  --display-accent: var(--sams-gold-300);
 
-  --header-bg: rgba(255, 255, 255, 0.88);
+  --header-bg: rgba(250, 249, 246, 0.97);
   --header-border: rgba(208, 213, 221, 0.78);
 
   --hero-start: #071d35;
   --hero-end: #104273;
 
-  --focus-ring: rgba(46, 127, 196, 0.34);
+  --focus-ring: #15558f;
 
   --shadow-soft:
     0 18px 60px rgba(11, 47, 87, 0.08);
@@ -37,31 +47,40 @@ html[data-theme='light'] {
 html[data-theme='dark'] {
   color-scheme: dark;
 
-  --app-bg: #07111f;
-  --surface: #0c1a2a;
-  --surface-elevated: #10243a;
-  --surface-muted: #0f2a43;
-  --surface-subtle: #091726;
+  --app-bg: #091523;
+  --surface: #112132;
+  --surface-elevated: #172a3d;
+  --surface-muted: #1c3043;
+  --surface-subtle: #0e1d2d;
 
-  --text-primary: #f4f8fc;
-  --text-secondary: #b4c3d3;
-  --text-muted: #8297ab;
+  --text-primary: #f5f2eb;
+  --text-secondary: #c4cdd5;
+  --text-muted: #b0bfcc;
+
+  --status-success-ink: #9cddba;
+  --status-success-surface: #173a30;
+  --status-warning-ink: #edc982;
+  --status-warning-surface: #3b3020;
+  --status-danger-ink: #ffb4ad;
+  --status-danger-surface: #4a2329;
+  --status-info-ink: #b4d7f3;
+  --status-info-surface: #193f63;
   --text-on-brand: #ffffff;
 
   --border-default: #1f3850;
-  --border-strong: #2a4b68;
+  --border-strong: #758ca1;
 
   --brand-primary: #72afe0;
   --brand-hover: #98c7eb;
-  --brand-accent: #5ea0d5;
+  --brand-accent: var(--sams-gold-300);
 
-  --header-bg: rgba(7, 17, 31, 0.88);
+  --header-bg: rgba(9, 21, 35, 0.97);
   --header-border: rgba(42, 75, 104, 0.72);
 
   --hero-start: #061426;
   --hero-end: #0c3761;
 
-  --focus-ring: rgba(114, 175, 224, 0.4);
+  --focus-ring: var(--sams-gold-300);
 
   --shadow-soft:
     0 18px 64px rgba(0, 0, 0, 0.28);

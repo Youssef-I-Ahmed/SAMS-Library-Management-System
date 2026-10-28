@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { InlineAlert } from '../../components/ui/InlineAlert';
+import { InventoryNotice } from '../../components/discovery/InventoryNotice';
 import { StatusBadge } from '../../components/circulation/StatusBadge';
 import {
   cancelReservation,
@@ -103,6 +104,8 @@ export function MyReservationsPage() {
         <h1>{t('reservations.page.title')}</h1>
         <p>{t('reservations.page.subtitle')}</p>
       </header>
+
+      <InventoryNotice />
 
       <div className="circulation-toolbar">
         <label>

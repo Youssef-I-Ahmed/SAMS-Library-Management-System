@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { AvailabilityBadge } from '../../components/discovery/AvailabilityBadge';
+import { BookCoverPlaceholder } from '../../components/discovery/BookCoverPlaceholder';
+import { InventoryNotice } from '../../components/discovery/InventoryNotice';
 import { ReservationPanel } from '../../components/circulation/ReservationPanel';
 import { InlineAlert } from '../../components/ui/InlineAlert';
 import { getDiscoveryItem } from '../../features/discovery/discovery-api';
@@ -17,27 +19,54 @@ export function ItemDetailsPage() {
   const { itemId } = useParams();
   const auth = useAuth();
   const { t } = useLanguage();
+  const inventoryDescriptionId = useId();
+  const titleId = useId();
+  const availabilityTitleId = useId();
+  const metadataTitleId = useId();
+  const descriptionTitleId = useId();
+  const backRef = useRef(null);
+  const activeItemRef = useRef(null);
+  const refreshControllerRef = useRef(null);
 
   const [item, setItem] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [requestItemId, setRequestItemId] = useState(itemId);
+  const [retryVersion, setRetryVersion] = useState(0);
+  const [refreshError, setRefreshError] = useState(null);
+  const [announcement, setAnnouncement] = useState('');
+  const isLoading = loading || requestItemId !== itemId;
 
   async function refreshItem() {
-    const response = await getDiscoveryItem(
-      auth.token,
-      itemId
-    );
-
-    setItem(response?.data || null);
+    if (activeItemRef.current?.itemId !== itemId || activeItemRef.current?.token !== auth.token) return;
+    refreshControllerRef.current?.abort();
+    const controller = new AbortController();
+    refreshControllerRef.current = controller;
+    setRefreshError(null);
+    try {
+      const response = await getDiscoveryItem(auth.token, itemId, controller.signal);
+      if (!controller.signal.aborted) setItem(response?.data || null);
+    } catch (nextError) {
+      // A recorded reservation remains successful if the subsequent read fails.
+      if (!controller.signal.aborted && nextError.name !== 'AbortError') setRefreshError(nextError);
+    }
   }
 
   useEffect(() => {
     const controller = new AbortController();
+    activeItemRef.current = { itemId, token: auth.token };
+    setRequestItemId(itemId);
+    setLoading(true);
+    setError(null);
+    setItem(null);
+    setRefreshError(null);
 
     getDiscoveryItem(auth.token, itemId, controller.signal)
-      .then((response) => setItem(response?.data || null))
+      .then((response) => {
+        if (!controller.signal.aborted) setItem(response?.data || null);
+      })
       .catch((nextError) => {
-        if (nextError.name !== 'AbortError') {
+        if (!controller.signal.aborted && nextError.name !== 'AbortError') {
           setError(nextError);
         }
       })
@@ -47,35 +76,56 @@ export function ItemDetailsPage() {
         }
       });
 
-    return () => controller.abort();
-  }, [auth.token, itemId]);
+    return () => {
+      controller.abort();
+      refreshControllerRef.current?.abort();
+      activeItemRef.current = null;
+    };
+  }, [auth.token, itemId, retryVersion]);
 
-  if (loading) {
+  useEffect(() => {
+    setAnnouncement(!isLoading && !error && item?.id ? t('discovery.detail.loaded') : '');
+  }, [isLoading, error, item?.id, t]);
+
+  const backLink = (
+    <Link className="item-detail-back" to="/student/catalog" ref={backRef}>
+      <span className="item-detail-back__arrow" aria-hidden="true">←</span> {t('discovery.detail.back')}
+    </Link>
+  );
+  const status = (
+    <div className={`item-detail-announcement ${isLoading ? 'item-detail-state' : 'sr-only'}`}
+      role="status" aria-live="polite" aria-atomic="true">
+      {isLoading ? <><span className="catalog-spinner" aria-hidden="true" /><h1>{t('discovery.detail.loading')}</h1></> : announcement}
+    </div>
+  );
+
+  if (isLoading) {
     return (
-      <div className="catalog-state">
-        <span className="catalog-spinner" aria-hidden="true" />
-        <p>{t('discovery.detail.loading')}</p>
-      </div>
+      <article className="item-detail-page">{backLink}{status}</article>
     );
   }
 
-  if (error) {
+  if (error || !item) {
+    const missing = !error || error.status === 404 || error.code === 'NOT_FOUND';
     return (
-      <div className="item-detail-error">
-        <InlineAlert
-          title={t('discovery.errors.detailTitle')}
-          message={error.message}
-          requestId={error.requestId}
-        />
-
-        <Link to="/student/catalog">
-          {t('discovery.detail.back')}
-        </Link>
-      </div>
+      <article className="item-detail-page">
+        {backLink}{status}
+        <section className="item-detail-state item-detail-error">
+          <h1>{t(missing ? 'discovery.detail.missingTitle' : 'discovery.errors.detailTitle')}</h1>
+          {missing ? <>
+            <p>{t('discovery.detail.missingBody')}</p>
+            {error?.requestId && <small>{t('discovery.detail.requestId')}: {error.requestId}</small>}
+          </> : <>
+            <InlineAlert message={error.message} requestId={error.requestId} />
+            <button type="button" onClick={() => {
+              setRetryVersion((version) => version + 1);
+              backRef.current?.focus();
+            }}>{t('discovery.catalog.retry')}</button>
+          </>}
+        </section>
+      </article>
     );
   }
-
-  if (!item) return null;
 
   const fields = [
     ['discovery.detail.type', t(getItemTypeLabelKey(item.type))],
@@ -88,7 +138,7 @@ export function ItemDetailsPage() {
     [
       'discovery.detail.dewey',
       item.deweyClassification
-        ? `${item.deweyClassification.code} · ${item.deweyClassification.name}`
+        ? [item.deweyClassification.code, item.deweyClassification.name].filter(Boolean).join(' · ') || item.deweyCodeRaw
         : item.deweyCodeRaw
     ],
     ['discovery.detail.category', item.category?.name],
@@ -102,36 +152,49 @@ export function ItemDetailsPage() {
 
   return (
     <article className="item-detail-page">
-      <Link className="item-detail-back" to="/student/catalog">
-        ← {t('discovery.detail.back')}
-      </Link>
-
-      <section className="item-detail-hero">
-        <div>
-          <span className="item-type-mark">
-            {t(getItemTypeLabelKey(item.type))}
-          </span>
-
-          <h1 dir="auto">{item.title}</h1>
-
-          <div className="item-contributors">
-            {item.itemContributors?.map((entry) => (
-              <span key={`${entry.role}-${entry.contributor.id}`} dir="auto">
-                <strong>{entry.contributor.fullName}</strong>
-                <small>{getContributorRoleLabel(entry.role, t)}</small>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <AvailabilityBadge availability={item.availability} />
-      </section>
-
+      {backLink}
+      {status}
       <div className="item-detail-layout">
         <div className="item-detail-main">
+          <section className="item-detail-hero" aria-labelledby={titleId}>
+            <BookCoverPlaceholder type={item.type} />
+            <div className="item-detail-identity">
+              <span className="item-type-mark">
+                {t(getItemTypeLabelKey(item.type))}
+              </span>
+
+              <h1 id={titleId} dir="auto">{item.title}</h1>
+
+              <div className="item-contributors">
+                {item.itemContributors?.map((entry) => (
+                  <span key={`${entry.role}-${entry.contributor.id}`} dir="auto">
+                    <strong>{entry.contributor.fullName}</strong>
+                    <small>{getContributorRoleLabel(entry.role, t)}</small>
+                  </span>
+                ))}
+              </div>
+              {!item.itemContributors?.length && <p className="item-detail-muted">{t('discovery.card.noContributor')}</p>}
+              {item.category?.name && <p className="item-detail-category" dir="auto">{item.category.name}</p>}
+            </div>
+          </section>
+
+          <nav className="item-detail-sections" aria-label={t('discovery.detail.sections')}>
+            {item.abstractDescription && <a href={`#${descriptionTitleId}`}>{t('discovery.detail.descriptionEyebrow')}</a>}
+            <a href={`#${metadataTitleId}`}>{t('discovery.detail.metadataTitle')}</a>
+            <a href={`#${availabilityTitleId}`}>{t('discovery.detail.availabilityTitle')}</a>
+          </nav>
+
+          {item.abstractDescription && (
+            <section className="item-detail-section">
+              <span>{t('discovery.detail.descriptionEyebrow')}</span>
+              <h2 id={descriptionTitleId} tabIndex={-1}>{t('discovery.detail.descriptionTitle')}</h2>
+              <p dir="auto">{item.abstractDescription}</p>
+            </section>
+          )}
+
           <section className="item-detail-section">
             <span>{t('discovery.detail.metadataEyebrow')}</span>
-            <h2>{t('discovery.detail.metadataTitle')}</h2>
+            <h2 id={metadataTitleId} tabIndex={-1}>{t('discovery.detail.metadataTitle')}</h2>
 
             <dl className="detail-grid">
               {fields.map(([key, value]) => (
@@ -142,19 +205,14 @@ export function ItemDetailsPage() {
               ))}
             </dl>
           </section>
-
-          {item.abstractDescription && (
-            <section className="item-detail-section">
-              <span>{t('discovery.detail.descriptionEyebrow')}</span>
-              <h2>{t('discovery.detail.descriptionTitle')}</h2>
-              <p dir="auto">{item.abstractDescription}</p>
-            </section>
-          )}
         </div>
 
-        <aside className="availability-panel">
+        <aside className="availability-panel" aria-labelledby={availabilityTitleId}>
           <span>{t('discovery.detail.availabilityEyebrow')}</span>
-          <h2>{t('discovery.detail.availabilityTitle')}</h2>
+          <h2 id={availabilityTitleId} tabIndex={-1}>{t('discovery.detail.availabilityTitle')}</h2>
+          <AvailabilityBadge availability={item.availability} />
+
+          <InventoryNotice descriptionId={inventoryDescriptionId} />
 
           <div className="availability-summary">
             <div>
@@ -180,7 +238,11 @@ export function ItemDetailsPage() {
                   </span>
 
                   <b data-available={entry.available}>
-                    {entry.availableCopies}/{entry.totalCopies}
+                    <span aria-hidden="true">{entry.availableCopies}/{entry.totalCopies}</span>
+                    <span className="sr-only">
+                      {entry.availableCopies} {t('discovery.detail.availableCopies')}, {' '}
+                      {entry.totalCopies} {t('discovery.detail.totalCopies')}
+                    </span>
                   </b>
                 </div>
               ))
@@ -189,9 +251,15 @@ export function ItemDetailsPage() {
             )}
           </div>
 
-          <ReservationPanel
+          {refreshError && <div className="item-detail-refresh-error">
+            <InlineAlert title={t('discovery.detail.refreshError')} message={refreshError.message} requestId={refreshError.requestId} />
+            <button type="button" onClick={() => { backRef.current?.focus(); refreshItem(); }}>{t('discovery.catalog.retry')}</button>
+          </div>}
+
+          <ReservationPanel key={item.id}
             item={item}
             onReservationCreated={refreshItem}
+            inventoryDescriptionId={inventoryDescriptionId}
           />
         </aside>
       </div>

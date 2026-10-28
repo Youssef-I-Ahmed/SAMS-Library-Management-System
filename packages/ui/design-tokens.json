@@ -3,6 +3,8 @@
   "version": "1.0",
   "status": "working-baseline",
   "colors": {
+    "gold": {"700": "#80602C", "300": "#EDC982"},
+    "ivory": "#F7F5EF",
     "primary": {
       "950": "#071D35",
       "900": "#0B2F57",
@@ -35,8 +37,10 @@
   },
   "typography": {
     "fontFamily": {
-      "latin": "Inter",
-      "arabic": "Noto Sans Arabic",
+      "latin": "Segoe UI, Noto Sans Arabic, Tahoma, Arial, sans-serif",
+      "arabic": "Segoe UI, Noto Sans Arabic, Tahoma, Arial, sans-serif",
+      "displayLatin": "Georgia, Times New Roman, serif",
+      "displayArabic": "Segoe UI, Noto Sans Arabic, Tahoma, Arial, sans-serif",
       "fallback": "Arial, sans-serif"
     },
     "scalePx": {

@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useMatch } from 'react-router-dom';
 
 import { BrandLogo } from '../components/brand/BrandLogo';
 import { ShellControls } from '../components/layout/ShellControls';
@@ -38,20 +38,25 @@ function StudentNavigation({
 
 export function StudentShell() {
   const { t } = useLanguage();
+  const isHome = useMatch('/student');
 
   return (
     <div className="student-shell">
+      <a className="skip-link" href="#main-content">{t('common.skipToContent')}</a>
       <header className="student-shell__header">
         <div className="student-shell__header-inner">
           <NavLink
             to="/student"
             className="student-shell__brand"
-            aria-label="SAMS Library"
+            aria-label={`${t('common.academy')} — ${t('common.library')}`}
           >
             <BrandLogo
               variant="mark"
               surface="auto"
               className="student-shell__logo"
+              alt=""
+              width={44}
+              height={44}
             />
 
             <span>
@@ -70,8 +75,9 @@ export function StudentShell() {
       </header>
 
       <main
-        className="student-shell__main"
+        className={`student-shell__main${isHome ? ' student-shell__main--home' : ''}`}
         id="main-content"
+        tabIndex={-1}
       >
         <Outlet />
       </main>

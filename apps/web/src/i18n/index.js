@@ -31,7 +31,9 @@ export const resources = {
     ...enAdmin,
     ...en9g,
     ...en9g3,
-    ...en9g4
+    ...en9g4,
+    // Sprint additions extend the auth namespace; a top-level spread replaces it.
+    auth: { ...en.auth, ...en9g3.auth }
   },
 
   ar: {
@@ -42,7 +44,8 @@ export const resources = {
     ...arAdmin,
     ...ar9g,
     ...ar9g3,
-    ...ar9g4
+    ...ar9g4,
+    auth: { ...ar.auth, ...ar9g3.auth }
   }
 };
 

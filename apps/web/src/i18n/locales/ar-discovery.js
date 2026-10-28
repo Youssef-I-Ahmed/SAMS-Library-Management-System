@@ -20,6 +20,22 @@ export const arDiscovery = {
   },
 
   studentHome: {
+    titleLead: 'معرفة اليوم،',
+    titleLine: 'لمستقبل',
+    titleAccent: 'أكثر إشراقًا.',
+    imageCaption: 'تصوّر توضيحي للحرم الجامعي',
+    browseAll: 'استكشف الفهرس',
+    collectionNavigation: 'تصفح المجموعات',
+    explore: 'استكشف المجموعة',
+    collectionTitles: { BOOK: 'الكتب والمراجع', THESIS: 'الرسائل والأبحاث', PROJECT: 'مشروعات التخرج' },
+    experienceEyebrow: 'تجربتك مع المكتبة',
+    experienceTitle: 'كل فكرة تبدأ بالاكتشاف.',
+    steps: {
+      discover: { title: 'اكتشف', body: 'ابحث في الفهرس بالعنوان أو المؤلف أو الموضوع.' },
+      reserve: { title: 'احجز', body: 'تابع حجوزاتك وراجع التوفر المسجل في النظام.' },
+      learn: { title: 'واصل التعلم', body: 'تابع استعاراتك ومواعيد إرجاعها.' }
+    },
+    footerLine: 'بالمعرفة نبني مستقبلًا أفضل.',
     eyebrow: 'استكشاف المكتبة',
     greeting: 'مرحبًا',
     subtitle:
@@ -31,7 +47,7 @@ export const arDiscovery = {
     searchHint:
       'يمكنك البحث بالعنوان أو المساهم أو ISBN أو الناشر أو تصنيف ديوي أو رقم الكتاب.',
     browseEyebrow: 'المجموعات',
-    browseTitle: 'تصفح حسب نوع المادة',
+    browseTitle: 'اكتشف آفاقًا جديدة.',
     collection: {
       BOOK: 'الكتب المنشورة والمراجع.',
       THESIS: 'الرسائل العلمية والأعمال البحثية.',
@@ -44,21 +60,31 @@ export const arDiscovery = {
       eyebrow: 'فهرس المكتبة',
       title: 'استكشف المجموعة',
       subtitle:
-        'ابحث داخل الفهرس النشط واعرف التوفر الآمن في الفروع.',
+        'ابحث في فهرس المكتبة وراجع التوفر المسجل في الفروع.',
       searchPlaceholder:
         'العنوان، المساهم، ISBN، رقم الكتاب، تصنيف ديوي...',
       searchLabel: 'البحث في الفهرس',
       search: 'بحث',
       loading: 'جارٍ تحميل الفهرس...',
+      loaded: 'اكتمل تحميل الفهرس.',
       results: 'نتيجة',
       for: 'للبحث',
-      sort: 'الترتيب'
+      sort: 'الترتيب',
+      headerNote: 'مساحة للمعرفة. ومجموعة تستحق الاستكشاف.',
+      allResources: 'جميع المصادر',
+      resultsHeading: 'نتائج الفهرس',
+      view: 'طريقة عرض النتائج',
+      grid: 'عرض شبكي',
+      list: 'عرض قائمة',
+      retry: 'حاول مجددًا'
     },
 
     filters: {
       eyebrow: 'تصفية',
       title: 'الفلاتر',
       clear: 'مسح الفلاتر',
+      show: 'إظهار الفلاتر',
+      hide: 'إخفاء الفلاتر',
       all: 'الكل',
       type: 'نوع المادة',
       category: 'الفئة',
@@ -66,9 +92,9 @@ export const arDiscovery = {
       language: 'اللغة',
       year: 'سنة النشر',
       branch: 'الفرع',
-      availableOnly: 'متاح الآن فقط',
+      availableOnly: 'مسجل كمتاح',
       availableOnlyHint:
-        'اعرض المواد التي توجد منها نسخة فعلية متاحة حاليًا.'
+        'اعرض المواد التي لها نسخة مسجلة كمتاحة، بما فيها أي نسخ تجريبية.'
     },
 
     sort: {
@@ -80,18 +106,26 @@ export const arDiscovery = {
     },
 
     card: {
+      noCover: 'الغلاف غير متوفر',
+      noContributor: 'المساهم غير مسجل',
       year: 'السنة',
       language: 'اللغة',
       dewey: 'ديوي',
       callNumber: 'رقم الكتاب',
-      branches: 'فروع',
+      branches: 'فروع مسجلة',
       details: 'عرض التفاصيل'
     },
 
     availability: {
-      available: 'متاح',
-      unavailable: 'غير متاح حاليًا',
+      available: 'متاح بالسجلات',
+      unavailable: 'غير متاح بالسجلات',
       noCopies: 'لا توجد نسخ مسجلة'
+    },
+
+    inventoryNotice: {
+      title: 'تأكد من التوفر الفعلي',
+      body:
+        'قد يشمل التوفر المسجل في النظام نسخًا تجريبية ولا يؤكد وجود مخزون فعلي. تواصل مع المكتبة لتأكيد التوفر قبل الزيارة، حتى إذا كان لديك حجز.'
     },
 
     empty: {
@@ -109,15 +143,21 @@ export const arDiscovery = {
     },
 
     detail: {
+      sections: 'أقسام المادة',
+      loaded: 'اكتمل تحميل تفاصيل المادة.',
+      missingTitle: 'المادة غير موجودة',
+      missingBody: 'هذا السجل غير متاح. عد إلى الفهرس لاستكشاف مواد أخرى.',
+      requestId: 'معرّف الطلب',
+      refreshError: 'تعذر تحديث بيانات التوفر المسجلة',
       loading: 'جارٍ تحميل تفاصيل المادة...',
       back: 'العودة للفهرس',
       metadataEyebrow: 'البيانات الببليوجرافية',
       metadataTitle: 'بيانات المادة',
       descriptionEyebrow: 'عن المادة',
       descriptionTitle: 'الوصف / الملخص',
-      availabilityEyebrow: 'التوفر الحالي',
-      availabilityTitle: 'التوفر حسب الفرع',
-      availableCopies: 'نسخ متاحة',
+      availabilityEyebrow: 'التوفر المسجل',
+      availabilityTitle: 'السجلات حسب الفرع',
+      availableCopies: 'نسخ مسجلة كمتاحة',
       totalCopies: 'نسخ مسجلة',
       noBranchCopies:
         'لا يوجد فرع نشط لديه نسخة مسجلة حاليًا.',

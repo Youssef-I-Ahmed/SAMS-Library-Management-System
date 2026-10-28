@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { AvailabilityBadge } from './AvailabilityBadge';
+import { BookCoverPlaceholder } from './BookCoverPlaceholder';
 import {
   getItemTypeLabelKey,
   getLanguageLabel,
@@ -14,21 +15,21 @@ export function DiscoveryItemCard({ item }) {
 
   return (
     <article className="discovery-item-card">
+      <BookCoverPlaceholder type={item.type} />
       <div className="discovery-item-card__top">
-        <span className={`item-type-mark item-type-mark--${item.type.toLowerCase()}`}>
+        <span className={`item-type-mark item-type-mark--${(item.type || 'BOOK').toLowerCase()}`}>
           {t(getItemTypeLabelKey(item.type))}
         </span>
-
-        <AvailabilityBadge availability={item.availability} />
       </div>
 
       <div className="discovery-item-card__body">
         <h3 dir="auto">{item.title}</h3>
 
-        {contributor && (
-          <p className="discovery-item-card__contributor" dir="auto">
-            {contributor}
-          </p>
+        <p className="discovery-item-card__contributor" dir="auto">
+          {contributor || t('discovery.card.noContributor')}
+        </p>
+        {item.category?.name && (
+          <p className="discovery-item-card__category" dir="auto">{item.category.name}</p>
         )}
 
         <dl className="discovery-item-card__meta">
@@ -64,6 +65,9 @@ export function DiscoveryItemCard({ item }) {
         </dl>
       </div>
 
+      <div className="discovery-item-card__availability">
+        <AvailabilityBadge availability={item.availability} />
+      </div>
       <div className="discovery-item-card__footer">
         <span>
           {item.availability?.branches?.length || 0}
@@ -71,7 +75,7 @@ export function DiscoveryItemCard({ item }) {
           {t('discovery.card.branches')}
         </span>
 
-        <Link to={`/student/items/${item.id}`}>
+        <Link to={`/student/items/${item.id}`} aria-label={`${t('discovery.card.details')}: ${item.title}`}>
           <span>{t('discovery.card.details')}</span>
           <span className="details-link-arrow" aria-hidden="true">→</span>
         </Link>

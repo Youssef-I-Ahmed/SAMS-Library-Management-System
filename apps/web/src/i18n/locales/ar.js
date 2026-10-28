@@ -4,6 +4,8 @@ export const ar = {
   common: {
     academy: 'أكاديمية السادات للعلوم الإدارية',
     library: 'المكتبة',
+    closeDialog: 'إغلاق النافذة',
+    skipToContent: 'انتقل إلى المحتوى الرئيسي',
     light: 'فاتح',
     dark: 'داكن',
     english: 'English',

@@ -4,6 +4,8 @@ export const en = {
   common: {
     academy: 'Sadat Academy for Management Sciences',
     library: 'Library',
+    closeDialog: 'Close dialog',
+    skipToContent: 'Skip to main content',
     light: 'Light',
     dark: 'Dark',
     english: 'English',

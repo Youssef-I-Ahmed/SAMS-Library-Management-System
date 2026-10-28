@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AdminModal } from '../../components/admin/AdminModal';
 
 import { InlineAlert } from '../../components/ui/InlineAlert';
 import { StaffOperationNotice } from '../../components/staff/StaffOperationNotice';
@@ -206,19 +207,12 @@ export function ReturnPage() {
       </section>
 
       {returnTarget && (
-        <div className="staff-modal-backdrop">
-          <section
-            className="staff-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="return-dialog-title"
-          >
-            <span className="staff-card-eyebrow">
-              {t('staff.return.confirmEyebrow')}
-            </span>
-            <h2 id="return-dialog-title">
-              {t('staff.return.confirmTitle')}
-            </h2>
+        <AdminModal
+          eyebrow={t('staff.return.confirmEyebrow')}
+          title={t('staff.return.confirmTitle')}
+          onClose={() => setReturnTarget(null)}
+          canClose={!submitting}
+        >
             <p dir="auto">
               {returnTarget.student.user.displayName} · {returnTarget.item.title}
             </p>
@@ -276,8 +270,7 @@ export function ReturnPage() {
                 {t('staff.common.cancel')}
               </button>
             </div>
-          </section>
-        </div>
+        </AdminModal>
       )}
     </section>
   );

@@ -1,4 +1,9 @@
 :root {
+  --sams-gold-700: #80602c;
+  --sams-gold-300: #edc982;
+  --sams-ivory: #f7f5ef;
+  --sams-font-ui: "Segoe UI", "Noto Sans Arabic", Tahoma, Arial, sans-serif;
+  --sams-font-display: Georgia, "Times New Roman", serif;
   --sams-primary-950: #071D35;
   --sams-primary-900: #0B2F57;
   --sams-primary-800: #104273;
@@ -37,6 +42,10 @@
   --sams-space-5: 20px;
   --sams-space-6: 24px;
   --sams-space-8: 32px;
+  --sams-space-10: 40px;
+  --sams-space-12: 48px;
+  --sams-space-16: 64px;
+  --sams-space-24: 96px;
 
   --sams-shadow-card: 0 1px 3px rgba(16, 24, 40, 0.08);
   --sams-shadow-elevated: 0 4px 12px rgba(16, 24, 40, 0.10);

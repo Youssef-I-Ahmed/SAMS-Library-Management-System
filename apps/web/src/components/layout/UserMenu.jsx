@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useId,
   useRef,
   useState
 } from 'react';
@@ -24,12 +25,19 @@ export function UserMenu() {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
+  const triggerRef = useRef(null);
+  const openAtEndRef = useRef(false);
+  const menuId = useId();
 
   const isStudent =
     auth.roles.includes('STUDENT');
 
   useEffect(() => {
     if (!open) return undefined;
+
+    const items = menuRef.current.querySelectorAll('[role="menuitem"]');
+    items[openAtEndRef.current ? items.length - 1 : 0]?.focus();
+    openAtEndRef.current = false;
 
     const handlePointerDown = (event) => {
       if (
@@ -42,7 +50,9 @@ export function UserMenu() {
 
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
+        event.preventDefault();
         setOpen(false);
+        triggerRef.current?.focus();
       }
     };
 
@@ -75,14 +85,23 @@ export function UserMenu() {
       ref={menuRef}
     >
       <button
+        ref={triggerRef}
         type="button"
         className="user-menu__trigger"
         aria-expanded={open}
         aria-haspopup="menu"
+        aria-controls={open ? menuId : undefined}
         aria-label={t('auth.accountMenu')}
         onClick={() =>
           setOpen((value) => !value)
         }
+        onKeyDown={(event) => {
+          if (['ArrowDown', 'ArrowUp'].includes(event.key)) {
+            event.preventDefault();
+            openAtEndRef.current = event.key === 'ArrowUp';
+            setOpen(true);
+          }
+        }}
       >
         <span
           className="user-avatar"
@@ -107,7 +126,26 @@ export function UserMenu() {
       {open && (
         <div
           className="user-menu__popover"
+          id={menuId}
           role="menu"
+          aria-label={t('auth.accountMenu')}
+          onBlur={(event) => {
+            if (!menuRef.current?.contains(event.relatedTarget)) setOpen(false);
+          }}
+          onKeyDown={(event) => {
+            const items = Array.from(event.currentTarget.querySelectorAll('[role="menuitem"]'));
+            const index = items.indexOf(document.activeElement);
+            const next = {
+              ArrowDown: (index + 1) % items.length,
+              ArrowUp: (index - 1 + items.length) % items.length,
+              Home: 0,
+              End: items.length - 1
+            }[event.key];
+            if (next !== undefined) {
+              event.preventDefault();
+              items[next]?.focus();
+            }
+          }}
         >
           <div className="user-menu__email">
             {auth.user?.universityEmail}
@@ -116,6 +154,7 @@ export function UserMenu() {
           {isStudent && (
             <Link
               role="menuitem"
+              tabIndex={-1}
               className="user-menu__profile-link"
               to="/student/profile"
               onClick={() => setOpen(false)}
@@ -127,6 +166,7 @@ export function UserMenu() {
           <button
             type="button"
             role="menuitem"
+            tabIndex={-1}
             className="user-menu__logout"
             onClick={auth.logout}
           >
