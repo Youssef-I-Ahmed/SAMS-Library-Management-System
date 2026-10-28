@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma.js';
+import { buildCatalogSearchWhere } from './catalog-search.js';
 import { AppError } from '../../utils/app-error.js';
 
 const itemDetailInclude = {
@@ -94,7 +95,7 @@ export async function listLibraryItems({
   page = 1,
   pageSize = 20
 }) {
-  const where = {
+  const where = await buildCatalogSearchWhere({
     ...(includeInactive ? {} : { isActive: true }),
     ...(type ? { type } : {}),
     ...(categoryId
@@ -106,35 +107,8 @@ export async function listLibraryItems({
     ...(language
       ? { language: { equals: language, mode: 'insensitive' } }
       : {}),
-    ...(publicationYear ? { publicationYear } : {}),
-    ...(search
-      ? {
-          OR: [
-            { title: { contains: search, mode: 'insensitive' } },
-            { callNumber: { contains: search, mode: 'insensitive' } },
-            { deweyCodeRaw: { contains: search, mode: 'insensitive' } },
-            {
-              abstractDescription: {
-                contains: search,
-                mode: 'insensitive'
-              }
-            },
-            {
-              itemContributors: {
-                some: {
-                  contributor: {
-                    fullName: {
-                      contains: search,
-                      mode: 'insensitive'
-                    }
-                  }
-                }
-              }
-            }
-          ]
-        }
-      : {})
-  };
+    ...(publicationYear ? { publicationYear } : {})
+  }, search);
 
   const skip = (page - 1) * pageSize;
 

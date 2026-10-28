@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma.js';
+import { buildCatalogSearchWhere } from '../catalog/catalog-search.js';
 
 function buildInventoryFilter({ branchId, availableOnly }) {
   if (branchId && availableOnly) {
@@ -80,117 +81,6 @@ function buildOrderBy(sort) {
         { id: 'asc' }
       ];
   }
-}
-
-function buildSearchFilter(q) {
-  if (!q) return {};
-
-  return {
-    OR: [
-      {
-        title: {
-          contains: q,
-          mode: 'insensitive'
-        }
-      },
-      {
-        callNumber: {
-          contains: q,
-          mode: 'insensitive'
-        }
-      },
-      {
-        deweyCodeRaw: {
-          contains: q,
-          mode: 'insensitive'
-        }
-      },
-      {
-        abstractDescription: {
-          contains: q,
-          mode: 'insensitive'
-        }
-      },
-      {
-        category: {
-          is: {
-            name: {
-              contains: q,
-              mode: 'insensitive'
-            }
-          }
-        }
-      },
-      {
-        deweyClassification: {
-          is: {
-            OR: [
-              {
-                code: {
-                  contains: q,
-                  mode: 'insensitive'
-                }
-              },
-              {
-                name: {
-                  contains: q,
-                  mode: 'insensitive'
-                }
-              }
-            ]
-          }
-        }
-      },
-      {
-        bookDetails: {
-          is: {
-            OR: [
-              {
-                isbn: {
-                  contains: q,
-                  mode: 'insensitive'
-                }
-              },
-              {
-                publisher: {
-                  contains: q,
-                  mode: 'insensitive'
-                }
-              },
-              {
-                edition: {
-                  contains: q,
-                  mode: 'insensitive'
-                }
-              }
-            ]
-          }
-        }
-      },
-      {
-        academicWorkDetails: {
-          is: {
-            academicYear: {
-              contains: q,
-              mode: 'insensitive'
-            }
-          }
-        }
-      },
-      {
-        itemContributors: {
-          some: {
-            contributor: {
-              fullName: {
-                contains: q,
-                mode: 'insensitive'
-              }
-            }
-          }
-        }
-      }
-    ]
-  };
 }
 
 async function loadAvailabilityForItems(itemIds) {
@@ -342,7 +232,7 @@ export async function searchDiscoveryItems({
     availableOnly
   });
 
-  const where = {
+  const where = await buildCatalogSearchWhere({
     isActive: true,
     ...(type ? { type } : {}),
     ...(categoryId
@@ -362,7 +252,6 @@ export async function searchDiscoveryItems({
     ...(publicationYear
       ? { publicationYear }
       : {}),
-    ...buildSearchFilter(q),
     ...(inventoryFilter
       ? {
           physicalCopies: {
@@ -370,7 +259,7 @@ export async function searchDiscoveryItems({
           }
         }
       : {})
-  };
+  }, q, { discovery: true });
 
   const skip = (page - 1) * pageSize;
 
