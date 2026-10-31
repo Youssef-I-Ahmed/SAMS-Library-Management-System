@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { z } from 'zod';
+import { readAiConfig } from './ai.js';
 
 const booleanString =
   z.enum([
@@ -143,6 +144,7 @@ const schema =
   );
 
 export const env =
-  schema.parse(
-    process.env
+  Object.assign(
+    schema.parse(process.env),
+    readAiConfig(process.env)
   );

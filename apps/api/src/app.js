@@ -16,6 +16,7 @@ import { reservationsRouter } from './modules/reservations/reservations.routes.j
 import { borrowingsRouter } from './modules/borrowings/borrowings.routes.js';
 import { visitsRouter } from './modules/visits/visits.routes.js';
 import { analyticsRouter } from './modules/analytics/analytics.routes.js';
+import { aiRouter, aiRequestBoundary } from './modules/ai/ai.routes.js';
 import { requestContext } from './middleware/request-context.js';
 import { requestLogger } from './middleware/request-logger.js';
 import {
@@ -36,6 +37,9 @@ app.use(
   requestContext
 );
 
+// Mark AI responses/logs even when CORS or another early middleware rejects them.
+app.use('/api/v1/ai', aiRequestBoundary);
+
 app.use(
   requestLogger
 );
@@ -53,6 +57,9 @@ app.use(
     corsOptions
   )
 );
+
+// AI owns its small decoded-body parser, before the general API parser.
+app.use('/api/v1/ai', aiRouter);
 
 app.use(
   express.json({

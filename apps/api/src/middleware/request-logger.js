@@ -40,7 +40,7 @@ export function requestLogger(
           method:
             req.method,
           path:
-            req.path,
+            req.aiLogPath ?? req.path,
           status:
             res.statusCode,
           durationMs:
