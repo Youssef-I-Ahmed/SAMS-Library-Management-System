@@ -1,0 +1,22 @@
+.discovery-cover--pilot img {
+  display: block;
+  width: 90px;
+  height: 125px;
+  max-width: 100%;
+  object-fit: contain;
+}
+.discovery-cover--pilot > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--text-primary);
+  font-size: 11px;
+  line-height: 1.5;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.discovery-cover--pilot > a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+.item-detail-page .discovery-cover--pilot img { width: 135px; height: 195px; }

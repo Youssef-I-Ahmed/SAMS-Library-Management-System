@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { AvailabilityBadge } from './AvailabilityBadge';
-import { BookCoverPlaceholder } from './BookCoverPlaceholder';
+import { BookCover } from './BookCover';
 import {
   getItemTypeLabelKey,
   getLanguageLabel,
@@ -15,7 +15,7 @@ export function DiscoveryItemCard({ item }) {
 
   return (
     <article className="discovery-item-card">
-      <BookCoverPlaceholder type={item.type} />
+      <BookCover item={item} />
       <div className="discovery-item-card__top">
         <span className={`item-type-mark item-type-mark--${(item.type || 'BOOK').toLowerCase()}`}>
           {t(getItemTypeLabelKey(item.type))}

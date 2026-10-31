@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { AvailabilityBadge } from '../../components/discovery/AvailabilityBadge';
-import { BookCoverPlaceholder } from '../../components/discovery/BookCoverPlaceholder';
+import { BookCover } from '../../components/discovery/BookCover';
 import { InventoryNotice } from '../../components/discovery/InventoryNotice';
 import { ReservationPanel } from '../../components/circulation/ReservationPanel';
 import { InlineAlert } from '../../components/ui/InlineAlert';
@@ -157,7 +157,7 @@ export function ItemDetailsPage() {
       <div className="item-detail-layout">
         <div className="item-detail-main">
           <section className="item-detail-hero" aria-labelledby={titleId}>
-            <BookCoverPlaceholder type={item.type} />
+            <BookCover item={item} />
             <div className="item-detail-identity">
               <span className="item-type-mark">
                 {t(getItemTypeLabelKey(item.type))}

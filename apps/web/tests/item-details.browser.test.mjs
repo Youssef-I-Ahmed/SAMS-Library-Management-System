@@ -3,13 +3,16 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import { after, before, test } from 'node:test';
 import { chromium, expect } from '@playwright/test';
 import axe from 'axe-core';
 import { preview } from 'vite';
 import { translate } from '../src/i18n/index.js';
 
-const evidence = fileURLToPath(new URL('../../../docs/frontend/screenshots/sprint10b4b/', import.meta.url));
+const evidence = process.env.SAMS_TEST_EVIDENCE_DIR
+  ? resolve(process.env.SAMS_TEST_EVIDENCE_DIR, 'item-details')
+  : fileURLToPath(new URL('../../../docs/frontend/screenshots/sprint10b4b/', import.meta.url));
 const metrics = [];
 let server, browser, origin;
 before(async () => {
