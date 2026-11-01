@@ -8,6 +8,7 @@ import {
 
 import { apiRequest } from '../lib/api';
 import { AUTH_SESSION_KEY } from './auth-config';
+import { clearAiConversation } from '../features/ai/ai-session.js';
 
 export const AuthContext = createContext(null);
 
@@ -41,6 +42,7 @@ export function AuthProvider({ children }) {
   );
 
   const clearSession = useCallback(() => {
+    clearAiConversation();
     writeSessionToken(null);
     setToken(null);
     setUser(null);

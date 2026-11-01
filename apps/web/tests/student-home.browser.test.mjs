@@ -9,7 +9,9 @@ import axe from 'axe-core';
 import { createServer, preview } from 'vite';
 import { translate } from '../src/i18n/index.js';
 
-const screenshots = fileURLToPath(new URL('../../../docs/frontend/screenshots/sprint10b3/', import.meta.url));
+const screenshots = process.env.SAMS_TEST_EVIDENCE_DIR
+  ? `${process.env.SAMS_TEST_EVIDENCE_DIR}/student-home`
+  : fileURLToPath(new URL('../../../docs/frontend/screenshots/sprint10b3/', import.meta.url));
 const metrics = [];
 let server;
 let browser;

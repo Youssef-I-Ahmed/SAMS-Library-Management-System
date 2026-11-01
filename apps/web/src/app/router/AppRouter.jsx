@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AI_ASSISTANT_ENABLED } from '../../features/ai/ai-config.js';
 
 import { RequireAuth, RequireRole, RootRedirect } from '../../auth/AuthGuards';
 import { StudentShell } from '../../layouts/StudentShell';
@@ -14,6 +15,8 @@ const ItemDetailsPage = lazyNamed(() => import('../../pages/student/ItemDetailsP
 const MyReservationsPage = lazyNamed(() => import('../../pages/student/MyReservationsPage'), 'MyReservationsPage');
 const MyBorrowingsPage = lazyNamed(() => import('../../pages/student/MyBorrowingsPage'), 'MyBorrowingsPage');
 const StudentProfilePage = lazyNamed(() => import('../../pages/student/StudentProfilePage'), 'StudentProfilePage');
+const StudentAiPage = AI_ASSISTANT_ENABLED
+  ? lazyNamed(() => import('../../pages/student/StudentAiPage'), 'StudentAiPage') : null;
 const BorrowPage = lazyNamed(() => import('../../pages/librarian/BorrowPage'), 'BorrowPage');
 const ReturnPage = lazyNamed(() => import('../../pages/librarian/ReturnPage'), 'ReturnPage');
 const ReservationsOperationsPage = lazyNamed(() => import('../../pages/librarian/ReservationsOperationsPage'), 'ReservationsOperationsPage');
@@ -54,6 +57,7 @@ export function AppRouter() {
                 <Route path="reservations" element={<MyReservationsPage />} />
                 <Route path="borrowings" element={<MyBorrowingsPage />} />
                 <Route path="profile" element={<StudentProfilePage />} />
+                <Route path="ai" element={AI_ASSISTANT_ENABLED ? <StudentAiPage /> : <Navigate to="/student" replace />} />
               </Route>
             </Route>
 

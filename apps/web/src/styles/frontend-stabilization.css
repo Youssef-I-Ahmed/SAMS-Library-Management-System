@@ -58,3 +58,9 @@
 :is(.status-badge, .staff-status, .admin-status) > span { flex-shrink: 0; }
 .staff-topbar .user-avatar { color: #fff; }
 .inline-alert > small { opacity: 1; }
+/* Five destinations only in explicitly enabled builds; default navigation is unchanged. */
+@media (max-width: 980px) {
+  .student-shell--ai-enabled .student-mobile-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .student-shell--ai-enabled .student-mobile-nav a { padding-inline: 2px; }
+  .student-shell--ai-enabled .student-mobile-nav__label { white-space: nowrap; }
+}
