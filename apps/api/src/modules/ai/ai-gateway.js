@@ -11,7 +11,8 @@ export function createAiGateway({ config, db, now = Date.now, transportOptions, 
   if (config.AI_ENABLED) {
     // Invalid provenance disables every enabled route, not an implicit empty map.
     try {
-      enrich = createIdentityResolver({ mapping: loadBookCodeMap(config), db, timeoutMs: identityTimeoutMs });
+      enrich = createIdentityResolver({ mapping: loadBookCodeMap(config), db, timeoutMs: identityTimeoutMs,
+        allowUuidCodes: config.AI_BOOK_IDENTITY_MODE === 'postgres_uuid' });
       transport = createTransport(config, transportOptions);
     } catch { /* readiness reports only a sanitized service error */ }
   }

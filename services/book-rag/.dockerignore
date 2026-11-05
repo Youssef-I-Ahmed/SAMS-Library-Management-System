@@ -1,0 +1,8 @@
+*
+!app/
+!app/*.py
+!sams_rag/
+!sams_rag/*.py
+!requirements-linux.lock
+!Dockerfile
+!MODEL_PROVENANCE.json

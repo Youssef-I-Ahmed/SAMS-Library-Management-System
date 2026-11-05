@@ -16,6 +16,7 @@ const schema = z.object({
   AI_BOOK_CODE_MAP_SHA256: fingerprint,
   AI_SOURCE_SHA256: fingerprint,
   AI_SERVICE_EPOCH: z.string().regex(/^[A-Za-z0-9._:-]{1,128}$/),
+  AI_BOOK_IDENTITY_MODE: z.enum(['legacy', 'postgres_uuid']).default('legacy'),
   AI_ASK_TIMEOUT_MS: integer(15000, 11000, 15000),
   AI_CARD_TIMEOUT_MS: integer(5000, 100, 5000),
   AI_RESET_TIMEOUT_MS: integer(5000, 100, 5000),

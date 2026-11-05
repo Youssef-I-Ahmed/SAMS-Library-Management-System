@@ -1,0 +1,67 @@
+# Opt-in only. The launcher supplies runtime secrets via stdin, never environment interpolation.
+services:
+  book-rag:
+    profiles: [book-rag]
+    image: sams-book-rag:10d3
+    container_name: sams-book-rag-10d3
+    build: .
+    stdin_open: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:size=128m,mode=1777]
+    networks: [book-rag-internal]
+    environment:
+      BOOK_RAG_CONTAINER: "1"
+      BOOK_RAG_SOURCE: postgres
+      BOOK_RAG_PGHOST: postgres
+      BOOK_RAG_PGPORT: "5432"
+      BOOK_RAG_PGDATABASE: sams_library
+      BOOK_RAG_PGUSER: sams_book_rag_ro
+      BOOK_RAG_MAP_PATH: /catalog/legacy-book-code-map.json
+      BOOK_RAG_MAP_SHA256: ${BOOK_RAG_MAP_SHA256:?required}
+      BOOK_RAG_SOURCE_SHA256: ${BOOK_RAG_SOURCE_SHA256:?required}
+      BOOK_RAG_REFRESH_SECONDS: "5"
+      BOOK_RAG_MAX_STALE_SECONDS: "30"
+      SAMS_MODELS_DIR: /models
+      SAMS_STORE_DIR: /store
+      LLM_PROVIDER: extractive
+      API_ALLOWED_ORIGINS: ""
+      API_UNLIMITED_ROLES: ""
+    volumes:
+      - type: bind
+        source: ${BOOK_RAG_MODELS_HOST_PATH:?required}
+        target: /models
+        read_only: true
+      - type: bind
+        source: ${BOOK_RAG_MAP_HOST_PATH:?required}
+        target: /catalog/legacy-book-code-map.json
+        read_only: true
+      - book-rag-store:/store
+  book-rag-ingress:
+    profiles: [book-rag]
+    image: sams-book-rag:10d3
+    container_name: sams-book-rag-10d3-ingress
+    entrypoint: [python, -m, app.tcp_ingress]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:size=16m,mode=1777]
+    mem_limit: 96m
+    pids_limit: 32
+    ports: ["127.0.0.1:18000:8000"]
+    networks: [book-rag-internal, book-rag-ingress]
+    environment:
+      BOOK_RAG_TARGET: sams-book-rag-10d3
+      BOOK_RAG_INTERNAL_SUBNET: ${BOOK_RAG_INTERNAL_SUBNET:?required}
+networks:
+  book-rag-internal:
+    external: true
+    name: sams_book_rag_internal_10d3
+  book-rag-ingress:
+    external: true
+    name: sams_book_rag_ingress_10d3
+volumes:
+  book-rag-store:
+    external: true
+    name: sams_book_rag_store_10d3

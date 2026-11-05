@@ -1,0 +1,17 @@
+# Linux CPython 3.12, CPU only. The hash-locked transitive closure is requirements-linux.lock.
+torch @ https://download-r2.pytorch.org/whl/cpu/torch-2.15.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl
+pandas==3.1.0
+numpy==2.5.4
+openpyxl==3.1.5
+scikit-learn==1.9.1
+rank-bm25==0.2.2
+faiss-cpu==1.15.1
+sentence-transformers==6.2.0
+rapidfuzz==3.14.6
+nltk==3.10.4
+python-dotenv==1.2.4
+pytest==9.2.0
+fastapi==0.162.0
+uvicorn==0.54.0
+httpx==0.28.1
+psycopg[binary]==3.3.6

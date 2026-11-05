@@ -1,0 +1,146 @@
+{
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/config.json": {
+    "bytes": 891,
+    "sha256": "cc2cfe51aa3fd759d21d21acf5dfd6994aa67a3c9210636d22e143699d336c77"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/model.safetensors": {
+    "bytes": 470592698,
+    "sha256": "5daeca2481a76b5976a2bdc32f0a78532b6716da4f8cd3ff59460ef8d2f359b4"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/sentencepiece.bpe.model": {
+    "bytes": 5069051,
+    "sha256": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/special_tokens_map.json": {
+    "bytes": 239,
+    "sha256": "378eb3bf733eb16e65792d7e3fda5b8a4631387ca04d2015199c4d4f22ae554d"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/tokenizer.json": {
+    "bytes": 17082660,
+    "sha256": "62c24cdc13d4c9952d63718d6c9fa4c287974249e16b7ade6d5a85e7bbb75626"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/tokenizer_config.json": {
+    "bytes": 435,
+    "sha256": "e7fbfbfa6347b4e414c1cee50d142e2c2f9a895dad68b068ae83a8b564c3837e"
+  },
+  "intfloat__multilingual-e5-small/config.json": {
+    "bytes": 655,
+    "sha256": "69137736cab8b8903a07fe8afaafdda25aac55415a12a55d1bffa9f581abf959"
+  },
+  "intfloat__multilingual-e5-small/model.safetensors": {
+    "bytes": 470641600,
+    "sha256": "1a55775f53449dac10a2bcbc312469fac40b96d53198c407081a831f81c98477"
+  },
+  "intfloat__multilingual-e5-small/modules.json": {
+    "bytes": 387,
+    "sha256": "c6e29747481e8b5dd2b58401966aeac910de39092f90cda9a704b1545f902b04"
+  },
+  "intfloat__multilingual-e5-small/sentencepiece.bpe.model": {
+    "bytes": 5069051,
+    "sha256": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865"
+  },
+  "intfloat__multilingual-e5-small/sentence_bert_config.json": {
+    "bytes": 57,
+    "sha256": "948201d8329907aae938fa62f9ceeed53f5694dacc2b87b9f3b78b37ee986529"
+  },
+  "intfloat__multilingual-e5-small/special_tokens_map.json": {
+    "bytes": 167,
+    "sha256": "d05497f1da52c5e09554c0cd874037a083e1dc1b9cfd48034d1c717f1afc07a7"
+  },
+  "intfloat__multilingual-e5-small/tokenizer.json": {
+    "bytes": 17082730,
+    "sha256": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39"
+  },
+  "intfloat__multilingual-e5-small/tokenizer_config.json": {
+    "bytes": 443,
+    "sha256": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b"
+  },
+  "intfloat__multilingual-e5-small/1_Pooling/config.json": {
+    "bytes": 200,
+    "sha256": "987f7a67a38fa564c849bb5d277c52ab9088a84368fc0be31a354125aebb12a0"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/.gitignore": {
+    "bytes": 1,
+    "sha256": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/CACHEDIR.TAG": {
+    "bytes": 195,
+    "sha256": "e8893e2dcb3f4545ef67a0a5b7b769113d38eef1aa61c7c7ba14659b02af955f"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/download/config.json.metadata": {
+    "bytes": 104,
+    "sha256": "1d1181cbb589a4a80d28463e64a4d960574429f086f0e5c32639e8eed764678a"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/download/model.safetensors.metadata": {
+    "bytes": 128,
+    "sha256": "d2a775c2768349a62e08c6e71a8fb17bcb31bb973e89daf43288cb6b7a8e2923"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/download/modules.json.metadata": {
+    "bytes": 104,
+    "sha256": "8b7c4ad2395e32db069ecdd1d906f461b806a2b2d4cd04edaaa31d958031ec26"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/download/sentencepiece.bpe.model.metadata": {
+    "bytes": 126,
+    "sha256": "cddc83aa47d66c81a5a7cc8d0cb5c9420b1a6aa52d5313ff96e468620662cb9b"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/download/sentence_bert_config.json.metadata": {
+    "bytes": 104,
+    "sha256": "ad62f48c2c61067ce7910d299a1671b11f69695146a9ec72aae71cc7e116455e"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/download/special_tokens_map.json.metadata": {
+    "bytes": 104,
+    "sha256": "74a0ac2f763f4131b95072030e0ab0f24b7b96ccb1cee1c45e88a21123d1068f"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/download/tokenizer.json.metadata": {
+    "bytes": 128,
+    "sha256": "649ae6335951d880b0e12b80edf51adfd6811511237545fb6be1e20f417527a2"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/download/tokenizer_config.json.metadata": {
+    "bytes": 103,
+    "sha256": "03fc1f7d72456f6b44bce6effede9a0544f1537e5290c1a84fefa659f5e8e0e5"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/trees/614241f622f53c4eeff9890bdc4f31cfecc418b3.json": {
+    "bytes": 7326,
+    "sha256": "f5862c913b10490c9000b30aeabd7bde8db724d040b2d0e433ab4cf5edcb5111"
+  },
+  "intfloat__multilingual-e5-small/.cache/huggingface/download/1_Pooling/config.json.metadata": {
+    "bytes": 104,
+    "sha256": "87748a788a9341a73f0dcccb7275810e61df0088faba871201122798c29d4756"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/.cache/huggingface/.gitignore": {
+    "bytes": 1,
+    "sha256": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/.cache/huggingface/CACHEDIR.TAG": {
+    "bytes": 195,
+    "sha256": "e8893e2dcb3f4545ef67a0a5b7b769113d38eef1aa61c7c7ba14659b02af955f"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/.cache/huggingface/download/config.json.metadata": {
+    "bytes": 103,
+    "sha256": "1271724d0949a0ea753377090a3b0c3f773e81cb0e24b95e247a192854e41dce"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/.cache/huggingface/download/model.safetensors.metadata": {
+    "bytes": 128,
+    "sha256": "473ace48d259ba0a7bef76ad1e45c82c2a6257159af57b7db8815f988983191c"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/.cache/huggingface/download/sentencepiece.bpe.model.metadata": {
+    "bytes": 127,
+    "sha256": "4267b141afc8f913cfd76fd0ee687e22d2f14c411a95c040c8190ee9749f0a0e"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/.cache/huggingface/download/special_tokens_map.json.metadata": {
+    "bytes": 103,
+    "sha256": "82952c85e1cdef557651f6f6f8fc0aafddd34e4de8d7eaf7b83de939d8fb57a8"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/.cache/huggingface/download/tokenizer.json.metadata": {
+    "bytes": 128,
+    "sha256": "2061ec2695577b7175275700d7b8ff3afc3355845f6d9a6fc1dbc3a24826ccfb"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/.cache/huggingface/download/tokenizer_config.json.metadata": {
+    "bytes": 104,
+    "sha256": "13354f1bd98d08d00401508ecf4d5ef557f35bdc1a1bf7ee5b368989b31fea0f"
+  },
+  "cross-encoder__mmarco-mMiniLMv2-L12-H384-v1/.cache/huggingface/trees/1427fd652930e4ba29e8149678df786c240d8825.json": {
+    "bytes": 5668,
+    "sha256": "4c7de19739751718edceb36123a8271e2519f36ea08fdd51a78e6e9b2c202817"
+  }
+}

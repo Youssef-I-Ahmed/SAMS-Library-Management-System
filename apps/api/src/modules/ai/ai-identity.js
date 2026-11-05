@@ -18,7 +18,7 @@ export function loadBookCodeMap(config) {
     const entries = Object.entries(artifact.map);
     if (!entries.length || entries.length > 50000) throw new Error();
     for (const [code, id] of entries) {
-      if (!bookCode.safeParse(code).success || !z.string().uuid().safeParse(id).success) throw new Error();
+      if (code.startsWith('sams:') || !bookCode.safeParse(code).success || !z.string().uuid().safeParse(id).success) throw new Error();
     }
     return new Map(entries.map(([code, id]) => [code, id.toLowerCase()]));
   } catch {
@@ -27,13 +27,15 @@ export function loadBookCodeMap(config) {
   }
 }
 
-export function createIdentityResolver({ mapping, db, timeoutMs = 3000 }) {
+export function createIdentityResolver({ mapping, db, timeoutMs = 3000, allowUuidCodes = false }) {
   let outstandingReads = 0;
   return async function enrich(payload) {
     const entries = [];
     const cardCodes = (card) => card['Book code'] === 'NA' ? [] : card['Book code'].split(';').map((part) => part.trim());
     if (payload.card) {
-      entries.push({ target: payload, codes: cardCodes(payload.card) });
+      const codes = cardCodes(payload.card);
+      if (codes.length && allowUuidCodes && payload.book_code?.startsWith('sams:')) codes.unshift(payload.book_code);
+      entries.push({ target: payload, codes });
     }
     for (const target of payload.preview?.books ?? []) entries.push({ target, codes: target.book_codes });
     for (const target of payload.result?.sources ?? []) {
@@ -47,7 +49,9 @@ export function createIdentityResolver({ mapping, db, timeoutMs = 3000 }) {
       entry.ids = new Set();
       entry.partial = !entry.codes.length;
       for (const code of entry.codes) {
-        const id = bookCode.safeParse(code).success ? mapping.get(code) : undefined;
+        const native = allowUuidCodes && /^sams:[a-f0-9-]{36}$/.test(code) &&
+          z.string().uuid().safeParse(code.slice(5)).success ? code.slice(5) : undefined;
+        const id = bookCode.safeParse(code).success ? native ?? mapping.get(code) : undefined;
         if (id) { entry.ids.add(id); targets.add(id); }
         else entry.partial = true;
       }
