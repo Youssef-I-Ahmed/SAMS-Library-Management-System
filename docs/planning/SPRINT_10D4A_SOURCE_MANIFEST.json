@@ -57,6 +57,37 @@
       "legacyBookCode"
     ]
   },
+  "reconciliationControls": {
+    "fields": {
+      "titleNormalizedEqual": 126,
+      "titleNormalizedDifferent": 3857,
+      "publicationYearEqual": 3969,
+      "publicationYearDifferent": 4,
+      "publicationYearMissingBoth": 10,
+      "callNumberEqual": 3983,
+      "extentEqual": 2988,
+      "extentMissingBoth": 995,
+      "dimensionEqual": 3204,
+      "dimensionMissingBoth": 779
+    },
+    "subjects": {
+      "equalSets": 3948,
+      "missingBoth": 33,
+      "projectOnly": 2,
+      "starterOnly": 0,
+      "differentSets": 0
+    },
+    "relationships": {
+      "copyRows": 3988,
+      "projectsWithCopies": 3983,
+      "contributorRows": 5050,
+      "projectsWithContributors": 3952,
+      "supervisorMarkedRows": 4999,
+      "subjectRows": 3949,
+      "projectsWithSubjects": 3948,
+      "documentReviewRows": 1864
+    }
+  },
   "limitations": [
     "The original raw ZIP and slis.db are unavailable.",
     "The analysis starter is a set of convenience views and is not the complete 23-table extract.",

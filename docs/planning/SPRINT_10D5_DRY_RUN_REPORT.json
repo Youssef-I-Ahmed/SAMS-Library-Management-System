@@ -1,0 +1,143 @@
+{
+  "schemaVersion": "sams-projects-research-dry-run-v1",
+  "generatedAt": "2026-11-08T17:42:51.088Z",
+  "sourceNamespace": "LEGACY_PROJECTS_V1",
+  "sourceIntegrity": "PASS",
+  "databaseConnected": false,
+  "databaseWrites": 0,
+  "containsSourceRows": false,
+  "containsPrivateValues": false,
+  "sources": [
+    {
+      "logicalName": "PROJECT_HANDOFF",
+      "sha256": "34e2be486ecc37014e685d216f263920fd9404e6cf9b2b5a41245d55ad427528",
+      "byteLength": 452010
+    },
+    {
+      "logicalName": "PROJECTS_ANALYSIS_STARTER",
+      "sha256": "01a3c017f6d7e8a156700f13fa5bb3824fcdb56a28b0b68bb33af6db45c38839",
+      "byteLength": 1892138
+    }
+  ],
+  "identity": {
+    "projectRows": 3983,
+    "starterRows": 3983,
+    "uniqueCodesPerSource": 3983,
+    "commonCodes": 3983,
+    "bookCrosswalkCodeCollisions": 2705,
+    "identityRule": [
+      "sourceNamespace",
+      "legacyBookCode"
+    ]
+  },
+  "fields": {
+    "title": {
+      "projectMissing": 0,
+      "starterMissing": 0,
+      "equal": 126,
+      "different": 3857,
+      "missingBoth": 0,
+      "oneSideMissing": 0
+    },
+    "publicationYear": {
+      "projectMissing": 10,
+      "starterMissing": 10,
+      "equal": 3969,
+      "different": 4,
+      "missingBoth": 10,
+      "oneSideMissing": 0
+    },
+    "callNumber": {
+      "projectMissing": 0,
+      "starterMissing": 0,
+      "equal": 3983,
+      "different": 0,
+      "missingBoth": 0,
+      "oneSideMissing": 0
+    },
+    "extent": {
+      "projectMissing": 995,
+      "starterMissing": 995,
+      "equal": 2988,
+      "different": 0,
+      "missingBoth": 995,
+      "oneSideMissing": 0
+    },
+    "dimension": {
+      "projectMissing": 779,
+      "starterMissing": 779,
+      "equal": 3204,
+      "different": 0,
+      "missingBoth": 779,
+      "oneSideMissing": 0
+    }
+  },
+  "subjects": {
+    "equalSets": 3948,
+    "missingBoth": 33,
+    "projectOnly": 2,
+    "starterOnly": 0,
+    "differentSets": 0
+  },
+  "relationships": {
+    "copyRows": 3988,
+    "projectsWithCopies": 3983,
+    "contributorRows": 5050,
+    "projectsWithContributors": 3952,
+    "supervisorMarkedRows": 4999,
+    "subjectRows": 3949,
+    "projectsWithSubjects": 3948,
+    "documentReviewRows": 1864,
+    "copyStatusCounts": {
+      "A": 3975,
+      "D": 1,
+      "v": 12
+    },
+    "contributorRoleCounts": {
+      "<MISSING>": 27,
+      "A": 3,
+      "E": 20,
+      "S": 4999,
+      "T": 1
+    },
+    "documentMatchStatusCounts": {
+      "Exact title or exact substring; identity candidate": 34,
+      "ID and exact title containment": 1067,
+      "ID match; title difference unresolved": 522,
+      "No exact match; document-only candidate": 241
+    }
+  },
+  "canonicalImportGate": {
+    "status": "BLOCKED",
+    "blockers": [
+      {
+        "code": "WORK_TYPE_UNRESOLVED",
+        "count": 3983
+      },
+      {
+        "code": "PUBLIC_TITLE_REVIEW_REQUIRED",
+        "count": 3983
+      },
+      {
+        "code": "PUBLIC_TITLE_SOURCE_DIFFERENCE",
+        "count": 3857
+      },
+      {
+        "code": "PUBLICATION_YEAR_CONFLICT",
+        "count": 4
+      },
+      {
+        "code": "SUBJECT_SOURCE_EXCEPTION",
+        "count": 2
+      },
+      {
+        "code": "COPY_BRANCH_MAPPING_REQUIRED",
+        "count": 3988
+      },
+      {
+        "code": "PRIVATE_PARTICIPANT_STORAGE_REQUIRED",
+        "count": 3983
+      }
+    ]
+  }
+}

@@ -52,12 +52,12 @@ The Starter relationship table is primary because it retains source subject code
 
 | Outcome | Academic works |
 | --- | ---: |
-| Equal subject sets | 3,947 |
+| Equal subject sets | 3,948 |
 | Missing in both | 33 |
 | Project-only subject candidate | 2 |
-| Conflicting set | 1 |
+| Conflicting set | 0 |
 
-No department or faculty may be inferred from a subject. The 11 legacy subject codes remain a legacy vocabulary until an explicit mapping is approved. The three non-agreeing cases stay in the exception queue.
+The single Project cell containing two pipe-separated labels reconciles to two Starter subject relations. No department or faculty may be inferred from a subject. The 11 legacy subject codes remain a legacy vocabulary until an explicit mapping is approved. The two Project-only cases stay in the exception queue.
 
 ## Copies
 
@@ -116,7 +116,7 @@ Canonical writes are allowed only when all gates pass:
 1. source hashes match the committed manifest;
 2. every work has the expected namespaced legacy identity;
 3. title candidate passes privacy checks and is explicitly approved;
-4. year disagreement and subject exceptions are resolved or quarantined;
+4. the four year disagreements and two subject exceptions are resolved or quarantined;
 5. work type policy is approved;
 6. copy status and branch mappings are approved;
 7. student-private tables and role-level access are implemented;
