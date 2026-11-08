@@ -6,3 +6,5 @@ dist/
 coverage/
 *.log
 .DS_Store
+/RAG/projects-research-handoff/
+/data/analysis-starter/projects-research/

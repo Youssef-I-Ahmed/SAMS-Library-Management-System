@@ -1,0 +1,67 @@
+{
+  "manifestVersion": 1,
+  "decisionDate": "2026-11-08",
+  "status": "APPROVED_MIGRATION_SOURCE_SET_V1",
+  "sourceNamespace": "LEGACY_PROJECTS_V1",
+  "canonicalImportAllowed": false,
+  "notes": [
+    "These two workbooks are the best available migration source set, not a complete raw database export.",
+    "Source workbooks contain private participant data and must remain outside Git.",
+    "Canonical PostgreSQL writes remain blocked until field authority, privacy, work type, and exception gates pass."
+  ],
+  "files": [
+    {
+      "logicalName": "PROJECT_HANDOFF",
+      "repositoryRelativePath": "RAG/projects-research-handoff/sadat-rag-drive-copy/data/raw/Project.xlsx",
+      "sha256": "34e2be486ecc37014e685d216f263920fd9404e6cf9b2b5a41245d55ad427528",
+      "byteLength": 452010,
+      "role": "SECONDARY_CURATED_SOURCE",
+      "sheets": {
+        "Research": 3983
+      },
+      "privateFields": [
+        "Students",
+        "Supervisor"
+      ]
+    },
+    {
+      "logicalName": "PROJECTS_ANALYSIS_STARTER",
+      "repositoryRelativePath": "data/analysis-starter/projects-research/SAMS_Projects_Analysis_Starter.xlsx",
+      "sha256": "01a3c017f6d7e8a156700f13fa5bb3824fcdb56a28b0b68bb33af6db45c38839",
+      "byteLength": 1892138,
+      "role": "PRIMARY_STRUCTURAL_DERIVED_SOURCE",
+      "sheets": {
+        "START_HERE": 20,
+        "ACADEMIC_WORKS": 3983,
+        "COPIES": 3988,
+        "CONTRIBUTORS": 5050,
+        "SUBJECTS": 3949,
+        "DOCUMENT_LINK_REVIEW": 1864,
+        "LOOKUPS": 44,
+        "RELATIONSHIPS": 12
+      },
+      "privateFields": [
+        "ACADEMIC_WORKS.TITLE",
+        "DOCUMENT_LINK_REVIEW.Students",
+        "DOCUMENT_LINK_REVIEW.Supervisor"
+      ]
+    }
+  ],
+  "identityControls": {
+    "academicWorkRowsPerSource": 3983,
+    "uniqueBookCodesPerSource": 3983,
+    "commonBookCodes": 3983,
+    "bareCodeCollisionsWithBookCrosswalk": 2705,
+    "requiredIdentity": [
+      "sourceNamespace",
+      "legacyBookCode"
+    ]
+  },
+  "limitations": [
+    "The original raw ZIP and slis.db are unavailable.",
+    "The analysis starter is a set of convenience views and is not the complete 23-table extract.",
+    "The source does not reliably distinguish PROJECT from THESIS.",
+    "Most titles differ between the two sources and cannot be overwritten automatically.",
+    "Student names require staff-only storage and must not enter public search or RAG indexes."
+  ]
+}
