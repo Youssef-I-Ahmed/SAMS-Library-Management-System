@@ -31,6 +31,12 @@ with psycopg.connect(**provider.parameters) as conn:
     assert set(result['selectable_public_tables']) == set(TABLES)
     for table in TABLES:
         result['select_counts'][table] = conn.execute('SELECT count(*) FROM public.'+table).fetchone()[0]
+    active_books = conn.execute("""
+        SELECT count(*) FROM public.library_items i
+        JOIN public.book_details b ON b.item_id = i.id
+        WHERE i.type = 'BOOK' AND i.is_active
+    """).fetchone()[0]
+    assert snapshot.item_count == active_books
     conn.rollback()
     probes = {
         'insert': 'INSERT INTO public.book_details SELECT * FROM public.book_details WHERE false',
@@ -49,5 +55,4 @@ with psycopg.connect(**provider.parameters) as conn:
         finally:
             conn.rollback()
         assert name in result['denied'], 'Restricted account accepted a forbidden operation'
-assert result['items'] == 2821
 print(json.dumps(result))

@@ -9,12 +9,21 @@ import {
   updateCategory,
   listDewey,
   createDewey,
-  updateDewey
+  updateDewey,
+  listSubjects
 } from './catalog-master.service.js';
 
 export const catalogMasterRouter = Router();
 
 catalogMasterRouter.use(authenticate);
+
+catalogMasterRouter.get('/subjects', authorize('LIBRARIAN'), async (_req, res, next) => {
+  try {
+    res.json({ data: await listSubjects() });
+  } catch (error) {
+    next(error);
+  }
+});
 
 function parseOrThrow(schema, input) {
   const parsed = schema.safeParse(input);

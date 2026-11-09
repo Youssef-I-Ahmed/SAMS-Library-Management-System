@@ -77,7 +77,7 @@ try {
   assert.ok(health.engine.embedding_backend.startsWith('sentence-transformers:'));
   passed('main full index', { startup_seconds: (Date.now()-started)/1000, health });
   const role = JSON.parse(docker(['exec', '-i', 'sams-book-rag-10d3', 'python', '-'], readFileSync(join(serviceRoot, 'tests/provider_live.py'))));
-  assert.equal(role.items, 2821); save('main-restricted-role.json', role); passed('main restricted role and six-table read');
+  assert.equal(role.items, health.engine.books); save('main-restricted-role.json', role); passed('main restricted role and six-table read');
   for (const [language, text] of [['ar', 'إدارة الموارد البشرية'], ['en', 'human resource management']]) {
     phase = 'main retrieval '+language;
     const response = await question(18000, text);
@@ -248,8 +248,9 @@ INSERT INTO book_details(item_id) VALUES ('${A}'),('${B}');`);
           await expect(page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle', { timeout: 20000 });
           await page.getByLabel(translate(language, 'ai.composer'), { exact: true }).fill(language === 'ar' ? 'إدارة الموارد البشرية' : 'human resource management');
           await page.getByRole('button', { name: translate(language, 'ai.send'), exact: true }).click();
-          await expect(page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'fallback', { timeout: 90000 });
+          await expect(page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'done', { timeout: 90000 });
           await expect(page.locator('.ai-answer')).not.toHaveText('');
+          await expect(page.locator('.ai-notice')).toHaveCount(0);
           assert.ok(calls.some(p => p === '/api/v1/ai/ask'));
           await page.locator('.student-ai').screenshot({ path: join(evidence, `live-student-${language}-320.png`) });
         }

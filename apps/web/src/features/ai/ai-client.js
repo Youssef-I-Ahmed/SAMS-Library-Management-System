@@ -62,6 +62,23 @@ export function validateAiReply(value) {
       all_books: r.is_refusal || r.provider === 'help' ? null : allBooks } };
 }
 
+function validateResearchReply(value) {
+  requireValue(object(value) && ['success', 'no-results'].includes(value.status) &&
+    Array.isArray(value.results) && value.results.length <= 5 &&
+    (value.status === 'success') === (value.results.length > 0));
+  return { status: value.status, results: value.results.map((record) => {
+    requireValue(object(record) && uuid(record.id) && text(record.title) &&
+      [record.legacy_code, record.language, record.call_number].every(nullableText) &&
+      [record.subjects, record.researchers, record.supervisors].every((names) => Array.isArray(names) && names.every(text)) &&
+      (record.publication_year === null || Number.isInteger(record.publication_year)) &&
+      typeof record.available === 'boolean');
+    const { id, title, legacy_code, language, call_number, subjects, researchers, supervisors,
+      publication_year, available } = record;
+    return { id, title, legacy_code, language, call_number, subjects, researchers, supervisors,
+      publication_year, available };
+  }) };
+}
+
 export function retryDeadline(value, now = Date.now()) {
   if (!value) return null;
   const seconds = /^\d+$/.test(value.trim()) ? Number(value) : null;
@@ -116,6 +133,9 @@ export function createAiClient({ baseUrl, token, enabled, onUnauthorized, fetchI
     } finally { clearTimeout(timer); signal?.removeEventListener('abort', relay); }
   }
   return {
+    research: (question, signal) => call('/research/ask', {
+      body: { question: normalizeQuestion(question) }, signal, validate: validateResearchReply
+    }),
     ask: (question, sessionId, signal) => {
       const q = normalizeQuestion(question);
       if (sessionId != null && !handle(sessionId)) throw new AiClientError(400, 'VALIDATION_ERROR');

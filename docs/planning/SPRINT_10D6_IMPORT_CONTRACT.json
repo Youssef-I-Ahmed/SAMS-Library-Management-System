@@ -1,0 +1,57 @@
+{
+  "contractVersion": 1,
+  "status": "APPROVED_CONTROLLED_LOCAL_IMPORT_V1",
+  "decisionDate": "2026-11-09",
+  "sourceManifestPath": "docs/planning/SPRINT_10D4A_SOURCE_MANIFEST.json",
+  "sourceManifestCanonicalSha256": "d9ca2ecb1880f5866ec870ef442eb4d3c58866ba924071af302490d07803082e",
+  "sourceNamespace": "LEGACY_PROJECTS_V1",
+  "catalogLabel": {
+    "ar": "مشروعات تخرج ورسائل علمية",
+    "en": "Graduation Projects & Theses"
+  },
+  "approvalBasis": [
+    "The university confirmed that all 3,983 identities form the official available source set.",
+    "The university does not require a PROJECT versus THESIS split for this source set.",
+    "Authenticated users may see titles, student or researcher names, supervisors, year, subject and legacy code.",
+    "The physical holdings follow the same reservation and borrowing workflow as books.",
+    "There is no full-text or PDF ingestion; AI retrieval is metadata-only.",
+    "PostgreSQL becomes authoritative after import; Excel remains a controlled bulk-import input."
+  ],
+  "fieldAuthority": {
+    "title": "PROJECT_HANDOFF.Research.TITLE",
+    "participants": "PROJECT_HANDOFF.Research.Students|Supervisor",
+    "publicationYear": "PROJECT_HANDOFF.Research.PUBLISHING_DATE_WITH_STRUCTURAL_FALLBACK",
+    "callNumber": "PROJECTS_ANALYSIS_STARTER.ACADEMIC_WORKS.CALL_NUM",
+    "language": "PROJECTS_ANALYSIS_STARTER.ACADEMIC_WORKS.LANG_CODE",
+    "subjects": "UNION_OF_STRUCTURED_SUBJECTS_AND_PROJECT_HANDOFF_SUBJECTS",
+    "copies": "PROJECTS_ANALYSIS_STARTER.COPIES"
+  },
+  "canonicalRules": {
+    "itemType": "ACADEMIC_WORK",
+    "visibility": "AUTHENTICATED_ALL_ROLES",
+    "legacyCodeVisibility": "AUTHENTICATED_ALL_ROLES",
+    "databaseTechnicalIdVisibility": "INTERNAL_ONLY",
+    "branch": "REQUIRED_AT_IMPORT_TIME",
+    "yearConflictPolicy": "CURATED_PROJECT_HANDOFF_WINS_PENDING_LIBRARIAN_REVIEW",
+    "subjectExceptionPolicy": "UNION_BOTH_APPROVED_SOURCES",
+    "copyStatusMap": {
+      "A": "AVAILABLE",
+      "D": "ARCHIVED",
+      "v": "AVAILABLE"
+    }
+  },
+  "expectedControls": {
+    "academicWorks": 3983,
+    "copies": 3988,
+    "starterContributors": 5050,
+    "starterSubjects": 3949,
+    "publicationYearConflicts": 4,
+    "projectOnlySubjectExceptions": 2
+  },
+  "scope": {
+    "allowsProductionImport": false,
+    "allowsControlledLocalImport": true,
+    "allowsPublicAnonymousAccess": false,
+    "allowsFullTextIngestion": false
+  }
+}

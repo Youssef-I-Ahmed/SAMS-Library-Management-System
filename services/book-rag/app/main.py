@@ -162,7 +162,7 @@ def _history_entry(question, out):
 def _public(out):
     data = ENGINE["serialize"](out)
     data.pop("fallback_errors", None)                    # internal: goes to the log, not to the page
-    if out["provider"] not in ("gemini", "help"):
+    if out["provider"] == "extractive" and "gemini" in out.get("fallback_errors", {}):
         data["notice"] = BUSY_NOTICE[_lang(out["query"])]
     else:
         data["notice"] = None

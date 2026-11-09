@@ -20,6 +20,7 @@ enum ItemType {
   BOOK
   THESIS
   PROJECT
+  ACADEMIC_WORK
 
   @@map("item_type")
 }
@@ -237,8 +238,10 @@ model LibraryItem {
   bookDetails         BookDetails?
   academicWorkDetails AcademicWorkDetails?
   itemContributors    ItemContributor[]
+  itemSubjects        ItemSubject[]
   physicalCopies      PhysicalCopy[]
   reservations        Reservation[]
+  legacyIdentities    LegacyCatalogIdentity[]
 
   @@index([title])
   @@index([type])
@@ -266,6 +269,9 @@ model AcademicWorkDetails {
   departmentId String?  @map("department_id") @db.Uuid
   academicYear String?  @map("academic_year")
   workType     ItemType @map("work_type")
+  extent       String?
+  dimensions   String?
+  recordType   String?  @map("record_type")
 
   item       LibraryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
   faculty    Faculty?    @relation(fields: [facultyId], references: [id], onDelete: Restrict)
@@ -299,6 +305,45 @@ model ItemContributor {
   @@map("item_contributors")
 }
 
+model Subject {
+  id             String @id @default(uuid()) @db.Uuid
+  code           String?
+  name           String
+  normalizedName String @unique @map("normalized_name")
+
+  itemSubjects ItemSubject[]
+
+  @@index([code])
+  @@index([name])
+  @@map("subjects")
+}
+
+model ItemSubject {
+  itemId    String @map("item_id") @db.Uuid
+  subjectId String @map("subject_id") @db.Uuid
+
+  item    LibraryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  subject Subject     @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+
+  @@id([itemId, subjectId])
+  @@index([subjectId])
+  @@map("item_subjects")
+}
+
+model LegacyCatalogIdentity {
+  sourceNamespace String   @map("source_namespace")
+  legacyCode      String   @map("legacy_code")
+  itemId          String   @map("item_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  item LibraryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([sourceNamespace, legacyCode])
+  @@unique([sourceNamespace, itemId])
+  @@index([itemId])
+  @@map("legacy_catalog_identities")
+}
+
 model PhysicalCopy {
   id            String         @id @default(uuid()) @db.Uuid
   itemId        String         @map("item_id") @db.Uuid
@@ -316,12 +361,32 @@ model PhysicalCopy {
   branch      Branch      @relation(fields: [branchId], references: [id], onDelete: Restrict)
   reservations Reservation[] @relation("AllocatedReservationCopy")
   borrowings   Borrowing[]
+  legacyIdentities LegacyCopyIdentity[]
 
   @@index([itemId])
   @@index([branchId])
   @@index([status])
   @@index([itemId, branchId, status])
   @@map("physical_copies")
+}
+
+model LegacyCopyIdentity {
+  sourceNamespace  String   @map("source_namespace")
+  legacyGeneralCode String  @map("legacy_general_code")
+  copyId           String   @map("copy_id") @db.Uuid
+  legacyBookCode   String   @map("legacy_book_code")
+  legacyStatus     String?  @map("legacy_status")
+  legacyCopyCode   String?  @map("legacy_copy_code")
+  legacyVolumeCode String?  @map("legacy_volume_code")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  copy PhysicalCopy @relation(fields: [copyId], references: [id], onDelete: Cascade)
+
+  @@id([sourceNamespace, legacyGeneralCode])
+  @@unique([sourceNamespace, copyId])
+  @@index([copyId])
+  @@index([sourceNamespace, legacyBookCode])
+  @@map("legacy_copy_identities")
 }
 
 model Reservation {

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AvailabilityBadge } from './AvailabilityBadge';
 import { BookCover } from './BookCover';
 import {
+  getCategoryLabel,
   getItemTypeLabelKey,
   getLanguageLabel,
   getPrimaryContributor
@@ -29,7 +30,7 @@ export function DiscoveryItemCard({ item }) {
           {contributor || t('discovery.card.noContributor')}
         </p>
         {item.category?.name && (
-          <p className="discovery-item-card__category" dir="auto">{item.category.name}</p>
+          <p className="discovery-item-card__category" dir="auto">{getCategoryLabel(item.category.name, t)}</p>
         )}
 
         <dl className="discovery-item-card__meta">

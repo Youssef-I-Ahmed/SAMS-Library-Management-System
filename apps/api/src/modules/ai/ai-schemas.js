@@ -23,6 +23,7 @@ const filters = z.object({
   publisher: optional(text(200))
 }).strict().refine((f) => f.year_from == null || f.year_to == null || f.year_from <= f.year_to);
 export const askRequest = z.object({ question: text(500), session_id: optional(handle), filters: optional(filters) }).strict();
+export const researchAskRequest = z.object({ question: text(500) }).strict();
 export const resetRequest = z.object({ session_id: handle }).strict();
 
 export function validate(schema, input) {

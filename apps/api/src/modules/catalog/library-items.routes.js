@@ -86,7 +86,8 @@ const academicWorkDetailsSchema = z.object({
   version: z.number().int().positive(),
   facultyId: nullableUuid.optional(),
   departmentId: nullableUuid.optional(),
-  academicYear: z.string().trim().max(50).optional().nullable()
+  academicYear: z.string().trim().max(50).optional().nullable(),
+  subjectIds: z.array(z.string().uuid()).max(100).optional()
 });
 
 const itemContributorsSchema = z

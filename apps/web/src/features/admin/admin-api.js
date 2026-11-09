@@ -14,6 +14,7 @@ export async function putBookDetails(token, id, body) { return apiRequest(`/cata
 export async function putAcademicWorkDetails(token, id, body) { return apiRequest(`/catalog/items/${encodeURIComponent(id)}/academic-work-details`, { method: 'PUT', token, body }); }
 export async function listCategories(token, signal) { return apiRequest('/catalog-master/categories?includeInactive=false', { token, signal }); }
 export async function listDewey(token, signal) { return apiRequest('/catalog-master/dewey', { token, signal }); }
+export async function listSubjects(token, signal) { return apiRequest('/catalog-master/subjects', { token, signal }); }
 export async function listFaculties(token, signal) { return apiRequest('/master-data/faculties?includeInactive=false', { token, signal }); }
 export async function listDepartments(token, signal) { return apiRequest('/master-data/departments?includeInactive=false', { token, signal }); }
 export async function listBranches(token, signal) { return apiRequest('/master-data/branches?includeInactive=false', { token, signal }); }

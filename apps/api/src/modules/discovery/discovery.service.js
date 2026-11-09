@@ -305,6 +305,9 @@ export async function searchDiscoveryItems({
           academicWorkDetails: {
             select: {
               academicYear: true,
+              extent: true,
+              dimensions: true,
+              recordType: true,
               faculty: {
                 select: {
                   id: true,
@@ -337,6 +340,18 @@ export async function searchDiscoveryItems({
                 }
               }
             ]
+          },
+          itemSubjects: {
+            select: {
+              subject: {
+                select: { id: true, code: true, name: true }
+              }
+            },
+            orderBy: { subject: { name: 'asc' } }
+          },
+          legacyIdentities: {
+            select: { sourceNamespace: true, legacyCode: true },
+            orderBy: { legacyCode: 'asc' }
           }
         }
       })

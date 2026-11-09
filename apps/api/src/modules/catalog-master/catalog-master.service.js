@@ -1,6 +1,13 @@
 import { prisma } from '../../config/prisma.js';
 import { AppError } from '../../utils/app-error.js';
 
+export function listSubjects() {
+  return prisma.subject.findMany({
+    select: { id: true, name: true },
+    orderBy: [{ name: 'asc' }, { id: 'asc' }]
+  });
+}
+
 function requireRecord(record, entityName) {
   if (!record) {
     throw new AppError(404, 'NOT_FOUND', `${entityName} not found`);

@@ -32,8 +32,9 @@ ALTER TABLE library_visits
   CHECK (checked_out_at IS NULL OR checked_out_at >= checked_in_at);
 
 ALTER TABLE academic_work_details
+  DROP CONSTRAINT IF EXISTS chk_academic_work_type,
   ADD CONSTRAINT chk_academic_work_type
-  CHECK (work_type IN ('THESIS','PROJECT'));
+  CHECK (work_type::text IN ('THESIS', 'PROJECT', 'ACADEMIC_WORK'));
 
 -- Validation triggers
 CREATE OR REPLACE FUNCTION validate_student_department_faculty()
@@ -78,8 +79,8 @@ DECLARE t item_type;
 DECLARE dep_faculty UUID;
 BEGIN
   SELECT type INTO t FROM library_items WHERE id = NEW.item_id;
-  IF t NOT IN ('THESIS','PROJECT') OR t <> NEW.work_type THEN
-    RAISE EXCEPTION 'academic_work_details type must match THESIS or PROJECT library item';
+  IF t::text NOT IN ('THESIS', 'PROJECT', 'ACADEMIC_WORK') OR t IS DISTINCT FROM NEW.work_type THEN
+    RAISE EXCEPTION 'academic_work_details type must match an academic library item';
   END IF;
 
   IF NEW.department_id IS NOT NULL AND NEW.faculty_id IS NOT NULL THEN

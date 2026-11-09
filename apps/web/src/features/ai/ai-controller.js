@@ -2,11 +2,14 @@ import { AI_PATIENCE_MS } from './ai-config.js';
 import { normalizeQuestion } from './ai-client.js';
 
 export function spiritState(state) {
-  if (['submitting', 'pending', 'resetting', 'checking'].includes(state.phase)) return 'working';
-  if (state.phase === 'still-working') return 'thinking';
+  if (state.phase === 'still-working' || state.phase === 'pending' && state.preview?.books.length) return 'thinking';
+  if (['submitting', 'pending', 'resetting', 'checking'].includes(state.phase)) return 'searching';
   if (['failed', 'expired', 'unavailable', 'throttled', 'uncertain'].includes(state.phase)) return 'error';
   if (state.phase === 'refusal') return 'no-results';
-  if (['done', 'fallback'].includes(state.phase)) return state.turns.at(-1)?.result?.sources.length ? 'success' : 'no-results';
+  if (['done', 'fallback'].includes(state.phase)) {
+    const result = state.turns.at(-1)?.result;
+    return result?.sources.length || result?.all_books?.items.length ? 'success' : 'no-results';
+  }
   return 'idle';
 }
 
@@ -52,7 +55,8 @@ export function createAiController({ client, enabled = true, now = Date.now, pat
     }
     haltPoll();
     const result = reply.result;
-    const phase = result.is_refusal ? 'refusal' : result.provider === 'help' ? 'help' : result.provider === 'extractive' ? 'fallback' : 'done';
+    const phase = result.is_refusal ? 'refusal' : result.provider === 'help' ? 'help' :
+      result.provider === 'extractive' && result.notice ? 'fallback' : 'done';
     const turns = state.turns.slice();
     if (turns.length) turns[turns.length - 1] = { ...turns.at(-1), result, phase };
     emit({ sessionId: reply.session_id, jobId: null, preview: null, turns, phase, blocked: false, ...clearErrors() });

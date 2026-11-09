@@ -15,8 +15,8 @@ const ItemDetailsPage = lazyNamed(() => import('../../pages/student/ItemDetailsP
 const MyReservationsPage = lazyNamed(() => import('../../pages/student/MyReservationsPage'), 'MyReservationsPage');
 const MyBorrowingsPage = lazyNamed(() => import('../../pages/student/MyBorrowingsPage'), 'MyBorrowingsPage');
 const StudentProfilePage = lazyNamed(() => import('../../pages/student/StudentProfilePage'), 'StudentProfilePage');
-const StudentAiPage = AI_ASSISTANT_ENABLED
-  ? lazyNamed(() => import('../../pages/student/StudentAiPage'), 'StudentAiPage') : null;
+const LibraryAssistantPage = AI_ASSISTANT_ENABLED
+  ? lazyNamed(() => import('../../pages/shared/LibraryAssistantPage'), 'LibraryAssistantPage') : null;
 const BorrowPage = lazyNamed(() => import('../../pages/librarian/BorrowPage'), 'BorrowPage');
 const ReturnPage = lazyNamed(() => import('../../pages/librarian/ReturnPage'), 'ReturnPage');
 const ReservationsOperationsPage = lazyNamed(() => import('../../pages/librarian/ReservationsOperationsPage'), 'ReservationsOperationsPage');
@@ -29,6 +29,21 @@ const ManagementBorrowingsPage = lazyNamed(() => import('../../pages/management/
 const ManagementVisitsPage = lazyNamed(() => import('../../pages/management/ManagementVisitsPage'), 'ManagementVisitsPage');
 const ForbiddenPage = lazyNamed(() => import('../../pages/system/ForbiddenPage'), 'ForbiddenPage');
 const NotFoundPage = lazyNamed(() => import('../../pages/system/NotFoundPage'), 'NotFoundPage');
+
+function assistantPage(workspace) {
+  if (!AI_ASSISTANT_ENABLED) return <Navigate to={workspace} replace />;
+  const student = workspace === '/student';
+  return <LibraryAssistantPage
+    itemDetailsBase={student ? '/student/items' : `${workspace}/ai/items`}
+    catalogueTo={student ? '/student/catalog' : undefined}
+  />;
+}
+
+function staffAssistantDetails(workspace) {
+  return AI_ASSISTANT_ENABLED
+    ? <ItemDetailsPage backTo={`${workspace}/ai`} backLabel="ai.backToAssistant" canReserve={false} />
+    : <Navigate to={workspace} replace />;
+}
 
 function RouteFallback() {
   return (
@@ -57,7 +72,7 @@ export function AppRouter() {
                 <Route path="reservations" element={<MyReservationsPage />} />
                 <Route path="borrowings" element={<MyBorrowingsPage />} />
                 <Route path="profile" element={<StudentProfilePage />} />
-                <Route path="ai" element={AI_ASSISTANT_ENABLED ? <StudentAiPage /> : <Navigate to="/student" replace />} />
+                <Route path="ai" element={assistantPage('/student')} />
               </Route>
             </Route>
 
@@ -71,6 +86,8 @@ export function AppRouter() {
                 <Route path="catalog" element={<CatalogAdminPage />} />
                 <Route path="students" element={<StudentsAdminPage />} />
                 <Route path="analytics" element={<AnalyticsDashboardPage />} />
+                <Route path="ai" element={assistantPage('/librarian')} />
+                <Route path="ai/items/:itemId" element={staffAssistantDetails('/librarian')} />
               </Route>
             </Route>
 
@@ -80,6 +97,8 @@ export function AppRouter() {
                 <Route path="analytics" element={<AnalyticsDashboardPage management />} />
                 <Route path="borrowings" element={<ManagementBorrowingsPage />} />
                 <Route path="visits" element={<ManagementVisitsPage />} />
+                <Route path="ai" element={assistantPage('/management')} />
+                <Route path="ai/items/:itemId" element={staffAssistantDetails('/management')} />
               </Route>
             </Route>
           </Route>

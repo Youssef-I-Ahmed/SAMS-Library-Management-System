@@ -6,9 +6,10 @@ import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
 import { normalizeError } from '../../middleware/error-handler.js';
 import { createAiGateway } from './ai-gateway.js';
+import { researchRag } from './research-rag.js';
 import { aiError } from './ai-errors.js';
 import { parseUniqueJson } from './ai-json.js';
-import { askRequest, resetRequest, handle, bookCode, validate, queryWait } from './ai-schemas.js';
+import { askRequest, researchAskRequest, resetRequest, handle, bookCode, validate, queryWait } from './ai-schemas.js';
 
 export function aiRequestBoundary(req, res, next) {
   req.aiLogPath = '/api/v1/ai';
@@ -17,7 +18,7 @@ export function aiRequestBoundary(req, res, next) {
 }
 
 export function createAiRouter({ gateway = createAiGateway({ config: env, db: prisma }),
-  config = env, logging = env.REQUEST_LOGGING && env.NODE_ENV !== 'test' } = {}) {
+  research = researchRag, config = env, logging = env.REQUEST_LOGGING && env.NODE_ENV !== 'test' } = {}) {
   const router = Router();
   router.use(aiRequestBoundary);
   router.use((req, res, next) => {
@@ -30,7 +31,6 @@ export function createAiRouter({ gateway = createAiGateway({ config: env, db: pr
     next();
   });
   router.use(authenticate);
-  const student = authorize('STUDENT');
   const allRoles = authorize('STUDENT', 'LIBRARIAN', 'MANAGEMENT');
   const enabled = (_req, _res, next) => { try { gateway.ready(); next(); } catch (error) { next(error); } };
   const bodyParser = raw({ type: () => true, limit: config.AI_REQUEST_MAX_BYTES ?? 8192, inflate: true });
@@ -74,21 +74,32 @@ export function createAiRouter({ gateway = createAiGateway({ config: env, db: pr
   // Express otherwise automatically services HEAD via GET handlers.
   router.use((req, _res, next) => next(['GET', 'POST'].includes(req.method)
     ? undefined : aiError(405, 'METHOD_NOT_ALLOWED')));
-  router.post('/ask', student, enabled, body, endpoint('ask', (req, ctx) => {
+  router.post('/ask', allRoles, enabled, body, endpoint('ask', (req, ctx) => {
     queryWait(req.originalUrl); return gateway.ask(ctx, validate(askRequest, req.body));
   }));
-  router.get('/jobs/:jobId', student, enabled, endpoint('poll', (req, ctx, signal) => {
+  router.get('/jobs/:jobId', allRoles, enabled, endpoint('poll', (req, ctx, signal) => {
     const id = validate(handle, req.params.jobId);
     return gateway.poll(ctx, id, queryWait(req.originalUrl, true), signal);
   }));
-  router.get('/books/:bookCode', student, enabled, endpoint('card', (req, ctx, signal) => {
+  router.get('/books/:bookCode', allRoles, enabled, endpoint('card', (req, ctx, signal) => {
     queryWait(req.originalUrl); return gateway.book(ctx, validate(bookCode, req.params.bookCode), signal);
   }));
-  router.post('/session/reset', student, enabled, body, endpoint('reset', (req, ctx) => {
+  router.post('/session/reset', allRoles, enabled, body, endpoint('reset', (req, ctx) => {
     queryWait(req.originalUrl); return gateway.reset(ctx, validate(resetRequest, req.body).session_id);
   }));
   router.get('/health', allRoles, enabled, endpoint('health', (req, ctx, signal) => {
     queryWait(req.originalUrl); return gateway.health(ctx, signal);
+  }));
+  router.post('/research/ask', allRoles, body, endpoint('research_ask', (req, ctx) => {
+    queryWait(req.originalUrl);
+    const { question } = validate(researchAskRequest, req.body);
+    gateway.state.throttle(ctx.user.id, 'research_ask', 20);
+    return research.ask(question);
+  }));
+  router.get('/research/health', allRoles, endpoint('research_health', (req, ctx) => {
+    queryWait(req.originalUrl);
+    gateway.state.throttle(ctx.user.id, 'research_health', 30);
+    return research.health();
   }));
   router.use((_req, _res, next) => next(aiError(404, 'NOT_FOUND')));
   router.use((error, req, res, _next) => {

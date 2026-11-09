@@ -1,6 +1,7 @@
 export const enDiscovery = {
   itemTypes: {
     BOOK: 'Book',
+    ACADEMIC_WORK: 'Graduation Projects & Theses',
     THESIS: 'Thesis',
     PROJECT: 'Graduation Project'
   },
@@ -27,7 +28,7 @@ export const enDiscovery = {
     browseAll: 'Explore the catalog',
     collectionNavigation: 'Browse collections',
     explore: 'Explore collection',
-    collectionTitles: { BOOK: 'Books & references', THESIS: 'Theses & research', PROJECT: 'Graduation projects' },
+    collectionTitles: { BOOK: 'Books & references', ACADEMIC_WORK: 'Graduation Projects & Theses', THESIS: 'Theses & research', PROJECT: 'Graduation projects' },
     experienceEyebrow: 'The library experience',
     experienceTitle: 'Every idea starts with discovery.',
     steps: {
@@ -39,7 +40,7 @@ export const enDiscovery = {
     eyebrow: 'Student discovery',
     greeting: 'Welcome',
     subtitle:
-      'Search books, theses and graduation projects across the SAMS Library collection.',
+      'Search books and the Graduation Projects & Theses collection.',
     searchPlaceholder:
       'Search by title, author, ISBN, Dewey, call number...',
     searchLabel: 'Search the library catalog',
@@ -50,6 +51,7 @@ export const enDiscovery = {
     browseTitle: 'Find your next perspective.',
     collection: {
       BOOK: 'Published books and reference material.',
+      ACADEMIC_WORK: 'Approved academic works from SAMS.',
       THESIS: 'Academic theses and research work.',
       PROJECT: 'Graduation projects from SAMS departments.'
     }
@@ -178,6 +180,11 @@ export const enDiscovery = {
       publisher: 'Publisher',
       edition: 'Edition',
       academicYear: 'Academic year',
+      legacyCode: 'Legacy code',
+      subjects: 'Subjects',
+      extent: 'Physical description',
+      dimensions: 'Dimensions',
+      recordType: 'Record format',
       faculty: 'Faculty',
       department: 'Department'
     },

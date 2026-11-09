@@ -1,10 +1,11 @@
 import { app } from '../app.js';
 import { env } from '../config/env.js';
 import { prisma } from '../config/prisma.js';
+import { researchRag } from '../modules/ai/research-rag.js';
 
 export async function startHttpServer({
   port = env.API_PORT,
-  host,
+  host = env.NODE_ENV === 'production' ? undefined : '127.0.0.1',
   logStartup = true,
   disconnectPrismaOnShutdown = true
 } = {}) {
@@ -39,6 +40,7 @@ export async function startHttpServer({
 
   const address =
     server.address();
+  void researchRag.start();
 
   const actualPort =
     typeof address ===
@@ -63,6 +65,7 @@ export async function startHttpServer({
       await prisma
         .$disconnect();
     }
+    await researchRag.stop();
   }
 
   function shutdown(

@@ -35,6 +35,8 @@ export async function buildCatalogSearchWhere(where, search, { discovery = false
       deweyCodeRaw: true,
       abstractDescription: true,
       itemContributors: { select: { contributor: { select: { fullName: true } } } },
+      itemSubjects: { select: { subject: { select: { name: true } } } },
+      legacyIdentities: { select: { legacyCode: true } },
       ...(discovery ? {
         category: { select: { name: true } },
         deweyClassification: { select: { code: true, name: true } },
@@ -48,6 +50,8 @@ export async function buildCatalogSearchWhere(where, search, { discovery = false
     const fields = [
       item.title, item.callNumber, item.deweyCodeRaw, item.abstractDescription,
       ...item.itemContributors.map(({ contributor }) => contributor.fullName),
+      ...(item.itemSubjects ?? []).map(({ subject }) => subject.name),
+      ...(item.legacyIdentities ?? []).map(({ legacyCode }) => legacyCode),
       ...(discovery ? [
         item.category?.name,
         item.deweyClassification?.code, item.deweyClassification?.name,

@@ -72,10 +72,11 @@ const config = (overrides = {}) => ({
 });
 function setup(overrides = {}, options = {}) {
   const cfg = config(overrides);
+  const { research, ...gatewayOptions } = options;
   gateway = createAiGateway({ config: cfg, db: prisma, now: () => clock,
-    transportOptions: { jitter: () => 0 }, ...options });
+    transportOptions: { jitter: () => 0 }, ...gatewayOptions });
   app = express(); app.use(requestContext);
-  app.use('/api/v1/ai', createAiRouter({ config: cfg, gateway, logging: true }));
+  app.use('/api/v1/ai', createAiRouter({ config: cfg, gateway, research, logging: true }));
   return gateway;
 }
 const get = (path, who = USER) => request(app).get(`/api/v1/ai${path}`).set('Authorization', `Bearer ${tokens[who]}`);
@@ -162,8 +163,8 @@ describe('conditional configuration and disabled app', () => {
 });
 
 describe('authentication and trusted outbound identity', () => {
-  it.each(['/ask', '/jobs/' + 'f'.repeat(32), '/books/2', '/session/reset', '/health'])('requires auth on %s', async (path) => {
-    const res = ['/ask', '/session/reset'].includes(path) ? await request(app).post('/api/v1/ai' + path).send({})
+  it.each(['/ask', '/jobs/' + 'f'.repeat(32), '/books/2', '/session/reset', '/health', '/research/ask', '/research/health'])('requires auth on %s', async (path) => {
+    const res = ['/ask', '/session/reset', '/research/ask'].includes(path) ? await request(app).post('/api/v1/ai' + path).send({})
       : await request(app).get('/api/v1/ai' + path);
     expect(res.status).toBe(401); expect(res.body.error.code).toBe('UNAUTHORIZED');
     expect(res.headers['x-request-id']).toBeTruthy(); expect(calls).toHaveLength(0);
@@ -179,17 +180,45 @@ describe('authentication and trusted outbound identity', () => {
     users.delete(USER); expect((await get('/health')).status).toBe(401);
     expect(calls).toHaveLength(0);
   });
-  it.each(['LIBRARIAN', 'MANAGEMENT'])('uses current DB roles for %s, allows sanitized health only', async (role) => {
-    users.set(USER, makeUser(USER, [role])); // JWT still claims STUDENT.
-    for (const path of ['/ask', '/session/reset']) expect((await post(path)).status).toBe(403);
-    for (const path of ['/jobs/' + 'f'.repeat(32), '/books/2']) expect((await get(path)).status).toBe(403);
+  it.each(['STUDENT', 'LIBRARIAN', 'MANAGEMENT'])('gives %s the shared assistant contract using current DB roles', async (role) => {
+    const metadata = { status: 'success', results: [{ id: A, title: 'Fixture academic work' }] };
+    const research = { ask: vi.fn().mockResolvedValue(metadata) };
+    setup({}, { research });
+    users.set(USER, makeUser(USER, [role])); // The issued JWT still claims STUDENT.
+    const defaultHandler = handler;
+    handler = async (req, res, body) => {
+      if (req.url !== '/api/ask') return defaultHandler(req, res, body);
+      sessionForJob = body.session_id;
+      send(res, pending(body.session_id));
+    };
+
+    const ask = await post('/ask');
+    expect(ask.status).toBe(200);
+    expect(ask.body.data.status).toBe('pending');
+    const { job_id: jobId, session_id: sessionId } = ask.body.data;
+    const poll = await get('/jobs/' + jobId);
+    expect(poll.status).toBe(200);
+    expect(poll.body.data).toMatchObject({ status: 'done', session_id: sessionId });
+    const record = await get('/books/2');
+    expect(record.status).toBe(200);
+    expect(record.body.data).toMatchObject({ book_code: '2', card: card('2') });
+    const reset = await post('/session/reset', { session_id: sessionId });
+    expect(reset.status).toBe(200);
+    expect(reset.body.data.session_id).not.toBe(sessionId);
     expect((await get('/health')).body).toEqual({ data: { status: 'ok' } });
-    expect(calls).toHaveLength(1);
+    const search = await post('/research/ask', { question: 'Fixture academic work' });
+    expect(search.status).toBe(200);
+    expect(search.body.data).toEqual(metadata);
+    expect(research.ask).toHaveBeenCalledTimes(1);
+    expect(research.ask).toHaveBeenCalledWith('Fixture academic work');
+    expect(calls).toHaveLength(5);
+    expect(calls.every(({ headers }) => headers['x-user-role'] === role)).toBe(true);
   });
   it('does not invent ADMIN permissions or trust a JWT-only student role', async () => {
     users.set(USER, makeUser(USER, ['ADMIN']));
     expect((await get('/health')).status).toBe(403);
     expect((await post('/ask')).status).toBe(403);
+    expect((await post('/research/ask')).status).toBe(403);
   });
   it('fails closed when the current-user database lookup fails, without logging its exception', async () => {
     prisma.user.findUnique.mockRejectedValue(new Error(KEY));
@@ -406,7 +435,8 @@ describe('owned sessions, jobs, reset and admission', () => {
     handler = async (_req, res, body) => { sessionForJob = body.session_id; send(res, pending(body.session_id)); };
     return (await post('/ask')).body.data;
   }
-  it('rejects foreign/unknown sessions, jobs and resets identically before upstream', async () => {
+  it.each(['STUDENT', 'LIBRARIAN', 'MANAGEMENT'])('rejects foreign sessions, jobs and resets for %s before upstream', async (role) => {
+    users.set(OTHER, makeUser(OTHER, [role]));
     const data = await startPending();
     for (const id of [data.session_id, 'f'.repeat(32)]) {
       const res = await post('/ask', { question: 'help', session_id: id }, OTHER);

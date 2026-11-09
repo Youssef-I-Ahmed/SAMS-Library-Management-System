@@ -1,6 +1,6 @@
 import { prisma } from '../../config/prisma.js';
 
-const ITEM_TYPES = ['BOOK', 'THESIS', 'PROJECT'];
+const ITEM_TYPES = ['BOOK', 'ACADEMIC_WORK', 'THESIS', 'PROJECT'];
 
 const SORT_OPTIONS = [
   {

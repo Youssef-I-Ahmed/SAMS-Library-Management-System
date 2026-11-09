@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { getCategoryLabel } from '../../features/discovery/discovery-format';
 import { useLanguage } from '../../hooks/useLanguage';
 
 export function DiscoveryFilters({
@@ -80,7 +81,7 @@ export function DiscoveryFilters({
             'discovery.filters.category',
             facets.categories?.map((item) => ({
               value: item.id,
-              label: `${item.name} (${item.count})`
+              label: `${getCategoryLabel(item.name, t)} (${item.count})`
             }))
           ],
           [

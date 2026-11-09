@@ -161,7 +161,7 @@ test('keyboard search, collection links, account menu, theme/language and stock 
   await expect(page).toHaveURL(/\/student\/catalog\?q=/);
   assert.equal(new URL(page.url()).searchParams.get('q'), 'إدارة & البحث');
   await expect(page.getByRole('note')).toContainText(translate('ar', 'discovery.inventoryNotice.body'));
-  for (const type of ['BOOK', 'THESIS', 'PROJECT']) {
+  for (const type of ['BOOK', 'ACADEMIC_WORK']) {
     await page.goto(`${origin}/student`);
     await page.locator(`.collection-card[href$="type=${type}"]`).click();
     await expect(page).toHaveURL(new RegExp(`type=${type}`));

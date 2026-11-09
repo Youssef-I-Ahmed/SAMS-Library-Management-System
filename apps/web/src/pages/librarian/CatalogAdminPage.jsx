@@ -4,13 +4,14 @@ import { AdminModal } from '../../components/admin/AdminModal';
 import { AdminStatusBadge } from '../../components/admin/AdminStatusBadge';
 import {
   createCatalogItem, createCopy, getCatalogItem, listBranches, listCatalogItems,
-  listCategories, listCopies, listDepartments, listDewey, listFaculties,
+  listCategories, listCopies, listDepartments, listDewey, listFaculties, listSubjects,
   putAcademicWorkDetails, putBookDetails, updateCatalogItem, updateCopy
 } from '../../features/admin/admin-api';
 import {
   COPY_CONDITIONS, COPY_STATUSES, ITEM_TYPES, copyStatusTone, copyToDraft,
   emptyCopyDraft, emptyItemDraft, itemStatusTone, itemToDraft
 } from '../../features/admin/admin-format';
+import { getCategoryLabel } from '../../features/discovery/discovery-format';
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../hooks/useLanguage';
 
@@ -21,6 +22,7 @@ export function CatalogAdminPage() {
   const [itemType, setItemType] = useState(''); const [copyStatus, setCopyStatus] = useState(''); const [copyBranch, setCopyBranch] = useState('');
   const [categories, setCategories] = useState([]); const [dewey, setDewey] = useState([]); const [faculties, setFaculties] = useState([]);
   const [departments, setDepartments] = useState([]); const [branches, setBranches] = useState([]);
+  const [subjects, setSubjects] = useState(null);
   const [itemDraft, setItemDraft] = useState(null); const [copyDraft, setCopyDraft] = useState(null);
   const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [error, setError] = useState(null); const [notice, setNotice] = useState('');
 
@@ -41,6 +43,15 @@ export function CatalogAdminPage() {
   async function reload() { setLoading(true); setError(null); try { if (tab === 'items') await loadItems(); else await loadCopies(); } catch (e) { setError(e); } finally { setLoading(false); } }
 
   useEffect(() => { const c = new AbortController(); loadLookups(c.signal).catch(e => e.name !== 'AbortError' && setError(e)); return () => c.abort(); }, [auth.token]);
+  const editsSubjects = itemDraft?.type === 'ACADEMIC_WORK';
+  useEffect(() => {
+    if (!editsSubjects) return;
+    const request = new AbortController();
+    listSubjects(auth.token, request.signal).then(({ data }) => {
+      if (!request.signal.aborted) setSubjects(data);
+    }).catch((error) => { if (!request.signal.aborted) setError(error); });
+    return () => request.abort();
+  }, [auth.token, editsSubjects]);
   useEffect(() => { const c = new AbortController(); setLoading(true); (tab === 'items' ? loadItems(c.signal) : loadCopies(c.signal)).catch(e => e.name !== 'AbortError' && setError(e)).finally(() => !c.signal.aborted && setLoading(false)); return () => c.abort(); }, [auth.token, tab, itemType, copyStatus, copyBranch]);
 
   async function editItem(id) { try { const r = await getCatalogItem(auth.token, id); setItemDraft(itemToDraft(r.data)); } catch (e) { setError(e); } }
@@ -53,7 +64,11 @@ export function CatalogAdminPage() {
       if (itemDraft.id) item = (await updateCatalogItem(auth.token, itemDraft.id, { version: itemDraft.version, ...base, isActive: itemDraft.isActive })).data;
       else item = (await createCatalogItem(auth.token, { type: itemDraft.type, ...base })).data;
       if (itemDraft.type === 'BOOK') item = (await putBookDetails(auth.token, item.id, { version: item.version, isbn: itemDraft.isbn.trim() || null, publisher: itemDraft.publisher.trim() || null, edition: itemDraft.edition.trim() || null })).data;
-      else item = (await putAcademicWorkDetails(auth.token, item.id, { version: item.version, facultyId: itemDraft.facultyId || null, departmentId: itemDraft.departmentId || null, academicYear: itemDraft.academicYear.trim() || null })).data;
+      else item = (await putAcademicWorkDetails(auth.token, item.id, {
+        version: item.version, facultyId: itemDraft.facultyId || null,
+        departmentId: itemDraft.departmentId || null, academicYear: itemDraft.academicYear.trim() || null,
+        ...(editsSubjects && subjects ? { subjectIds: itemDraft.subjectIds } : {})
+      })).data;
       setNotice(itemDraft.id ? t('admin.catalog.updated') : t('admin.catalog.created')); setItemDraft(null); await loadItems();
     } catch (e2) { setError(e2); } finally { setSaving(false); }
   }
@@ -123,7 +138,7 @@ export function CatalogAdminPage() {
       <form id="item-form" className="admin-form-grid" onSubmit={saveItem}>
         <label><span>{t('admin.catalog.type')}</span><select disabled={!!itemDraft.id} value={itemDraft.type} onChange={e => setItem('type', e.target.value)}>{ITEM_TYPES.map(v => <option key={v} value={v}>{t(`itemTypes.${v}`)}</option>)}</select></label>
         <label className="admin-form-grid__wide"><span>{t('admin.catalog.titleField')}</span><input required value={itemDraft.title} onChange={e => setItem('title', e.target.value)} /></label>
-        <label><span>{t('admin.catalog.category')}</span><select value={itemDraft.categoryId} onChange={e => setItem('categoryId', e.target.value)}><option value="">—</option>{categories.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
+        <label><span>{t('admin.catalog.category')}</span><select value={itemDraft.categoryId} onChange={e => setItem('categoryId', e.target.value)}><option value="">—</option>{categories.map(x => <option key={x.id} value={x.id}>{getCategoryLabel(x.name, t)}</option>)}</select></label>
         <label><span>{t('admin.catalog.dewey')}</span><select value={itemDraft.deweyClassificationId} onChange={e => setItem('deweyClassificationId', e.target.value)}><option value="">—</option>{dewey.map(x => <option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>
         <label><span>{t('admin.catalog.callNumber')}</span><input value={itemDraft.callNumber} onChange={e => setItem('callNumber', e.target.value)} /></label>
         <label><span>{t('admin.catalog.language')}</span><input value={itemDraft.language} onChange={e => setItem('language', e.target.value)} /></label>
@@ -131,6 +146,13 @@ export function CatalogAdminPage() {
         <label><span>{t('admin.catalog.deweyRaw')}</span><input value={itemDraft.deweyCodeRaw} onChange={e => setItem('deweyCodeRaw', e.target.value)} /></label>
         <label className="admin-form-grid__wide"><span>{t('admin.catalog.abstract')}</span><textarea value={itemDraft.abstract} onChange={e => setItem('abstract', e.target.value)} /></label>
         {itemDraft.type === 'BOOK' ? <><label><span>ISBN</span><input value={itemDraft.isbn} onChange={e => setItem('isbn', e.target.value)} /></label><label><span>{t('admin.catalog.publisher')}</span><input value={itemDraft.publisher} onChange={e => setItem('publisher', e.target.value)} /></label><label><span>{t('admin.catalog.edition')}</span><input value={itemDraft.edition} onChange={e => setItem('edition', e.target.value)} /></label></> : <><label><span>{t('admin.catalog.faculty')}</span><select value={itemDraft.facultyId} onChange={e => { setItem('facultyId', e.target.value); setItem('departmentId', ''); }}><option value="">—</option>{faculties.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label><span>{t('admin.catalog.department')}</span><select value={itemDraft.departmentId} onChange={e => setItem('departmentId', e.target.value)}><option value="">—</option>{filteredDepartments.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label><span>{t('admin.catalog.academicYear')}</span><input value={itemDraft.academicYear} onChange={e => setItem('academicYear', e.target.value)} /></label></>}
+        {editsSubjects && subjects && <label className="admin-form-grid__wide">
+          <span>{t('discovery.detail.subjects')}</span>
+          <select multiple size={Math.min(5, Math.max(2, subjects.length))} value={itemDraft.subjectIds}
+            onChange={(event) => setItem('subjectIds', Array.from(event.target.selectedOptions, (option) => option.value))}>
+            {subjects.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
+          </select>
+        </label>}
       </form>
     </AdminModal>}
 

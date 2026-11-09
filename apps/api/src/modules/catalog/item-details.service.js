@@ -190,11 +190,11 @@ async function resolveAcademicPlacement({ facultyId, departmentId }) {
 export async function putAcademicWorkDetails(itemId, data) {
   const item = await requireItem(itemId);
 
-  if (!['THESIS', 'PROJECT'].includes(item.type)) {
+  if (!['THESIS', 'PROJECT', 'ACADEMIC_WORK'].includes(item.type)) {
     throw new AppError(
       409,
       'INVALID_ITEM_TYPE',
-      'Academic-work details can only be attached to THESIS or PROJECT items'
+      'Academic-work details can only be attached to academic-work items'
     );
   }
 
@@ -202,6 +202,23 @@ export async function putAcademicWorkDetails(itemId, data) {
     facultyId: data.facultyId,
     departmentId: data.departmentId
   });
+  let subjectChanges;
+  if (data.subjectIds !== undefined) {
+    if (item.type !== 'ACADEMIC_WORK') {
+      throw new AppError(409, 'INVALID_ITEM_TYPE', 'Subjects can only be assigned to ACADEMIC_WORK items');
+    }
+    const subjectIds = [...new Set(data.subjectIds)];
+    const count = await prisma.subject.count({ where: { id: { in: subjectIds } } });
+    if (count !== subjectIds.length) {
+      throw new AppError(400, 'UNKNOWN_SUBJECT', 'A selected subject no longer exists');
+    }
+    subjectChanges = {
+      deleteMany: subjectIds.length ? { subjectId: { notIn: subjectIds } } : {},
+      ...(subjectIds.length ? {
+        createMany: { data: subjectIds.map((subjectId) => ({ subjectId })), skipDuplicates: true }
+      } : {})
+    };
+  }
 
   try {
     return await prisma.libraryItem.update({
@@ -226,6 +243,7 @@ export async function putAcademicWorkDetails(itemId, data) {
             }
           }
         },
+        ...(subjectChanges ? { itemSubjects: subjectChanges } : {}),
         version: { increment: 1 }
       },
       include: itemDetailsInclude

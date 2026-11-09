@@ -75,7 +75,7 @@ No extra UI, motion, or 3D package is yet mandatory. Pick the least complex free
 
 ### 5.1 Landing (concept)
 - Real academy campus photo with restrained overlay and short editorial headline **“Knowledge Today, A Brighter Tomorrow”** (final copy to confirm with institution).
-- Immediate prominent search entry; primary routes to Books, Projects & Theses and AI.
+- Prominent search entry and primary routes to Books, Graduation Projects & Theses, and AI.
 - Editorial featured-collection cards, brief experience/highlights section, separate elegant AI teaser (no Knowledge Spirit here), institutional footer.
 - Subtle hero media movement and title reveal, with still-image/reduced-motion option.
 - Never publish invented counts, phone numbers, opening hours or source-cover images as institutional facts.

@@ -11,6 +11,7 @@ function HomeIcon({ type }) {
     search: <><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></>,
     BOOK: <><path d="M12 5C8 2 3 3 3 3v16s5-1 9 2c4-3 9-2 9-2V3s-5-1-9 2Zm0 0v16" /></>,
     THESIS: <><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h7" /></>,
+    ACADEMIC_WORK: <><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h7" /></>,
     PROJECT: <><path d="m3 8 9-5 9 5-9 5zM6 10v7l6 4 6-4v-7M21 8v8" /></>,
     reservations: <><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M8 3v4M16 3v4M4 11h16m-12 5 3 2 5-4" /></>,
     borrowings: <><path d="M4 4h6v17H4zM10 7h5v14h-5zM16 5l4-1 4 16-4 1z" /></>
@@ -73,7 +74,7 @@ export function StudentHomePage() {
               {t('studentHome.browseAll')} <span aria-hidden="true">→</span>
             </Link>
             <nav className="student-home__chips" aria-label={t('studentHome.collectionNavigation')}>
-              {['BOOK', 'THESIS', 'PROJECT'].map((type) => (
+              {['BOOK', 'ACADEMIC_WORK'].map((type) => (
                 <Link key={type} to={`/student/catalog?type=${type}`}>
                   <HomeIcon type={type} />{t(`itemTypes.${type}`)}
                 </Link>
@@ -92,7 +93,7 @@ export function StudentHomePage() {
           <p>{t('studentHome.greeting')}, <bdi>{auth.user?.displayName?.split(' ')[0]}</bdi>.</p>
         </div>
         <div className="collection-grid">
-          {['BOOK', 'THESIS', 'PROJECT'].map((type, index) => (
+          {['BOOK', 'ACADEMIC_WORK'].map((type, index) => (
             <Link key={type} className="collection-card" to={`/student/catalog?type=${type}`}>
               <div className="collection-card__top">
                 <HomeIcon type={type} /><small aria-hidden="true">0{index + 1}</small>

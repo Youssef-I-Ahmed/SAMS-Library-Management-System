@@ -1,11 +1,18 @@
+import { arDiscovery } from '../../i18n/locales/ar-discovery.js';
+
 export function getPrimaryContributor(item) {
   return item?.itemContributors?.[0]?.contributor?.fullName || null;
 }
 
 export function getItemTypeLabelKey(type) {
+  if (type === 'ACADEMIC_WORK') return 'itemTypes.ACADEMIC_WORK';
   if (type === 'THESIS') return 'itemTypes.THESIS';
   if (type === 'PROJECT') return 'itemTypes.PROJECT';
   return 'itemTypes.BOOK';
+}
+
+export function getCategoryLabel(name, t) {
+  return name === arDiscovery.itemTypes.ACADEMIC_WORK ? t('itemTypes.ACADEMIC_WORK') : name;
 }
 
 export function getAvailabilityState(availability) {

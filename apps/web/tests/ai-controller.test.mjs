@@ -110,7 +110,8 @@ test('non-JSON, malformed success and a lost POST response fail closed without r
   }
 });
 
-for (const [patch, phase] of [[{}, 'done'], [{ provider: 'help' }, 'help'], [{ is_refusal: true }, 'refusal'], [{ provider: 'extractive', notice: 'Busy' }, 'fallback']]) {
+for (const [patch, phase] of [[{}, 'done'], [{ provider: 'extractive' }, 'done'], [{ provider: 'help' }, 'help'],
+  [{ is_refusal: true }, 'refusal'], [{ provider: 'extractive', notice: 'Busy' }, 'fallback']]) {
   test(`controller direct completion ${phase}`, async () => {
     const f = await setup({ ask: () => validateAiReply({ ...done(patch), cached: true }) });
     await f.controller.send('help'); assert.equal(f.state().phase, phase); assert.equal(f.calls.ask, 1);

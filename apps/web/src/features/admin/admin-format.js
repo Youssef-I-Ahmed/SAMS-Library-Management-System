@@ -1,4 +1,4 @@
-export const ITEM_TYPES = ['BOOK', 'THESIS', 'PROJECT'];
+export const ITEM_TYPES = ['BOOK', 'ACADEMIC_WORK', 'THESIS', 'PROJECT'];
 export const COPY_STATUSES = ['AVAILABLE', 'UNAVAILABLE', 'DAMAGED', 'LOST', 'ARCHIVED'];
 export const COPY_CONDITIONS = ['GOOD', 'FAIR', 'DAMAGED'];
 export const ACADEMIC_STATUSES = ['ACTIVE', 'GRADUATED', 'SUSPENDED', 'INACTIVE'];
@@ -31,7 +31,7 @@ export function emptyItemDraft() {
     id: null, version: null, type: 'BOOK', title: '', categoryId: '',
     deweyClassificationId: '', deweyCodeRaw: '', callNumber: '', language: '',
     publicationYear: '', abstract: '', isActive: true, isbn: '', publisher: '',
-    edition: '', facultyId: '', departmentId: '', academicYear: ''
+    edition: '', facultyId: '', departmentId: '', academicYear: '', subjectIds: []
   };
 }
 
@@ -43,7 +43,8 @@ export function itemToDraft(item) {
     publicationYear: item.publicationYear || '', abstract: item.abstractDescription || '', isActive: item.isActive,
     isbn: item.bookDetails?.isbn || '', publisher: item.bookDetails?.publisher || '', edition: item.bookDetails?.edition || '',
     facultyId: item.academicWorkDetails?.faculty?.id || '', departmentId: item.academicWorkDetails?.department?.id || '',
-    academicYear: item.academicWorkDetails?.academicYear || ''
+    academicYear: item.academicWorkDetails?.academicYear || '',
+    subjectIds: item.itemSubjects?.map(({ subjectId }) => subjectId) ?? []
   };
 }
 

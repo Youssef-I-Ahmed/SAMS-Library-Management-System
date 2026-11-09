@@ -80,6 +80,16 @@ async function fixture(t, { mode = 'on', language = 'en', theme = 'light', width
         if (state.scenario === 'checking') await new Promise((resolve) => state.held.push(resolve));
         return json({ data: { status: 'ok' } });
       }
+      if (path === '/api/v1/ai/research/ask') {
+        if (state.scenario === 'hold-research') await new Promise((resolve) => state.held.push(resolve));
+        if (state.scenario === 'research-empty') return json({ data: { status: 'no-results', results: [] } });
+        if (state.scenario === 'research-error') return json({ error: { code: 'AI_SERVICE_UNAVAILABLE' } }, 503);
+        return json({ data: { status: 'success', results: [{
+          id: UUID, title: 'Applied network design', legacy_code: 'PR-402', language: 'en',
+          publication_year: 2024, call_number: '004.6', subjects: ['Computing'],
+          researchers: ['Maya Adel'], supervisors: ['Omar Amin'], available: true
+        }] } });
+      }
       if (path === '/api/v1/ai/ask') {
         if (typeof state.scenario === 'number') return json({ error: { code: state.scenario === 404 ? 'AI_SESSION_NOT_FOUND' : `AI_ERROR_${state.scenario}` } }, state.scenario, state.scenario === 429 ? { 'Retry-After': '3' } : {});
         if (state.scenario === 'hold-ask') await new Promise((resolve) => state.held.push(resolve));
@@ -89,7 +99,8 @@ async function fixture(t, { mode = 'on', language = 'en', theme = 'light', width
         if (state.scenario === 'cached') payload.cached = true;
         if (state.scenario === 'help') payload.result = { ...payload.result, provider: 'help', sources: [], all_books: null, answer: 'I can help you find books.' };
         if (state.scenario === 'refusal') payload.result = { ...payload.result, is_refusal: true, sources: [], hint: 'Try a book subject.', answer: 'No supporting records.' };
-        if (state.scenario === 'fallback') payload.result = { ...payload.result, provider: 'extractive', notice: 'The written review is unavailable.' };
+        if (state.scenario === 'extractive') payload.result.provider = 'extractive';
+        if (state.scenario === 'fallback') payload.result = { ...payload.result, provider: 'extractive', notice: 'Using catalogue records.' };
         if (state.scenario === 'identities') payload.result.sources = ['mapped', 'unmapped', 'ambiguous', 'unavailable'].map((status) => book(status, status + ' fixture'));
         if (state.scenario === 'unsafe-text') payload.result.answer = '<img src="https://bad.invalid/x" onerror="alert(1)"> https://bad.invalid/reserve';
         return json({ data: payload });
@@ -101,13 +112,21 @@ async function fixture(t, { mode = 'on', language = 'en', theme = 'light', width
       }
       if (path === '/api/v1/ai/session/reset') return json({ data: { status: 'ok', session_id: NEXT } });
       if (path === '/api/v1/discovery/facets') return json({ data: { types: [{ value: 'BOOK', count: 0 }], categories: [], deweyClassifications: [], languages: [], publicationYears: [], branches: [], sortOptions: [], defaults: { sort: 'TITLE_ASC' } } });
-      if (['/api/v1/discovery/items', '/api/v1/reservations/me', '/api/v1/borrowings/me'].includes(path)) return json({ data: [], pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0 }, meta: { sort: 'TITLE_ASC', appliedFilters: {} } });
+      if (path === `/api/v1/discovery/items/${UUID}`) return json({ data: {
+        id: UUID, type: 'ACADEMIC_WORK', title: 'Applied network design', language: 'en',
+        itemContributors: [], legacyIdentities: [{ legacyCode: 'PR-402' }], itemSubjects: [{ subject: { name: 'Computing' } }],
+        availability: { availableCopies: 1, totalCopies: 1, available: true, branches: [] }
+      } });
+      if (['/api/v1/discovery/items', '/api/v1/reservations/me', '/api/v1/borrowings/me',
+        '/api/v1/students', '/api/v1/visits'].includes(path)) return json({ data: [], pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0 }, meta: { sort: 'TITLE_ASC', appliedFilters: {} } });
       state.unexpected.push(path); return route.abort();
     }
     if (url.origin === origin) return route.continue();
     state.unexpected.push(url.origin); return route.abort();
   });
-  const page = await context.newPage(); page.setDefaultTimeout(10000);
+  const page = await context.newPage();
+  page.setDefaultTimeout(10000);
+  page.setDefaultNavigationTimeout(30000);
   page.on('pageerror', (error) => state.errors.push(error.message));
   const tr = (key) => translate(language, key);
   return { page, context, state, tr, goto: (path = '/student/ai') => page.goto(origin + path),
@@ -185,29 +204,135 @@ test('auth loading, anonymous/expired session and wrong-role guards do not start
     await expect(f.page).toHaveURL(options.role === 'LIBRARIAN' || options.role === 'MANAGEMENT' ? /\/forbidden$/ : /\/login$/);
     assert.deepEqual(f.aiCalls(), []);
   }
+  const anonymous = await fixture(t, { role: null });
+  for (const path of ['/librarian/ai', '/management/ai', `/management/ai/items/${UUID}`]) {
+    await anonymous.goto(path);
+    await expect(anonymous.page).toHaveURL(/\/login$/);
+    assert.deepEqual(anonymous.aiCalls(), []);
+  }
 });
-for (const scenario of ['done', 'cached', 'help', 'refusal', 'fallback']) test(`render ${scenario} safely with controller-driven Spirit`, async (t) => {
+for (const [role, workspace, adminPage] of [
+  ['LIBRARIAN', 'librarian', 'students'], ['MANAGEMENT', 'management', 'visits']
+]) test(`${role} opens the shared assistant from administration and sees read-only details`, async (t) => {
+  const f = await fixture(t, { role, width: 390, language: 'ar', theme: 'dark' });
+  await f.goto(`/${workspace}/${adminPage}`);
+  await expect(f.page.locator('.admin-page h1')).toBeVisible();
+  assert.deepEqual(f.aiCalls(), []);
+  await f.page.getByRole('link', { name: f.tr('ai.nav'), exact: true }).click();
+  await expect(f.page).toHaveURL(new RegExp(`/${workspace}/ai$`));
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  await expect(f.page.locator('.knowledge-spirit')).toBeVisible();
+  const scope = f.page.getByLabel(f.tr('ai.scopeLabel'));
+  await expect(scope.locator('option')).toHaveCount(3);
+  await scope.selectOption('all');
+  await f.submit('Network design');
+  await expect(f.page.getByText('Fixture book', { exact: false })).toBeVisible();
+  const research = f.page.locator('.ai-research');
+  await expect(research.getByText('PR-402')).toBeVisible();
+  await expect(f.page.locator('.knowledge-spirit')).toHaveAttribute('data-spirit-state', 'success');
+  const resultLink = research.getByRole('link', { name: f.tr('ai.details') });
+  await expect(resultLink).toHaveAttribute('href', `/${workspace}/ai/items/${UUID}`);
+  await resultLink.click();
+  await expect(f.page.getByRole('heading', { name: 'Applied network design', exact: true })).toBeVisible();
+  await expect(f.page.locator('.reservation-panel')).toHaveCount(0);
+  await expect(f.page.locator('.knowledge-spirit')).toHaveCount(0);
+  await expect(f.page.getByRole('link', { name: f.tr('ai.backToAssistant') })).toHaveAttribute('href', `/${workspace}/ai`);
+  assert.deepEqual(f.aiCalls().filter((call) => call.method === 'POST').map((call) => call.path).sort(),
+    ['/api/v1/ai/ask', '/api/v1/ai/research/ask']);
+});
+for (const scenario of ['done', 'cached', 'extractive', 'help', 'refusal', 'fallback']) test(`render ${scenario} safely with controller-driven Spirit`, async (t) => {
   const f = await fixture(t, { scenario }); await f.goto(); await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
-  await f.submit(); await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', scenario === 'cached' ? 'done' : scenario);
+  await f.submit(); await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', ['cached', 'extractive'].includes(scenario) ? 'done' : scenario);
   const spirit = scenario === 'help' ? 'idle' : scenario === 'refusal' ? 'no-results' : 'success';
   await expect(f.page.locator('.knowledge-spirit')).toHaveAttribute('data-spirit-state', spirit);
   assert.equal(f.aiCalls().filter((call) => call.method === 'POST').length, 1);
   assert.equal(await f.page.locator('.student-ai').getByText('987654').count(), 0);
+  if (scenario === 'extractive') {
+    await expect(f.page.locator('.ai-answer')).toHaveText('A catalogue reply [S1].');
+    await expect(f.page.locator('.ai-record').getByText('1687', { exact: true })).toBeVisible();
+    await expect(f.page.locator('.ai-notice')).toHaveCount(0);
+  }
 });
 test('checking/unavailable readiness is explicit and never sends an ask', async (t) => {
   const f = await fixture(t, { scenario: 'checking' }); await f.goto();
   await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'checking');
+  await expect.poll(() => f.state.held.length).toBeGreaterThan(0);
   f.state.release(); await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
   const g = await fixture(t, { scenario: 'unavailable' }); await g.goto();
   await expect(g.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'unavailable');
   await expect(g.page.getByRole('button', { name: g.tr('ai.send'), exact: true })).toBeDisabled();
   assert.equal(g.aiCalls().every((call) => call.method === 'GET'), true);
 });
+test('Research and All scopes render approved records and use only their selected Express routes', async (t) => {
+  const f = await fixture(t, { scenario: 'hold-research' });
+  await f.goto();
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  await f.page.getByLabel(f.tr('ai.scopeLabel')).selectOption('research');
+  await f.submit('Network design');
+  await expect(f.page.locator('.knowledge-spirit')).toHaveAttribute('data-spirit-state', 'searching');
+  await expect.poll(() => f.state.held.length).toBeGreaterThan(0);
+  f.state.release();
+  await expect(f.page.getByText('PR-402')).toBeVisible();
+  await expect(f.page.locator('.ai-research .ai-answer')).toContainText('Applied network design');
+  await expect(f.page.locator('.student-ai')).not.toContainText(UUID);
+  await expect(f.page.locator('.knowledge-spirit')).toHaveAttribute('data-spirit-state', 'success');
+  assert.deepEqual(f.aiCalls().filter((call) => call.method === 'POST').map((call) => call.path),
+    ['/api/v1/ai/research/ask']);
+  f.state.scenario = 'done';
+  await f.page.getByLabel(f.tr('ai.scopeLabel')).selectOption('all');
+  await f.submit('Networking');
+  await expect(f.page.getByText('Fixture book', { exact: false })).toBeVisible();
+  await expect(f.page.locator('.ai-book-transcript .ai-answer')).not.toBeEmpty();
+  await expect(f.page.locator('.ai-research .ai-answer')).toHaveCount(2);
+  await expect(f.page.getByText('Applied network design', { exact: true })).toHaveCount(2);
+  assert.deepEqual(f.aiCalls().filter((call) => call.method === 'POST').slice(1).map((call) => call.path).sort(),
+    ['/api/v1/ai/ask', '/api/v1/ai/research/ask']);
+});
+test('Knowledge Spirit uses seven distinct visible glyphs and captions with motion reduced', async (t) => {
+  const f = await fixture(t, { holdAuth: true, width: 390, scenario: 'hold-ask' });
+  const companion = f.page.locator('.ai-companion');
+  const glyph = companion.locator('.spirit-signal path');
+  const seen = new Set();
+  async function check(phase) {
+    await expect(companion.locator('.ai-companion__state')).toHaveText(f.tr(`ai.spiritState.${phase}`));
+    await expect(companion.locator('.spirit-signal')).toBeVisible();
+    assert.ok(await glyph.evaluate((path) => Number.parseFloat(getComputedStyle(path).strokeWidth) > 0));
+    const drawing = await glyph.getAttribute('d');
+    assert.ok(drawing && !seen.has(drawing), `${phase} has its own visible symbol`);
+    seen.add(drawing);
+    await companion.screenshot({ path: join(evidence, `spirit-${phase}.png`), animations: 'disabled' });
+  }
+
+  await f.goto();
+  await expect.poll(() => f.state.held.length).toBeGreaterThan(0);
+  f.state.release();
+  await check('greeting');
+  await check('idle');
+  await f.submit('Network design');
+  await check('searching');
+  await expect.poll(() => f.state.held.length).toBeGreaterThan(0);
+  f.state.scenario = 'preview';
+  f.state.pollMode = 'hold';
+  f.state.release();
+  await check('thinking');
+  await expect.poll(() => f.state.held.length).toBeGreaterThan(0);
+  f.state.release();
+  await check('success');
+
+  await f.page.getByLabel(f.tr('ai.scopeLabel')).selectOption('research');
+  f.state.scenario = 'research-empty';
+  await f.submit('Unknown title');
+  await check('no-results');
+  f.state.scenario = 'research-error';
+  await f.submit('Try again');
+  await check('error');
+  assert.equal(seen.size, 7);
+});
 for (const scenario of ['null', 'preview']) test(`${scenario} pending has optional preview, no fake phases and final replacement`, async (t) => {
   const f = await fixture(t, { scenario }); f.state.pollMode = 'hold'; await f.goto();
   await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle'); await f.submit();
   await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'pending');
-  await expect(f.page.locator('.knowledge-spirit')).toHaveAttribute('data-spirit-state', 'working');
+  await expect(f.page.locator('.knowledge-spirit')).toHaveAttribute('data-spirit-state', scenario === 'null' ? 'searching' : 'thinking');
   await expect(f.page.locator('.ai-record h4').filter({ hasText: 'Preliminary fixture book' })).toHaveCount(scenario === 'preview' ? 1 : 0);
   await expect(f.page.locator('#ai-question')).toBeFocused();
   await expect(f.page.getByRole('button', { name: f.tr('ai.newConversation'), exact: true })).toBeDisabled();

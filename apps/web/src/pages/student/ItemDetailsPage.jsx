@@ -8,6 +8,7 @@ import { ReservationPanel } from '../../components/circulation/ReservationPanel'
 import { InlineAlert } from '../../components/ui/InlineAlert';
 import { getDiscoveryItem } from '../../features/discovery/discovery-api';
 import {
+  getCategoryLabel,
   getContributorRoleLabel,
   getItemTypeLabelKey,
   getLanguageLabel
@@ -15,7 +16,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../hooks/useLanguage';
 
-export function ItemDetailsPage() {
+export function ItemDetailsPage({ backTo = '/student/catalog', backLabel = 'discovery.detail.back', canReserve = true }) {
   const { itemId } = useParams();
   const auth = useAuth();
   const { t } = useLanguage();
@@ -88,8 +89,8 @@ export function ItemDetailsPage() {
   }, [isLoading, error, item?.id, t]);
 
   const backLink = (
-    <Link className="item-detail-back" to="/student/catalog" ref={backRef}>
-      <span className="item-detail-back__arrow" aria-hidden="true">←</span> {t('discovery.detail.back')}
+    <Link className="item-detail-back" to={backTo} ref={backRef}>
+      <span className="item-detail-back__arrow" aria-hidden="true">←</span> {t(backLabel)}
     </Link>
   );
   const status = (
@@ -127,6 +128,7 @@ export function ItemDetailsPage() {
     );
   }
 
+  const categoryLabel = getCategoryLabel(item.category?.name, t);
   const fields = [
     ['discovery.detail.type', t(getItemTypeLabelKey(item.type))],
     ['discovery.detail.year', item.publicationYear],
@@ -141,11 +143,16 @@ export function ItemDetailsPage() {
         ? [item.deweyClassification.code, item.deweyClassification.name].filter(Boolean).join(' · ') || item.deweyCodeRaw
         : item.deweyCodeRaw
     ],
-    ['discovery.detail.category', item.category?.name],
+    ['discovery.detail.category', categoryLabel],
     ['discovery.detail.isbn', item.bookDetails?.isbn],
     ['discovery.detail.publisher', item.bookDetails?.publisher],
     ['discovery.detail.edition', item.bookDetails?.edition],
     ['discovery.detail.academicYear', item.academicWorkDetails?.academicYear],
+    ['discovery.detail.legacyCode', item.legacyIdentities?.map((entry) => entry.legacyCode).join('، ')],
+    ['discovery.detail.subjects', item.itemSubjects?.map((entry) => entry.subject.name).join('، ')],
+    ['discovery.detail.extent', item.academicWorkDetails?.extent],
+    ['discovery.detail.dimensions', item.academicWorkDetails?.dimensions],
+    ['discovery.detail.recordType', item.academicWorkDetails?.recordType],
     ['discovery.detail.faculty', item.academicWorkDetails?.faculty?.name],
     ['discovery.detail.department', item.academicWorkDetails?.department?.name]
   ].filter(([, value]) => value !== null && value !== undefined && value !== '');
@@ -174,7 +181,7 @@ export function ItemDetailsPage() {
                 ))}
               </div>
               {!item.itemContributors?.length && <p className="item-detail-muted">{t('discovery.card.noContributor')}</p>}
-              {item.category?.name && <p className="item-detail-category" dir="auto">{item.category.name}</p>}
+              {categoryLabel && <p className="item-detail-category" dir="auto">{categoryLabel}</p>}
             </div>
           </section>
 
@@ -256,11 +263,11 @@ export function ItemDetailsPage() {
             <button type="button" onClick={() => { backRef.current?.focus(); refreshItem(); }}>{t('discovery.catalog.retry')}</button>
           </div>}
 
-          <ReservationPanel key={item.id}
+          {canReserve && <ReservationPanel key={item.id}
             item={item}
             onReservationCreated={refreshItem}
             inventoryDescriptionId={inventoryDescriptionId}
-          />
+          />}
         </aside>
       </div>
     </article>

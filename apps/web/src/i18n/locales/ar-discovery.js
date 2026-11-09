@@ -1,6 +1,7 @@
 export const arDiscovery = {
   itemTypes: {
     BOOK: 'كتاب',
+    ACADEMIC_WORK: 'مشروعات تخرج ورسائل علمية',
     THESIS: 'رسالة علمية',
     PROJECT: 'مشروع تخرج'
   },
@@ -27,7 +28,7 @@ export const arDiscovery = {
     browseAll: 'استكشف الفهرس',
     collectionNavigation: 'تصفح المجموعات',
     explore: 'استكشف المجموعة',
-    collectionTitles: { BOOK: 'الكتب والمراجع', THESIS: 'الرسائل والأبحاث', PROJECT: 'مشروعات التخرج' },
+    collectionTitles: { BOOK: 'الكتب والمراجع', ACADEMIC_WORK: 'مشروعات تخرج ورسائل علمية', THESIS: 'الرسائل والأبحاث', PROJECT: 'مشروعات التخرج' },
     experienceEyebrow: 'تجربتك مع المكتبة',
     experienceTitle: 'كل فكرة تبدأ بالاكتشاف.',
     steps: {
@@ -50,6 +51,7 @@ export const arDiscovery = {
     browseTitle: 'اكتشف آفاقًا جديدة.',
     collection: {
       BOOK: 'الكتب المنشورة والمراجع.',
+      ACADEMIC_WORK: 'مشروعات التخرج والرسائل العلمية المعتمدة في الأكاديمية.',
       THESIS: 'الرسائل العلمية والأعمال البحثية.',
       PROJECT: 'مشروعات التخرج من أقسام الأكاديمية.'
     }
@@ -177,6 +179,11 @@ export const arDiscovery = {
       publisher: 'الناشر',
       edition: 'الطبعة',
       academicYear: 'العام الأكاديمي',
+      legacyCode: 'الكود التاريخي',
+      subjects: 'التخصصات والموضوعات',
+      extent: 'الوصف المادي',
+      dimensions: 'الأبعاد',
+      recordType: 'نوع الوعاء',
       faculty: 'الكلية',
       department: 'القسم'
     },

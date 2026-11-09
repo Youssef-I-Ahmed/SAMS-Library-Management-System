@@ -42,6 +42,9 @@ export async function getDiscoveryItemDetail(itemId) {
         select: {
           academicYear: true,
           workType: true,
+          extent: true,
+          dimensions: true,
+          recordType: true,
           faculty: {
             select: {
               id: true,
@@ -70,6 +73,18 @@ export async function getDiscoveryItemDetail(itemId) {
           { role: 'asc' },
           { contributor: { fullName: 'asc' } }
         ]
+      },
+      itemSubjects: {
+        select: {
+          subject: {
+            select: { id: true, code: true, name: true }
+          }
+        },
+        orderBy: { subject: { name: 'asc' } }
+      },
+      legacyIdentities: {
+        select: { sourceNamespace: true, legacyCode: true },
+        orderBy: { legacyCode: 'asc' }
       }
     }
   });

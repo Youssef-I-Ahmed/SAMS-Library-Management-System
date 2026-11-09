@@ -45,7 +45,8 @@ const itemDetailInclude = {
       { role: 'asc' },
       { contributor: { fullName: 'asc' } }
     ]
-  }
+  },
+  itemSubjects: { select: { subjectId: true } }
 };
 
 async function validateCategory(categoryId) {
