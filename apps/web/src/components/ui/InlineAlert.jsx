@@ -1,8 +1,11 @@
+import { useLanguage } from '../../hooks/useLanguage';
+
 export function InlineAlert({
   title,
   message,
   requestId
 }) {
+  const { t } = useLanguage();
   return (
     <div className="inline-alert" role="alert">
       {title && <strong>{title}</strong>}
@@ -10,7 +13,7 @@ export function InlineAlert({
 
       {requestId && (
         <small>
-          Request ID: {requestId}
+          {t('discovery.detail.requestId')}: <bdi>{requestId}</bdi>
         </small>
       )}
     </div>

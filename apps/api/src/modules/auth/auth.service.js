@@ -1,7 +1,7 @@
 import { prisma } from '../../config/prisma.js';
 import { env } from '../../config/env.js';
 import { AppError } from '../../utils/app-error.js';
-import { issueAccessToken } from './token.service.js';
+import { isAuthVersion, issueAccessToken } from './token.service.js';
 
 const userInclude = {
   userRoles: {
@@ -16,6 +16,30 @@ const userInclude = {
     }
   }
 };
+
+const unavailable = () => new AppError(503, 'AUTH_UNAVAILABLE', 'Authentication is temporarily unavailable');
+const unauthorized = () => new AppError(401, 'UNAUTHORIZED', 'Authentication is required');
+
+async function authTransaction(work, isolationLevel = 'RepeatableRead') {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      // A hot standby cannot enter READ WRITE mode. Fail closed rather than
+      // authenticating against a potentially lagging replica. No data is written
+      // by this command; User and membership reads then share the same snapshot.
+      await tx.$executeRaw`SET TRANSACTION READ WRITE`;
+      return work(tx);
+    }, { isolationLevel });
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    // Never pass database messages, connection strings or causes to HTTP loggers.
+    throw unavailable();
+  }
+}
+
+function requireVersion(user) {
+  if (!isAuthVersion(user.authVersion)) throw unavailable();
+  return user;
+}
 
 export function toPublicAuthUser(user) {
   return {
@@ -49,14 +73,15 @@ export async function devLogin(universityEmail) {
     throw new AppError(404, 'NOT_FOUND', 'Route not found');
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await authTransaction((tx) => tx.user.findUnique({
     where: { universityEmail },
     include: userInclude
-  });
+  }));
 
   if (!user || !user.isActive) {
     throw new AppError(401, 'INVALID_DEV_USER', 'Development user is invalid or inactive');
   }
+  requireVersion(user);
 
   return {
     accessToken: issueAccessToken(user),
@@ -67,14 +92,46 @@ export async function devLogin(universityEmail) {
 }
 
 export async function getAuthUserById(userId) {
-  const user = await prisma.user.findUnique({
+  const user = await authTransaction((tx) => tx.user.findUnique({
     where: { id: userId },
     include: userInclude
-  });
+  }));
 
   if (!user || !user.isActive) {
-    throw new AppError(401, 'UNAUTHORIZED', 'User is inactive or no longer exists');
+    throw unauthorized();
   }
 
-  return user;
+  return requireVersion(user);
+}
+
+export async function revokeOwnSessions({ userId, expectedVersion, requestId }) {
+  if (!isAuthVersion(expectedVersion)) throw unauthorized();
+  if (expectedVersion === 2_147_483_647) throw unavailable();
+
+  // A conditional UPDATE locks the User row and returns its actual resulting
+  // version. Concurrent revocations cannot both succeed for the same token.
+  return authTransaction(async (tx) => {
+    let updated;
+    try {
+      updated = await tx.user.update({
+        where: { id: userId, isActive: true, authVersion: expectedVersion },
+        data: { authVersion: { increment: 1 } },
+        select: { authVersion: true }
+      });
+    } catch (error) {
+      if (error?.code === 'P2025') throw unauthorized();
+      throw error;
+    }
+    if (updated.authVersion !== expectedVersion + 1) throw unavailable();
+    // Returned only after commit. The HTTP route never exposes this context.
+    // Future durable audit writing must join this transaction; no logging here.
+    return { auditContext: {
+      actorUserId: userId,
+      targetUserId: userId,
+      reasonCode: 'LOGOUT_ALL',
+      requestId: typeof requestId === 'string' && /^[A-Za-z0-9._:-]{1,128}$/.test(requestId) ? requestId : null,
+      previousVersion: expectedVersion,
+      resultingVersion: updated.authVersion
+    } };
+  }, 'ReadCommitted');
 }

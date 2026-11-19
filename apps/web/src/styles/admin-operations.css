@@ -1,0 +1,62 @@
+@import './staff-circulation.css'; /* Reuse the existing operational shell navigation. */
+/* Catalog/Inventory and read-only Directory only; no Management or Student changes. */
+.admin-operations { min-width: 0; padding-block-end: env(safe-area-inset-bottom, 0px); }
+.admin-operations h1 { font-size: clamp(28px, 3vw, 36px); line-height: 1.2; }
+.admin-operations :is(h1, h2, p, strong, small, bdi, dd, span) { overflow-wrap: anywhere; }
+.admin-operations :is(input, select, textarea, button, fieldset, form) { min-width: 0; max-width: 100%; }
+.admin-operations :is(input:not([type='radio']):not([type='checkbox']), select, textarea) { font-size: 16px; }
+.admin-operations :is(button, .admin-check) { min-height: 44px; }
+.admin-operations :is(.admin-toolbar, .admin-toolbar form) { min-width: 0; }
+.admin-operations .admin-toolbar form { flex: 1; }
+.admin-operations .admin-toolbar input:not([type='checkbox']) { flex: 1; min-width: 160px; }
+.admin-operations .admin-check input { min-width: 20px; min-height: 20px; width: 20px; height: 20px; padding: 0; flex: 0 0 20px; }
+.admin-operations :is(.admin-check, .admin-form-grid label > span, .admin-pagination span) { font-size: 12px; }
+.admin-operations fieldset { border: 0; padding: 0; margin: 0; }
+.admin-operations legend { padding: 0; margin-block-end: 12px; font-weight: 750; }
+.admin-operations .admin-table-wrap { max-width: 100%; margin-block-start: 12px; border: 1px solid var(--border-default); border-radius: var(--sams-radius-md); overscroll-behavior-inline: contain; }
+.admin-operations .admin-table { table-layout: fixed; min-width: 800px; }
+.admin-operations .admin-table th { font-size: 12px; text-transform: none; }
+.admin-operations .admin-table td { font-size: 13px; overflow-wrap: anywhere; }
+.admin-operations .admin-table :is(th, td):first-child { width: 30%; }
+.admin-operations .admin-table :is(th, td):last-child { width: 160px; }
+.admin-operations .admin-row-actions { flex-wrap: wrap; gap: 4px; }
+.admin-operations .admin-row-actions .is-danger { color: var(--status-danger-ink); }
+.admin-operations .admin-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-block-start: 16px; padding-block-start: 14px; border-block-start: 1px solid var(--border-default); }
+.admin-operations .admin-pagination button { padding-inline: 12px; border: 1px solid var(--border-default); border-radius: var(--sams-radius-md); color: var(--text-primary); background: var(--surface-elevated); }
+.admin-operations .admin-table-hint { display: none; flex-basis: 100%; color: var(--text-secondary); font-size: 12px; }
+.admin-operations .admin-table td button { min-width: 64px; padding-inline: 8px; }
+.admin-operations .admin-read-state { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-block: 14px; }
+.admin-operations .admin-read-state p { margin: 0; font-size: 13px; }
+.admin-operations .admin-read-state .inline-alert { flex-basis: 100%; }
+.admin-operations .admin-read-state > span { margin-inline-start: auto; font-size: 13px; }
+.admin-operations :is(.catalog-recovery, .catalog-recovery-banner, .catalog-server-record, .catalog-selected-item, .copy-item-lookup) { min-width: 0; padding: 14px; border: 1px solid var(--border-strong); border-radius: var(--sams-radius-md); background: var(--surface-subtle); }
+.admin-operations .catalog-recovery { margin-block-end: 16px; }
+.admin-operations .catalog-recovery > p:first-child { font-weight: 750; }
+.admin-operations .catalog-server-record { display: grid; gap: 8px; margin-block-start: 14px; }
+.admin-operations .catalog-selected-item { display: grid; gap: 5px; }
+.admin-operations .copy-item-lookup { margin-block-end: 18px; }
+.admin-operations .admin-lookup-search { display: flex; align-items: end; gap: 10px; }
+.admin-operations .admin-lookup-search label { display: grid; flex: 1; gap: 6px; }
+.admin-operations .admin-lookup-search input { min-height: 44px; width: 100%; padding: 8px 10px; border: 1px solid var(--border-default); border-radius: var(--sams-radius-md); color: var(--text-primary); background: var(--surface); }
+.admin-operations .copy-item-options { display: grid; gap: 8px; max-height: 260px; overflow-y: auto; }
+.admin-operations .copy-item-options > label { display: flex; gap: 10px; align-items: start; padding: 10px; background: var(--surface); border: 1px solid var(--border-default); border-radius: var(--sams-radius-md); cursor: pointer; }
+.admin-operations .copy-item-options input { flex: 0 0 20px; width: 20px; height: 20px; margin-block-start: 3px; }
+.admin-operations .copy-item-options span { min-width: 0; display: grid; gap: 4px; }
+.admin-operations .copy-item-options small { color: var(--text-secondary); font-size: 12px; }
+.admin-operations :is(.student-directory-details, .student-directory-details > div, .student-directory-details dd) { min-width: 0; }
+.admin-operations .student-directory-details dd { margin-inline-start: 0; }
+.admin-operations .admin-modal { max-height: calc(100dvh - 2 * max(12px, env(safe-area-inset-bottom, 0px))); }
+.admin-operations .admin-modal-backdrop { padding: max(12px, env(safe-area-inset-bottom, 0px)) 12px; }
+.admin-operations :is(a, button, input, select, textarea, [tabindex='0']):focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 3px; }
+.admin-operations h1:focus { outline: none; }
+.admin-operations button:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 1100px) { .admin-operations .admin-table-hint { display: block; } }
+@media (max-width: 760px) {
+  .admin-operations .admin-card { padding: 16px; }
+  .admin-operations .admin-toolbar :is(form, input:not([type='checkbox']), select) { min-width: 0; width: 100%; }
+  .admin-operations .admin-toolbar form { align-items: stretch; }
+  .admin-operations .admin-pagination { flex-wrap: wrap; }
+  .admin-operations .admin-pagination span { order: -1; flex-basis: 100%; text-align: center; }
+  .admin-operations .admin-pagination button { flex: 1; }
+  .admin-operations .admin-lookup-search { display: grid; }
+}

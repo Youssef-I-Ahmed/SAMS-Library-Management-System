@@ -1,0 +1,74 @@
+@import './admin-operations.css';
+
+/* Reporting and the Librarian orientation page only. */
+.staff-reports { gap: 18px; }
+.staff-reports > section > h2 { margin: 0 0 10px; font-size: 19px; }
+.staff-reports .report-filters .analytics-filters { grid-template-columns: minmax(160px, 1.2fr) repeat(2, minmax(135px, 1fr)) minmax(110px, .8fr) minmax(130px, 1fr) auto; align-items: end; }
+.staff-reports .analytics-filters :is(input, select) { width: 100%; }
+.staff-reports .analytics-filters label { min-width: 0; }
+.staff-reports .analytics-filters label > span { font-size: 12px; color: var(--text-secondary); }
+.staff-reports .report-help { margin-block: 10px; color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.staff-reports .report-read-state { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.staff-reports .report-read-state > p { margin: 0; }
+.staff-reports .report-read-state .inline-alert { flex-basis: 100%; }
+.staff-reports .report-scope { min-width: 0; padding: 14px 16px; border: 1px solid var(--border-default); border-inline-start: 3px solid var(--brand-accent); border-radius: var(--sams-radius-md); background: var(--surface); }
+.staff-reports .report-scope--stale { border-color: var(--status-warning-ink); }
+.staff-reports .report-scope--stale > strong { color: var(--status-warning-ink); }
+.staff-reports .report-scope p { font-size: 13px; margin-block: 6px; }
+.staff-reports .report-scope small { color: var(--text-secondary); }
+.staff-reports .report-scope dl { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-block: 8px; }
+.staff-reports .report-scope dl > div { min-width: 0; }
+.staff-reports .report-scope dt { color: var(--text-secondary); font-size: 12px; margin-block-end: 4px; }
+.staff-reports .report-scope dd { margin: 0; font-size: 14px; }
+.staff-reports .report-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.staff-reports .metric-card { min-width: 0; min-height: 110px; padding: 16px; box-shadow: none; border-radius: var(--sams-radius-lg); }
+.staff-reports .metric-card > span { font-size: 13px; color: var(--text-secondary); }
+.staff-reports .metric-card > strong { font-size: 30px; font-variant-numeric: tabular-nums; }
+.staff-reports .metric-card small { font-size: 12px; line-height: 1.5; }
+.staff-reports .metric-card small > span { display: block; }
+.staff-reports .analytics-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+.staff-reports .analytics-grid h2 { font-size: 20px; margin-block: 0 12px; }
+.staff-reports .trend-list { max-height: 480px; padding: 4px; }
+.staff-reports .trend-row { grid-template-columns: 1fr; padding: 12px; }
+.staff-reports .trend-row > strong { font-size: 13px; }
+.staff-reports .trend-bars { margin: 0; }
+.staff-reports .trend-bars > div { grid-template-columns: minmax(90px, .7fr) minmax(0, 1fr); }
+.staff-reports .trend-bars dt { font-size: 12px; color: var(--text-secondary); }
+.staff-reports .trend-bars dd { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(32px, auto); gap: 10px; align-items: center; font-size: 13px; }
+.staff-reports .trend-bars i { display: block; }
+.staff-reports .trend-bars b { max-width: 100%; }
+.staff-reports .trend-bars bdi { text-align: end; font-variant-numeric: tabular-nums; }
+.staff-reports .ranking-list { list-style: none; margin: 0; padding: 0; }
+.staff-reports .ranking-list > li { min-width: 0; padding: 12px 0; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: start; border-block-end: 1px solid var(--border-default); }
+.staff-reports .ranking-list strong { white-space: normal; overflow-wrap: anywhere; font-size: 14px; line-height: 1.5; }
+.staff-reports .ranking-list small { font-size: 12px; }
+.staff-reports .report-placeholders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.staff-reports .report-placeholders > div { height: 130px; border: 1px solid var(--border-default); border-radius: var(--sams-radius-lg); background: var(--surface-subtle); }
+.staff-reports .management-filter-bar > input { flex: 1; }
+.staff-reports .admin-table :is(th, td):last-child { width: 120px; }
+.staff-reports .admin-table tbody th { font-weight: 700; text-transform: none; color: var(--text-primary); }
+.librarian-overview .librarian-task-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.librarian-overview .librarian-task-grid > a { min-width: 0; padding: 20px; display: grid; gap: 8px; color: var(--text-primary); text-decoration: none; border: 1px solid var(--border-default); border-radius: var(--sams-radius-lg); background: var(--surface); }
+.librarian-overview .librarian-task-grid > a:hover { border-color: var(--brand-accent); }
+.librarian-overview .librarian-task-grid strong { font-size: 17px; }
+.librarian-overview .librarian-task-grid span { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+@media (max-width: 1200px) {
+  .staff-reports .report-filters .analytics-filters { grid-template-columns: minmax(160px, 1.2fr) repeat(2, minmax(145px, 1fr)); }
+}
+@media (max-width: 1050px) {
+  .staff-reports .analytics-grid { grid-template-columns: 1fr; }
+  .librarian-overview .librarian-task-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .staff-reports .report-filters .analytics-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .staff-reports .analytics-filters > label:first-child { grid-column: 1 / -1; }
+  .staff-reports .report-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .staff-reports .metric-card { min-height: 105px; padding: 15px; }
+  .staff-reports .metric-card:last-child { grid-column: 1 / -1; min-height: 85px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  .staff-reports .management-filter-bar > input { min-width: 0; width: 100%; }
+  .staff-reports .report-placeholders { grid-template-columns: 1fr; }
+  .librarian-overview .librarian-task-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 360px) {
+  .staff-reports .report-filters .analytics-filters { grid-template-columns: 1fr; }
+}

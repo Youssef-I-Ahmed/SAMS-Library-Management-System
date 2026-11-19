@@ -14,16 +14,18 @@ export function AiBookRecords({ books, title, itemDetailsBase, preview = false }
       {books.slice(0, shown).map((book, index) => {
         const legacyCodes = book.book_codes.filter((code) => !code.startsWith('sams:'));
         return <li key={`${book.book_codes.join('|')}-${index}`} className="ai-record">
+        <span className="ai-record__kind">{t('ai.scopeBooks')}</span>
         <h4 dir="auto">{book.tag && <bdi className="ai-record__tag">[{book.tag}] </bdi>}{book.title || t('ai.unknownTitle')}</h4>
+        <p className="ai-record__byline"><span className="ai-visually-hidden">{t('ai.author')}: </span><bdi>{book.author || t('ai.notRecorded')}</bdi></p>
         <dl>
-          <div><dt>{t('ai.author')}</dt><dd dir="auto">{book.author || t('ai.notRecorded')}</dd></div>
           <div><dt>{t('ai.year')}</dt><dd>{book.year == null ? t('ai.notRecorded') : new Intl.NumberFormat(language, { useGrouping: false }).format(book.year)}</dd></div>
           <div><dt>{t('ai.callNumber')}</dt><dd dir="auto">{book.call_number || t('ai.notRecorded')}</dd></div>
           {legacyCodes.length > 0 && <div><dt>{t('discovery.detail.legacyCode')}</dt><dd dir="auto">{legacyCodes.join(' · ')}</dd></div>}
         </dl>
-        <p className="ai-record__identity">{t(`ai.identity.${book.identity.status}`)}</p>
+        <div className="ai-record__footer"><p className="ai-record__identity">{t(`ai.identity.${book.identity.status}`)}</p>
         {book.identity.status === 'mapped' && book.identity.library_item_id &&
-          <Link to={`${itemDetailsBase}/${encodeURIComponent(book.identity.library_item_id)}`}>{t('ai.details')} <span aria-hidden="true">↗</span></Link>}
+          <Link aria-label={t('ai.details')} to={`${itemDetailsBase}/${encodeURIComponent(book.identity.library_item_id)}`}><span className="ai-action-label--full">{t('ai.details')}</span><span className="ai-action-label--short">{t('ai.detailsShort')}</span><span aria-hidden="true">↗</span></Link>}
+        </div>
         </li>;
       })}
     </ul>

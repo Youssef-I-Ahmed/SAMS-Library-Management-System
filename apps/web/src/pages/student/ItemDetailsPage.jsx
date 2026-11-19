@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 
 import { AvailabilityBadge } from '../../components/discovery/AvailabilityBadge';
 import { BookCover } from '../../components/discovery/BookCover';
@@ -7,6 +7,7 @@ import { InventoryNotice } from '../../components/discovery/InventoryNotice';
 import { ReservationPanel } from '../../components/circulation/ReservationPanel';
 import { InlineAlert } from '../../components/ui/InlineAlert';
 import { getDiscoveryItem } from '../../features/discovery/discovery-api';
+import { readCatalogReturn } from '../../features/discovery/discovery-navigation';
 import {
   getCategoryLabel,
   getContributorRoleLabel,
@@ -16,8 +17,10 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../hooks/useLanguage';
 
-export function ItemDetailsPage({ backTo = '/student/catalog', backLabel = 'discovery.detail.back', canReserve = true }) {
+export function ItemDetailsPage({ backTo, backLabel = 'discovery.detail.back', canReserve = true }) {
   const { itemId } = useParams();
+  const location = useLocation();
+  const catalogReturn = readCatalogReturn(location.state);
   const auth = useAuth();
   const { t } = useLanguage();
   const inventoryDescriptionId = useId();
@@ -89,7 +92,8 @@ export function ItemDetailsPage({ backTo = '/student/catalog', backLabel = 'disc
   }, [isLoading, error, item?.id, t]);
 
   const backLink = (
-    <Link className="item-detail-back" to={backTo} ref={backRef}>
+    <Link className="item-detail-back" to={backTo ?? catalogReturn.to}
+      state={backTo ? undefined : { catalogView: catalogReturn.view }} ref={backRef}>
       <span className="item-detail-back__arrow" aria-hidden="true">←</span> {t(backLabel)}
     </Link>
   );
@@ -129,8 +133,11 @@ export function ItemDetailsPage({ backTo = '/student/catalog', backLabel = 'disc
   }
 
   const categoryLabel = getCategoryLabel(item.category?.name, t);
+  const typeLabel = item.type === 'ACADEMIC_WORK'
+    ? t('catalogRefinement.academicWork') : t(getItemTypeLabelKey(item.type));
+  const contributors = (item.itemContributors || []).filter((entry) => entry.contributor?.fullName);
   const fields = [
-    ['discovery.detail.type', t(getItemTypeLabelKey(item.type))],
+    ['discovery.detail.type', typeLabel],
     ['discovery.detail.year', item.publicationYear],
     [
       'discovery.detail.language',
@@ -164,25 +171,25 @@ export function ItemDetailsPage({ backTo = '/student/catalog', backLabel = 'disc
       <div className="item-detail-layout">
         <div className="item-detail-main">
           <section className="item-detail-hero" aria-labelledby={titleId}>
-            <BookCover item={item} />
             <div className="item-detail-identity">
               <span className="item-type-mark">
-                {t(getItemTypeLabelKey(item.type))}
+                {typeLabel}
               </span>
 
               <h1 id={titleId} dir="auto">{item.title}</h1>
 
               <div className="item-contributors">
-                {item.itemContributors?.map((entry) => (
-                  <span key={`${entry.role}-${entry.contributor.id}`} dir="auto">
-                    <strong>{entry.contributor.fullName}</strong>
-                    <small>{getContributorRoleLabel(entry.role, t)}</small>
+                {contributors.map((entry, index) => (
+                  <span key={`${entry.role}-${entry.contributor.id || index}`}>
+                    <strong><bdi>{entry.contributor.fullName}</bdi></strong>
+                    {entry.role && <small>{getContributorRoleLabel(entry.role, t)}</small>}
                   </span>
                 ))}
               </div>
-              {!item.itemContributors?.length && <p className="item-detail-muted">{t('discovery.card.noContributor')}</p>}
+              {!contributors.length && <p className="item-detail-muted">{t('discovery.card.noContributor')}</p>}
               {categoryLabel && <p className="item-detail-category" dir="auto">{categoryLabel}</p>}
             </div>
+            <BookCover item={item} typeLabel={typeLabel} />
           </section>
 
           <nav className="item-detail-sections" aria-label={t('discovery.detail.sections')}>
@@ -190,28 +197,6 @@ export function ItemDetailsPage({ backTo = '/student/catalog', backLabel = 'disc
             <a href={`#${metadataTitleId}`}>{t('discovery.detail.metadataTitle')}</a>
             <a href={`#${availabilityTitleId}`}>{t('discovery.detail.availabilityTitle')}</a>
           </nav>
-
-          {item.abstractDescription && (
-            <section className="item-detail-section">
-              <span>{t('discovery.detail.descriptionEyebrow')}</span>
-              <h2 id={descriptionTitleId} tabIndex={-1}>{t('discovery.detail.descriptionTitle')}</h2>
-              <p dir="auto">{item.abstractDescription}</p>
-            </section>
-          )}
-
-          <section className="item-detail-section">
-            <span>{t('discovery.detail.metadataEyebrow')}</span>
-            <h2 id={metadataTitleId} tabIndex={-1}>{t('discovery.detail.metadataTitle')}</h2>
-
-            <dl className="detail-grid">
-              {fields.map(([key, value]) => (
-                <div key={key}>
-                  <dt>{t(key)}</dt>
-                  <dd dir="auto">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
         </div>
 
         <aside className="availability-panel" aria-labelledby={availabilityTitleId}>
@@ -220,6 +205,12 @@ export function ItemDetailsPage({ backTo = '/student/catalog', backLabel = 'disc
           <AvailabilityBadge availability={item.availability} />
 
           <InventoryNotice descriptionId={inventoryDescriptionId} />
+
+          {canReserve && <ReservationPanel key={item.id}
+            item={item}
+            onReservationCreated={refreshItem}
+            inventoryDescriptionId={inventoryDescriptionId}
+          />}
 
           <div className="availability-summary">
             <div>
@@ -263,12 +254,29 @@ export function ItemDetailsPage({ backTo = '/student/catalog', backLabel = 'disc
             <button type="button" onClick={() => { backRef.current?.focus(); refreshItem(); }}>{t('discovery.catalog.retry')}</button>
           </div>}
 
-          {canReserve && <ReservationPanel key={item.id}
-            item={item}
-            onReservationCreated={refreshItem}
-            inventoryDescriptionId={inventoryDescriptionId}
-          />}
         </aside>
+
+        <div className="item-detail-content">
+          {item.abstractDescription && (
+            <section className="item-detail-section">
+              <span>{t('discovery.detail.descriptionEyebrow')}</span>
+              <h2 id={descriptionTitleId} tabIndex={-1}>{t('discovery.detail.descriptionTitle')}</h2>
+              <p dir="auto">{item.abstractDescription}</p>
+            </section>
+          )}
+          <section className="item-detail-section">
+            <span>{t('discovery.detail.metadataEyebrow')}</span>
+            <h2 id={metadataTitleId} tabIndex={-1}>{t('discovery.detail.metadataTitle')}</h2>
+            <dl className="detail-grid">
+              {fields.map(([key, value]) => (
+                <div key={key}>
+                  <dt>{t(key)}</dt>
+                  <dd dir="auto"><bdi>{value}</bdi></dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        </div>
       </div>
     </article>
   );

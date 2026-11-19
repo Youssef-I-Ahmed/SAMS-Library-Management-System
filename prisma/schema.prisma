@@ -86,6 +86,8 @@ model User {
   externalAuthId        String?             @unique @map("external_auth_id")
   displayName           String              @map("display_name")
   isActive              Boolean             @default(true) @map("is_active")
+  authVersion           Int                 @default(1) @map("auth_version")
+  isProtected           Boolean             @default(false) @map("is_protected")
   createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt             DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -99,6 +101,8 @@ model User {
   checkedOutVisits      LibraryVisit[]      @relation("VisitCheckedOutBy")
   auditLogs             AuditLog[]
   idempotencyRecords    IdempotencyRecord[]
+  permissionGrants      PermissionGrant[]    @relation("PermissionGrantTarget")
+  permissionGrantsIssued PermissionGrant[]   @relation("PermissionGrantIssuer")
 
   @@map("users")
 }
@@ -120,6 +124,51 @@ model UserRole {
 
   @@id([userId, roleId])
   @@map("user_roles")
+}
+
+enum PermissionGrantKind {
+  USE
+  DELEGATE
+
+  @@map("permission_grant_kind")
+}
+
+enum PermissionGrantScope {
+  GLOBAL
+  BRANCH
+
+  @@map("permission_grant_scope")
+}
+
+model PermissionGrant {
+  id              String               @id @default(uuid()) @db.Uuid
+  userId          String               @map("user_id") @db.Uuid
+  permissionKey   String               @map("permission_key")
+  kind            PermissionGrantKind
+  scope           PermissionGrantScope
+  branchId        String?              @map("branch_id") @db.Uuid
+  grantedByUserId String               @map("granted_by_user_id") @db.Uuid
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  reason          String
+  version         Int                  @default(1)
+
+  user      User    @relation("PermissionGrantTarget", fields: [userId], references: [id], onDelete: Restrict)
+  grantedBy User    @relation("PermissionGrantIssuer", fields: [grantedByUserId], references: [id], onDelete: Restrict)
+  branch    Branch? @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  // Scope/known-key checks and nullable-scope partial unique indexes live in SQL.
+  @@index([userId, permissionKey])
+  @@index([grantedByUserId])
+  @@index([branchId])
+  @@map("permission_grants")
+}
+
+model AuthorizationControl {
+  id                 Int     @id @default(1) @db.SmallInt
+  bootstrapCompleted Boolean @default(false) @map("bootstrap_completed")
+  revision           Int     @default(1)
+
+  @@map("authorization_control")
 }
 
 model Faculty {
@@ -187,6 +236,7 @@ model Branch {
   visits              LibraryVisit[]
   circulationPolicies CirculationPolicy[]
   auditLogs           AuditLog[]
+  permissionGrants    PermissionGrant[]
 
   @@map("branches")
 }

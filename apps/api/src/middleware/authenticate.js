@@ -23,8 +23,12 @@ export async function authenticate(req, _res, next) {
     }
 
     const user = await getAuthUserById(payload.sub);
+    if (payload.av !== user.authVersion) {
+      throw new AppError(401, 'UNAUTHORIZED', 'Authentication is required');
+    }
 
     req.auth = toPublicAuthUser(user);
+    req.authContext = Object.freeze({ authVersion: user.authVersion });
     next();
   } catch (error) {
     next(error);

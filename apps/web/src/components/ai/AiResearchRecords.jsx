@@ -8,7 +8,6 @@ export function AiResearchRecords({ records, itemDetailsBase }) {
   return <ul className="ai-records__list">
     {records.map((record) => {
       const fields = [
-        ['discovery.detail.legacyCode', record.legacy_code],
         ['ai.researchResearchers', record.researchers.join(' · ')],
         ['ai.researchSupervisors', record.supervisors.join(' · ')],
         ['discovery.detail.subjects', record.subjects.join(' · ')],
@@ -16,14 +15,16 @@ export function AiResearchRecords({ records, itemDetailsBase }) {
         ['ai.researchLanguage', record.language && (/^[a-z]{2,3}$/i.test(record.language)
           ? languages.of(record.language) : record.language)],
         ['ai.callNumber', record.call_number],
+        ['discovery.detail.legacyCode', record.legacy_code],
         ['ai.researchAvailability', t(record.available ? 'ai.researchAvailable' : 'ai.researchUnavailable')]
       ];
-      return <li className="ai-record" key={record.id}>
+      return <li className="ai-record ai-record--research" key={record.id}>
+        <span className="ai-record__kind">{t('ai.scopeResearch')}</span>
         <h3 dir="auto">{record.title}</h3>
         <dl>{fields.filter(([, value]) => value).map(([label, value]) => (
-          <div key={label}><dt>{t(label)}</dt><dd dir="auto">{value}</dd></div>
+          <div key={label} className={['discovery.detail.subjects', 'ai.researchAvailability'].includes(label) ? 'ai-record__wide' : undefined}><dt>{t(label)}</dt><dd dir="auto">{value}</dd></div>
         ))}</dl>
-        <Link to={`${itemDetailsBase}/${record.id}`}>{t('ai.details')}</Link>
+        <Link aria-label={t('ai.details')} to={`${itemDetailsBase}/${record.id}`}><span className="ai-action-label--full">{t('ai.details')}</span><span className="ai-action-label--short">{t('ai.detailsShort')}</span><span aria-hidden="true">↗</span></Link>
       </li>;
     })}
   </ul>;

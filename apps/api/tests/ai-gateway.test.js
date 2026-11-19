@@ -16,7 +16,7 @@ vi.hoisted(() => {
 });
 vi.mock('../src/config/prisma.js', () => ({ prisma: {
   user: { findUnique: vi.fn() }, libraryItem: { findMany: vi.fn(), findFirst: vi.fn(), count: vi.fn() },
-  branch: { findMany: vi.fn() }, physicalCopy: { groupBy: vi.fn() }, $transaction: vi.fn()
+  branch: { findMany: vi.fn() }, physicalCopy: { groupBy: vi.fn() }, $transaction: vi.fn(), $executeRaw: vi.fn()
 } }));
 
 import { prisma } from '../src/config/prisma.js';
@@ -42,7 +42,7 @@ const fixtureDir = mkdtempSync(join(tmpdir(), 'sams-ai-gateway-test-'));
 const mapPath = join(fixtureDir, 'map.json');
 writeFileSync(mapPath, artifact);
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
-const makeUser = (id, roles = ['STUDENT']) => ({ id, isActive: true, universityEmail: 'fixture@example.invalid',
+const makeUser = (id, roles = ['STUDENT']) => ({ id, authVersion: 1, isActive: true, universityEmail: 'fixture@example.invalid',
   displayName: 'Fixture', userRoles: roles.map((name) => ({ role: { name } })), student: null });
 const card = (code = '2') => ({ ...Object.fromEntries(CARD_FIELDS.map((key) => [key, 'NA'])), 'Book code': code, 'Number of copies': '4' });
 const book = (codes = ['2']) => ({ tag: 'S1', book_codes: codes, title: 'Fixture book', author: 'Fixture author', year: 2007, call_number: '123' });
@@ -118,6 +118,7 @@ beforeEach(() => {
   records = [{ id: A, type: 'BOOK', isActive: true, bookDetails: { itemId: A } },
     { id: B, type: 'BOOK', isActive: true, bookDetails: { itemId: B } }];
   prisma.user.findUnique.mockImplementation(async ({ where }) => users.get(where.id));
+  prisma.$transaction.mockImplementation(work => typeof work === 'function' ? work(prisma) : Promise.all(work));
   prisma.libraryItem.findMany.mockImplementation(async ({ where }) => records.filter((r) => where.id.in.includes(r.id)));
   handler = async (req, res, body) => {
     if (req.url === '/api/ask') send(res, done(body.session_id));

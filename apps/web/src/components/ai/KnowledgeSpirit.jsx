@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react';
+
 const poses = {
   greeting: {
     eyes: 'M92 108q8-12 16 0m25 0q8-12 16 0',
@@ -38,8 +40,24 @@ const poses = {
 
 export function KnowledgeSpirit({ state = 'idle' }) {
   const pose = poses[state] ?? poses.idle;
+  const element = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    let visible = false;
+    const update = () => setPlaying(visible && !document.hidden);
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      update();
+    });
+    observer.observe(element.current);
+    document.addEventListener('visibilitychange', update);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', update);
+    };
+  }, []);
   return (
-    <div className="knowledge-spirit" data-spirit-state={state} aria-hidden="true">
+    <div ref={element} className="knowledge-spirit" data-spirit-state={state} data-motion={playing ? 'playing' : 'paused'} aria-hidden="true">
       <svg viewBox="0 0 240 270" focusable="false">
         <g className="knowledge-spirit__body">
           <path className="spirit-cloak" d="M91 139Q51 154 47 187L81 180 66 211Q105 200 119 218Q145 202 176 209L164 180 194 186Q190 153 148 138Z" />

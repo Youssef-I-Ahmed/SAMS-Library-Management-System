@@ -1,4 +1,24 @@
 export const enDiscovery = {
+  catalogRefinement: {
+    academicWork: 'Academic work',
+    appliedFilters: 'Applied filters',
+    removeFilter: 'Remove filter',
+    showResults: 'Show results',
+    facetScope: 'Catalog-wide totals. Branch figures show recorded available/total items.',
+    resultsUnavailable: 'Results could not be loaded',
+    retryFilters: 'Retry filters',
+    moreContributors: 'Other contributors'
+  },
+  cinematic: {
+    books: 'Books', projects: 'Graduation projects', research: 'Theses / academic research', aiUnavailable: 'Library assistant · not enabled',
+    combined: 'Some project/research links open the combined academic collection.',
+    eyebrow: 'A visual introduction', title: 'From curiosity to discovery.', invitation: 'An optional, scroll-controlled journey. Your library is ready whenever you are.',
+    start: 'Explore the journey', close: 'Close the journey', skip: 'Skip intro', scroll: 'Scroll to explore · search and navigation remain available',
+    concept: 'Conceptual visual journey. Generated or unverified imagery, not authenticated campus photography.',
+    handoffTitle: 'Your next discovery starts here.',
+    finalDisclaimer: 'Conceptual legacy interface, not the current SAMS application. Continue below to the real collections.',
+    chapters: { 0: 'An academic entrance', 1: 'A place for curiosity', 2: 'Approaching the library', 3: 'Discovering the shelves', 4: 'Books, ideas and knowledge', 5: 'Continue in your digital library' }
+  },
   itemTypes: {
     BOOK: 'Book',
     ACADEMIC_WORK: 'Graduation Projects & Theses',

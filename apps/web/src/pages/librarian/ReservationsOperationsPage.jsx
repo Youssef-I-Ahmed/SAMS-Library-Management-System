@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import { InlineAlert } from '../../components/ui/InlineAlert';
+import { AdminModal } from '../../components/admin/AdminModal';
+import { StaffReadState, StaffMutationFeedback } from '../../components/staff/StaffReadState';
+import { useStaffRead, useStaffMutation } from '../../features/staff/use-staff-circulation';
+import '../../styles/staff-circulation.css';
 import { StaffOperationNotice } from '../../components/staff/StaffOperationNotice';
 import { StaffStatusBadge } from '../../components/staff/StaffStatusBadge';
 
@@ -28,107 +31,34 @@ export function ReservationsOperationsPage() {
   const [status, setStatus] = useState('');
   const [holdState, setHoldState] = useState('');
   const [page, setPage] = useState(1);
-  const [result, setResult] = useState({
-    data: [],
-    pagination: {
-      page: 1,
-      total: 0,
-      totalPages: 0,
-      hasPreviousPage: false,
-      hasNextPage: false
-    }
-  });
-  const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState(null);
-  const [error, setError] = useState(null);
+  const [submittedQuery, setSubmittedQuery] = useState('');
+  const read = useStaffRead(listReservationQueue, auth.token, { q: submittedQuery, status, holdState, page, pageSize: 20 });
+  const result = read.result || { data: [] };
+  const { loading } = read;
+  const action = useStaffMutation(auth.token);
+  const busyId = action.pending;
+  const blocked = Boolean(busyId) || action.uncertain || read.loading || Boolean(read.error);
+  const [target, setTarget] = useState(null);
   const [notice, setNotice] = useState(null);
 
-  async function load(signal) {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await listReservationQueue(
-        auth.token,
-        {
-          q: query.trim() || undefined,
-          status: status || undefined,
-          holdState: holdState || undefined,
-          page,
-          pageSize: 20
-        },
-        signal
-      );
-
-      setResult(response);
-    } catch (nextError) {
-      if (nextError.name !== 'AbortError') {
-        setError(nextError);
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false);
-      }
-    }
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-    load(controller.signal);
-    return () => controller.abort();
-  }, [auth.token, status, holdState, page]);
-
-  async function checkout(reservation) {
-    setBusyId(`checkout-${reservation.id}`);
-    setError(null);
-
-    try {
-      const response = await checkoutBorrowing(
-        auth.token,
-        { reservationId: reservation.id }
-      );
-
-      setNotice({
-        title: t('staff.reservations.checkoutSuccess'),
-        body: `${response.data.student.user.displayName} · ${response.data.item.title}`
-      });
-
-      await load();
-    } catch (nextError) {
-      setError(nextError);
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function cancel(reservation) {
-    setBusyId(`cancel-${reservation.id}`);
-    setError(null);
-
-    try {
-      const response = await cancelReservationAsStaff(
-        auth.token,
-        reservation.id
-      );
-
-      setNotice({
-        title: t('staff.reservations.cancelSuccess'),
-        body: `${response.data.item.title} · ${response.data.status}`
-      });
-
-      await load();
-    } catch (nextError) {
-      setError(nextError);
-    } finally {
-      setBusyId(null);
-    }
+  const targetCurrent = target && result.data.some((record) => record.id === target.reservation.id && (target.kind === 'cancel' ? ['PENDING', 'ACTIVE'].includes(record.status) : record.status === 'ACTIVE' && !record.isHoldOverdue));
+  function submitAction() {
+    if (!target || !targetCurrent || blocked) return;
+    const { reservation, kind } = target;
+    setNotice(null);
+    action.run(`${kind}-${reservation.id}`, () => kind === 'cancel'
+      ? cancelReservationAsStaff(auth.token, reservation.id)
+      : checkoutBorrowing(auth.token, { reservationId: reservation.id }), (record) => {
+      setNotice({ title: t('staff.ux.confirmed'), body: `${record.item?.title || '—'} · ${t(`staff.${kind === 'cancel' ? 'reservationStatus' : 'borrowingStatus'}.${record.status}`)}` });
+      setTarget(null);
+    });
   }
 
   return (
-    <section className="staff-page">
+    <section className="staff-page staff-circulation">
       <header className="staff-page__header">
         <span>{t('staff.reservations.eyebrow')}</span>
-        <h1>{t('staff.reservations.title')}</h1>
+        <h1 tabIndex={-1}>{t('staff.reservations.title')}</h1>
         <p>{t('staff.reservations.subtitle')}</p>
       </header>
 
@@ -140,13 +70,7 @@ export function ReservationsOperationsPage() {
         />
       )}
 
-      {error && (
-        <InlineAlert
-          title={t('staff.common.operationFailed')}
-          message={error.message}
-          requestId={error.requestId}
-        />
-      )}
+      {!target && <StaffMutationFeedback action={action} canVerify={!read.loading && !read.error && Boolean(read.result)} />}
 
       <section className="staff-workflow-card">
         <form
@@ -154,7 +78,8 @@ export function ReservationsOperationsPage() {
           onSubmit={(event) => {
             event.preventDefault();
             setPage(1);
-            load();
+            if (page === 1 && submittedQuery === query.trim()) read.reload();
+            else setSubmittedQuery(query.trim());
           }}
         >
           <label className="staff-filter-bar__search">
@@ -204,15 +129,16 @@ export function ReservationsOperationsPage() {
           </button>
         </form>
 
-        <div className="staff-results-count">
-          {result.pagination?.total || 0} {t('staff.reservations.records')}
-        </div>
+        {!target && <StaffReadState read={read} />}
+        {read.result && !read.error && !loading && Number.isFinite(result.pagination?.total) && <div className="staff-results-count">
+          {result.pagination.total} {t('staff.reservations.records')}
+        </div>}
 
-        {loading ? (
+        {loading && !read.result ? (
           <div className="staff-empty-state">
             {t('staff.common.loading')}
           </div>
-        ) : result.data.length === 0 ? (
+        ) : !read.result || read.error && result.data.length === 0 ? null : result.data.length === 0 ? (
           <div className="staff-empty-state">
             <strong>{t('staff.reservations.empty')}</strong>
           </div>
@@ -222,7 +148,7 @@ export function ReservationsOperationsPage() {
               <article className="staff-operation-row" key={reservation.id}>
                 <div className="staff-operation-row__main">
                   <div className="staff-operation-row__title">
-                    <span>{reservation.student.studentId}</span>
+                    <span><bdi>{reservation.student.studentId}</bdi></span>
                     <strong>{reservation.student.user.displayName}</strong>
                     <small dir="auto">{reservation.item.title}</small>
                   </div>
@@ -231,16 +157,16 @@ export function ReservationsOperationsPage() {
                     <span>{reservation.branch.name}</span>
                     <span>
                       {t('staff.reservations.reserved')}:{' '}
-                      {formatDateTime(reservation.reservedAt, language)}
+                      <bdi>{formatDateTime(reservation.reservedAt, language)}</bdi>
                     </span>
                     <span>
                       {t('staff.reservations.expires')}:{' '}
-                      {formatDateTime(reservation.expiresAt, language)}
+                      <bdi>{formatDateTime(reservation.expiresAt, language)}</bdi>
                     </span>
                     {reservation.allocatedCopy && (
                       <span>
                         {t('staff.common.copy')}:{' '}
-                        {copyLabel(reservation.allocatedCopy)}
+                        <bdi>{copyLabel(reservation.allocatedCopy)}</bdi>
                       </span>
                     )}
                   </div>
@@ -258,8 +184,8 @@ export function ReservationsOperationsPage() {
                       <button
                         type="button"
                         className="staff-primary-button"
-                        disabled={Boolean(busyId)}
-                        onClick={() => checkout(reservation)}
+                        disabled={blocked}
+                        onClick={() => setTarget({ reservation, kind: 'checkout' })}
                       >
                         {busyId === `checkout-${reservation.id}`
                           ? t('staff.borrow.checkingOut')
@@ -271,8 +197,8 @@ export function ReservationsOperationsPage() {
                     <button
                       type="button"
                       className="staff-danger-link"
-                      disabled={Boolean(busyId)}
-                      onClick={() => cancel(reservation)}
+                      disabled={blocked}
+                      onClick={() => setTarget({ reservation, kind: 'cancel' })}
                     >
                       {busyId === `cancel-${reservation.id}`
                         ? t('staff.reservations.cancelling')
@@ -285,14 +211,14 @@ export function ReservationsOperationsPage() {
           </div>
         )}
 
-        {!loading && result.data.length > 0 && (
-          <nav className="staff-pagination">
+        {!loading && !read.error && result.pagination && (
+          <nav className="staff-pagination" aria-label={t('staff.ux.pagination')}>
             <button
               type="button"
-              disabled={!result.pagination.hasPreviousPage}
+              disabled={blocked || !result.pagination.hasPreviousPage}
               onClick={() => setPage((value) => value - 1)}
             >
-              ← {t('discovery.pagination.previous')}
+              {t('discovery.pagination.previous')}
             </button>
 
             <span>
@@ -303,14 +229,27 @@ export function ReservationsOperationsPage() {
 
             <button
               type="button"
-              disabled={!result.pagination.hasNextPage}
+              disabled={blocked || !result.pagination.hasNextPage}
               onClick={() => setPage((value) => value + 1)}
             >
-              {t('discovery.pagination.next')} →
+              {t('discovery.pagination.next')}
             </button>
           </nav>
         )}
       </section>
+      {target && <AdminModal title={t(target.kind === 'cancel' ? 'staff.ux.confirmCancel' : 'staff.ux.confirmCheckout')} canClose={!busyId} onClose={() => setTarget(null)}>
+        <StaffMutationFeedback action={action} canVerify={!read.loading && !read.error && Boolean(read.result)} />
+        <StaffReadState read={read} />
+        <p dir="auto">{target.reservation.student.user.displayName} · {target.reservation.item.title}</p>
+        <p><bdi>{target.reservation.student.studentId}</bdi> · <bdi>{copyLabel(target.reservation.allocatedCopy)}</bdi></p>
+        <p>{t(target.kind === 'cancel' ? 'staff.ux.cancelHelp' : 'staff.ux.checkoutHelp')}</p>
+        <div className="staff-modal__actions">
+          <button type="button" className={target.kind === 'cancel' ? 'staff-danger-link' : 'staff-primary-button'} disabled={blocked || !targetCurrent} onClick={submitAction}>
+            {busyId ? t('staff.ux.pending') : t(target.kind === 'cancel' ? 'staff.ux.confirmCancel' : 'staff.ux.confirmCheckout')}
+          </button>
+          <button type="button" className="staff-secondary-action" disabled={Boolean(busyId)} onClick={() => setTarget(null)}>{t('staff.common.cancel')}</button>
+        </div>
+      </AdminModal>}
     </section>
   );
 }

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
+import { assertInactiveAccess } from './catalog-visibility.js';
 import {
   listContributors,
   getContributor,
@@ -33,13 +34,15 @@ contributorsRouter.get('/', async (req, res, next) => {
     const query = parseOrThrow(
       z.object({
         search: z.string().trim().max(250).optional(),
+        includeInactive: z.enum(['true', 'false']).optional(),
         page: z.coerce.number().int().min(1).default(1),
         pageSize: z.coerce.number().int().min(1).max(100).default(20)
       }),
       req.query
     );
 
-    const result = await listContributors(query);
+    const includeInactive = assertInactiveAccess(req.auth, query.includeInactive === 'true');
+    const result = await listContributors({ ...query, includeInactive });
     res.json(result);
   } catch (error) {
     next(error);
@@ -55,7 +58,9 @@ contributorsRouter.get('/:id', async (req, res, next) => {
       req.params
     );
 
-    const data = await getContributor(id);
+    const query = parseOrThrow(z.object({ includeInactive: z.enum(['true', 'false']).optional() }), req.query);
+    const includeInactive = assertInactiveAccess(req.auth, query.includeInactive === 'true');
+    const data = await getContributor(id, { includeInactive });
     res.json({ data });
   } catch (error) {
     next(error);

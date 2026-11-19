@@ -1,5 +1,27 @@
 export const enStaff = {
   staff: {
+    ux: {
+      "loading": "Loading records…",
+      "loaded": "Records loaded",
+      "unavailable": "Records are not current",
+      "readFailed": "Could not load records",
+      "stale": "Previously loaded records are shown. Actions are paused until a successful refresh.",
+      "retry": "Retry loading",
+      "refresh": "Refresh records",
+      "scope": "Loaded records: {count}. Limited to the first {limit} matching results.",
+      "pending": "Operation in progress. Please wait.",
+      "uncertain": "The server outcome is unknown. Do not repeat the action. Refresh the records and verify the student, copy and operation with the circulation desk before continuing.",
+      "verified": "I have verified the server outcome; allow another action.",
+      "confirmed": "Server-confirmed outcome",
+      "confirmCancel": "Confirm reservation cancellation",
+      "confirmCheckout": "Confirm checkout",
+      "cancelHelp": "The server will confirm the final reservation status, which may already be expired.",
+      "checkoutHelp": "Verify the student and physical copy before confirming. Eligibility and availability are checked by the server.",
+      "pagination": "Reservation pages",
+      "noCopies": "No available copies match this search.",
+      "dismiss": "Dismiss notification",
+      "navigation": "Librarian navigation"
+},
     common: {
       search: 'Search',
       searching: 'Searching...',

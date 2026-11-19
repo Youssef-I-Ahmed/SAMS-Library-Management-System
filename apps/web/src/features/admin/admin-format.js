@@ -83,3 +83,7 @@ export function copyToDraft(copy) {
 export function trendMax(rows = []) {
   return Math.max(1, ...rows.flatMap((r) => [r.reservationsCreated || 0, r.borrowingsStarted || 0, r.returns || 0, r.visits || 0]));
 }
+
+export function adminItemTypeLabel(type, t) {
+  return t(type === 'ACADEMIC_WORK' ? 'admin.workflows.academicWork' : `itemTypes.${type}`);
+}

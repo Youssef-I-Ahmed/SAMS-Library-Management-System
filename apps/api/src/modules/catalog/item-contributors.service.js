@@ -9,9 +9,9 @@ function versionConflict() {
   );
 }
 
-export async function listItemContributors(itemId) {
-  const item = await prisma.libraryItem.findUnique({
-    where: { id: itemId },
+export async function listItemContributors(itemId, { includeInactive = false } = {}) {
+  const item = await prisma.libraryItem.findFirst({
+    where: { id: itemId, ...(includeInactive ? {} : { isActive: true }) },
     select: {
       id: true,
       type: true,

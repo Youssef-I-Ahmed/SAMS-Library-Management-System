@@ -1,0 +1,34 @@
+/* Profile consumes the existing Student tokens; no edit or network controls. */
+.profile-page.profile-page--student {
+  min-width: 0;
+  width: 100%;
+  max-width: 900px;
+  margin-inline: auto;
+  gap: 20px;
+}
+.profile-page--student .circulation-page__header > span { color: var(--text-muted); font-size: 12px; letter-spacing: .04em; }
+.profile-page--student .circulation-page__header h1 { font-family: var(--sams-font-display); font-size: clamp(28px, 3vw, 36px); font-weight: 400; line-height: 1.3; }
+.profile-page--student .circulation-page__header p { font-size: 14px; line-height: 1.7; }
+.profile-sheet { min-width: 0; padding: 28px; border: 1px solid var(--border-default); border-radius: 10px; background: var(--surface); }
+.profile-section { min-width: 0; }
+.profile-section + .profile-section { margin-block-start: 28px; padding-block-start: 24px; border-block-start: 1px solid var(--border-default); }
+.profile-section h2 { margin: 0; font-family: var(--sams-font-display); font-size: 24px; font-weight: 400; line-height: 1.4; }
+.profile-section__identity { display: flex; align-items: center; gap: 16px; margin-block-end: 24px; }
+.profile-section__identity > div { min-width: 0; }
+.profile-section__identity p { margin: 4px 0 0; color: var(--text-muted); font-size: 13px; line-height: 1.6; }
+.profile-avatar { width: 52px; height: 52px; flex: none; display: grid; place-items: center; border-radius: 50%; color: var(--brand-primary); background: var(--surface-muted); font-size: 18px; font-weight: 600; }
+.profile-avatar svg { width: 30px; height: 30px; }
+.profile-fields { min-width: 0; margin: 20px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 32px; }
+.profile-fields > div { min-width: 0; }
+.profile-fields dt { color: var(--text-muted); font-size: 12px; line-height: 1.6; }
+.profile-fields dd { margin: 6px 0 0; color: var(--text-primary); font-size: 16px; font-weight: 500; line-height: 1.6; overflow-wrap: anywhere; }
+.profile-fields dd[data-missing='true'] { color: var(--text-muted); font-size: 14px; font-weight: 400; }
+.profile-missing-note { margin: 10px 0 0; color: var(--text-secondary); font-size: 14px; line-height: 1.7; }
+@media (max-width: 620px) {
+  .profile-page.profile-page--student { gap: 16px; }
+  .profile-sheet { padding: 20px 16px; }
+  .profile-section__identity { gap: 12px; margin-block-end: 20px; }
+  .profile-section h2 { font-size: 22px; }
+  .profile-fields { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .profile-section + .profile-section { margin-block-start: 24px; padding-block-start: 22px; }
+}

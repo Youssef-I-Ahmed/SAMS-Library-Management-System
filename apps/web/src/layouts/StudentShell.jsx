@@ -45,9 +45,10 @@ function StudentNavigation({
 export function StudentShell() {
   const { t } = useLanguage();
   const isHome = useMatch('/student');
+  const isAssistant = useMatch('/student/ai');
 
   return (
-    <div className={`student-shell${AI_ASSISTANT_ENABLED ? ' student-shell--ai-enabled' : ''}`}>
+    <div className={`student-shell${AI_ASSISTANT_ENABLED ? ' student-shell--ai-enabled' : ''}${isAssistant && AI_ASSISTANT_ENABLED ? ' student-shell--assistant' : ''}`}>
       <a className="skip-link" href="#main-content">{t('common.skipToContent')}</a>
       <header className="student-shell__header">
         <div className="student-shell__header-inner">

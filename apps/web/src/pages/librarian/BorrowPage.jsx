@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import { InlineAlert } from '../../components/ui/InlineAlert';
+import { AdminModal } from '../../components/admin/AdminModal';
+import { StaffReadState, StaffMutationFeedback } from '../../components/staff/StaffReadState';
+import { useStaffRead, useStaffMutation } from '../../features/staff/use-staff-circulation';
+import '../../styles/staff-circulation.css';
 import { StaffOperationNotice } from '../../components/staff/StaffOperationNotice';
 import { StaffStatusBadge } from '../../components/staff/StaffStatusBadge';
 
@@ -24,155 +27,62 @@ export function BorrowPage() {
   const { t, language } = useLanguage();
 
   const [mode, setMode] = useState('reservation');
-  const [reservations, setReservations] = useState([]);
   const [reservationQuery, setReservationQuery] = useState('');
-  const [loadingReservations, setLoadingReservations] = useState(true);
-
+  const [submittedQuery, setSubmittedQuery] = useState('');
+  const read = useStaffRead(listReservationQueue, auth.token, { q: submittedQuery, status: 'ACTIVE', holdState: 'VALID', page: 1, pageSize: 50 });
+  const reservations = read.result?.data || [];
+  const loadingReservations = read.loading;
   const [studentNumber, setStudentNumber] = useState('');
   const [copySearch, setCopySearch] = useState('');
-  const [copies, setCopies] = useState([]);
+  const [copyQuery, setCopyQuery] = useState(null);
+  const copiesRead = useStaffRead(searchPhysicalCopies, auth.token, { search: copyQuery, status: 'AVAILABLE', page: 1, pageSize: 30 }, copyQuery !== null);
+  const copies = copiesRead.result?.data || [];
+  const searchingCopies = copiesRead.loading;
   const [selectedCopyId, setSelectedCopyId] = useState('');
-  const [searchingCopies, setSearchingCopies] = useState(false);
-
   const [notes, setNotes] = useState('');
-  const [busyId, setBusyId] = useState(null);
-  const [error, setError] = useState(null);
   const [notice, setNotice] = useState(null);
+  const [target, setTarget] = useState(null);
+  const action = useStaffMutation(auth.token);
+  const busyId = action.pending;
+  const activeRead = mode === 'reservation' ? read : copiesRead;
+  const blocked = Boolean(busyId) || action.uncertain || activeRead.loading || Boolean(activeRead.error) || !activeRead.result;
+  const selectedCopy = useMemo(() => copies.find((copy) => copy.id === selectedCopyId) || null, [copies, selectedCopyId]);
 
-  const selectedCopy = useMemo(
-    () => copies.find((copy) => copy.id === selectedCopyId) || null,
-    [copies, selectedCopyId]
-  );
-
-  async function loadActiveReservations(signal) {
-    setLoadingReservations(true);
-
-    try {
-      const response = await listReservationQueue(
-        auth.token,
-        {
-          q: reservationQuery.trim() || undefined,
-          status: 'ACTIVE',
-          holdState: 'VALID',
-          page: 1,
-          pageSize: 50
-        },
-        signal
-      );
-
-      setReservations(response.data || []);
-    } catch (nextError) {
-      if (nextError.name !== 'AbortError') {
-        setError(nextError);
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setLoadingReservations(false);
-      }
-    }
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-    loadActiveReservations(controller.signal);
-    return () => controller.abort();
-  }, [auth.token]);
-
-  async function searchCopies(event) {
+  function searchCopies(event) {
     event.preventDefault();
-
-    if (!copySearch.trim()) return;
-
-    setSearchingCopies(true);
-    setError(null);
-
-    try {
-      const response = await searchPhysicalCopies(
-        auth.token,
-        {
-          search: copySearch.trim(),
-          status: 'AVAILABLE',
-          page: 1,
-          pageSize: 30
-        }
-      );
-
-      setCopies(response.data || []);
-      setSelectedCopyId(response.data?.[0]?.id || '');
-    } catch (nextError) {
-      setError(nextError);
-    } finally {
-      setSearchingCopies(false);
-    }
+    if (!copySearch.trim() || busyId) return;
+    setSelectedCopyId('');
+    if (copyQuery === copySearch.trim()) copiesRead.reload();
+    else setCopyQuery(copySearch.trim());
   }
-
-  async function checkoutReservation(reservation) {
-    setBusyId(reservation.id);
-    setError(null);
-
-    try {
-      const response = await checkoutBorrowing(
-        auth.token,
-        {
-          reservationId: reservation.id,
-          notes: notes.trim() || undefined
-        }
-      );
-
-      setNotice({
-        title: t('staff.borrow.success'),
-        body: `${response.data.student.user.displayName} · ${response.data.item.title}`
-      });
-
-      setNotes('');
-      await loadActiveReservations();
-    } catch (nextError) {
-      setError(nextError);
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function checkoutDirect(event) {
+  function checkoutDirect(event) {
     event.preventDefault();
-
-    if (!studentNumber.trim() || !selectedCopyId) return;
-
-    setBusyId('direct');
-    setError(null);
-
-    try {
-      const response = await checkoutBorrowing(
-        auth.token,
-        {
-          studentNumber: studentNumber.trim(),
-          copyId: selectedCopyId,
-          notes: notes.trim() || undefined
-        }
-      );
-
-      setNotice({
-        title: t('staff.borrow.success'),
-        body: `${response.data.student.user.displayName} · ${response.data.item.title}`
-      });
-
-      setNotes('');
-      setStudentNumber('');
-      setCopies([]);
-      setSelectedCopyId('');
-      setCopySearch('');
-    } catch (nextError) {
-      setError(nextError);
-    } finally {
-      setBusyId(null);
-    }
+    if (!studentNumber.trim() || !selectedCopy || blocked) return;
+    setTarget({ id: selectedCopy.id, student: studentNumber.trim(), title: selectedCopy.item.title,
+      copy: copyLabel(selectedCopy), branch: selectedCopy.branch.name,
+      payload: { studentNumber: studentNumber.trim(), copyId: selectedCopy.id } });
+  }
+  function checkoutReservation(reservation) {
+    if (blocked) return;
+    setTarget({ id: reservation.id, student: reservation.student.studentId, title: reservation.item.title,
+      copy: copyLabel(reservation.allocatedCopy), branch: reservation.branch.name,
+      payload: { reservationId: reservation.id } });
+  }
+  function submitCheckout() {
+    if (!target || blocked || !activeRead.result?.data.some((record) => record.id === target.id)) return;
+    setNotice(null);
+    action.run(target.id, () => checkoutBorrowing(auth.token, { ...target.payload, notes: notes.trim() || undefined }), (record) => {
+      setNotice({ title: t('staff.ux.confirmed'), body: `${record.student?.user?.displayName || '—'} · ${record.item?.title || '—'} · ${t(`staff.borrowingStatus.${record.status}`)}` });
+      setTarget(null); setNotes('');
+      if (!target.payload.reservationId) { setStudentNumber(''); setSelectedCopyId(''); setCopySearch(''); setCopyQuery(null); }
+    });
   }
 
   return (
-    <section className="staff-page">
+    <section className="staff-page staff-circulation">
       <header className="staff-page__header">
         <span>{t('staff.borrow.eyebrow')}</span>
-        <h1>{t('staff.borrow.title')}</h1>
+        <h1 tabIndex={-1}>{t('staff.borrow.title')}</h1>
         <p>{t('staff.borrow.subtitle')}</p>
       </header>
 
@@ -184,17 +94,13 @@ export function BorrowPage() {
         />
       )}
 
-      {error && (
-        <InlineAlert
-          title={t('staff.common.operationFailed')}
-          message={error.message}
-          requestId={error.requestId}
-        />
-      )}
+      {!target && <StaffMutationFeedback action={action} canVerify={!activeRead.loading && !activeRead.error && Boolean(activeRead.result)} />}
 
       <div className="staff-mode-tabs">
         <button
           type="button"
+          disabled={Boolean(busyId)}
+          aria-pressed={mode === 'reservation'}
           className={mode === 'reservation' ? 'is-active' : ''}
           onClick={() => setMode('reservation')}
         >
@@ -203,6 +109,8 @@ export function BorrowPage() {
 
         <button
           type="button"
+          disabled={Boolean(busyId)}
+          aria-pressed={mode === 'direct'}
           className={mode === 'direct' ? 'is-active' : ''}
           onClick={() => setMode('direct')}
         >
@@ -216,17 +124,19 @@ export function BorrowPage() {
             <div>
               <span>{t('staff.borrow.validReservations')}</span>
               <strong>
-                {reservations.length} {t('staff.borrow.ready')}
+                {read.loading ? t('staff.ux.loading') : !read.error && read.result ? `${reservations.length} ${t('staff.borrow.ready')}` : t('staff.ux.unavailable')}
               </strong>
             </div>
 
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                loadActiveReservations();
+                if (submittedQuery === reservationQuery.trim()) read.reload();
+                else setSubmittedQuery(reservationQuery.trim());
               }}
             >
               <input
+                aria-label={t('staff.borrow.searchReservation')}
                 value={reservationQuery}
                 onChange={(event) => setReservationQuery(event.target.value)}
                 placeholder={t('staff.borrow.searchReservation')}
@@ -240,6 +150,7 @@ export function BorrowPage() {
           <label className="staff-notes-field">
             <span>{t('staff.borrow.notes')}</span>
             <textarea
+              disabled={Boolean(busyId)}
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               maxLength={1000}
@@ -247,11 +158,12 @@ export function BorrowPage() {
             />
           </label>
 
-          {loadingReservations ? (
+          {!target && <StaffReadState read={read} limit={50} />}
+          {loadingReservations && !read.result ? (
             <div className="staff-empty-state">
               {t('staff.common.loading')}
             </div>
-          ) : reservations.length === 0 ? (
+          ) : !read.result || read.error && reservations.length === 0 ? null : reservations.length === 0 ? (
             <div className="staff-empty-state">
               <strong>{t('staff.borrow.noReservations')}</strong>
               <span>{t('staff.borrow.noReservationsBody')}</span>
@@ -262,7 +174,7 @@ export function BorrowPage() {
                 <article className="staff-operation-row" key={reservation.id}>
                   <div className="staff-operation-row__main">
                     <div className="staff-operation-row__title">
-                      <span>{reservation.student.studentId}</span>
+                      <span><bdi>{reservation.student.studentId}</bdi></span>
                       <strong>{reservation.student.user.displayName}</strong>
                       <small dir="auto">{reservation.item.title}</small>
                     </div>
@@ -273,11 +185,11 @@ export function BorrowPage() {
                       </span>
                       <span>
                         {t('staff.reservations.expires')}:{' '}
-                        {formatDateTime(reservation.expiresAt, language)}
+                        <bdi>{formatDateTime(reservation.expiresAt, language)}</bdi>
                       </span>
                       <span>
                         {t('staff.common.copy')}:{' '}
-                        {copyLabel(reservation.allocatedCopy)}
+                        <bdi>{copyLabel(reservation.allocatedCopy)}</bdi>
                       </span>
                     </div>
                   </div>
@@ -290,7 +202,7 @@ export function BorrowPage() {
                     <button
                       type="button"
                       className="staff-primary-button"
-                      disabled={busyId === reservation.id}
+                      disabled={blocked}
                       onClick={() => checkoutReservation(reservation)}
                     >
                       {busyId === reservation.id
@@ -315,9 +227,11 @@ export function BorrowPage() {
               <label>
                 <span>{t('staff.common.studentNumber')}</span>
                 <input
+                  disabled={Boolean(busyId)}
                   value={studentNumber}
                   onChange={(event) => setStudentNumber(event.target.value)}
-                  placeholder="DEV-FRONTEND-50"
+                  autoComplete="off"
+                  dir="ltr"
                   required
                 />
               </label>
@@ -325,6 +239,7 @@ export function BorrowPage() {
               <label>
                 <span>{t('staff.borrow.copySearch')}</span>
                 <input
+                  disabled={Boolean(busyId)}
                   value={copySearch}
                   onChange={(event) => setCopySearch(event.target.value)}
                   placeholder={t('staff.borrow.copySearchPlaceholder')}
@@ -335,7 +250,7 @@ export function BorrowPage() {
               <button
                 type="submit"
                 className="staff-secondary-action"
-                disabled={searchingCopies}
+                disabled={searchingCopies || Boolean(busyId)}
               >
                 {searchingCopies
                   ? t('staff.common.searching')
@@ -343,6 +258,8 @@ export function BorrowPage() {
               </button>
             </form>
 
+            {copyQuery !== null && !target && <StaffReadState read={copiesRead} limit={30} />}
+            {copiesRead.result && !copiesRead.error && !copies.length && <p>{t('staff.ux.noCopies')}</p>}
             {copies.length > 0 && (
               <div className="staff-copy-results">
                 {copies.map((copy) => (
@@ -355,6 +272,7 @@ export function BorrowPage() {
                     }
                   >
                     <input
+                      disabled={blocked}
                       type="radio"
                       name="copy"
                       value={copy.id}
@@ -365,7 +283,7 @@ export function BorrowPage() {
                     <span>
                       <strong dir="auto">{copy.item.title}</strong>
                       <small>
-                        {copyLabel(copy)} · {copy.branch.name}
+                        <bdi>{copyLabel(copy)}</bdi> · {copy.branch.name}
                       </small>
                       <small>
                         {t('staff.common.shelf')}: {copy.shelfLocation || '—'}
@@ -387,14 +305,16 @@ export function BorrowPage() {
               <form className="staff-form" onSubmit={checkoutDirect}>
                 <div className="staff-selection-summary">
                   <strong dir="auto">{selectedCopy.item.title}</strong>
-                  <span>{copyLabel(selectedCopy)}</span>
+                  <span>{t('staff.common.studentNumber')}: <bdi>{studentNumber.trim() || '—'}</bdi></span>
+                  <span><bdi>{copyLabel(selectedCopy)}</bdi></span>
                   <span>{selectedCopy.branch.name}</span>
                 </div>
 
                 <label>
                   <span>{t('staff.borrow.notes')}</span>
                   <textarea
-                    value={notes}
+                    disabled={Boolean(busyId)}
+              value={notes}
                     onChange={(event) => setNotes(event.target.value)}
                     maxLength={1000}
                     placeholder={t('staff.borrow.notesPlaceholder')}
@@ -404,9 +324,9 @@ export function BorrowPage() {
                 <button
                   type="submit"
                   className="staff-primary-button"
-                  disabled={busyId === 'direct'}
+                  disabled={blocked || !studentNumber.trim()}
                 >
-                  {busyId === 'direct'
+                  {Boolean(busyId)
                     ? t('staff.borrow.checkingOut')
                     : t('staff.borrow.checkout')}
                 </button>
@@ -419,6 +339,21 @@ export function BorrowPage() {
           </section>
         </div>
       )}
+      {target && <AdminModal title={t('staff.ux.confirmCheckout')} canClose={!busyId} onClose={() => setTarget(null)}>
+        <StaffMutationFeedback action={action} canVerify={!activeRead.loading && !activeRead.error && Boolean(activeRead.result)} />
+        <StaffReadState read={activeRead} />
+        <div className="staff-selection-summary">
+          <strong dir="auto">{target.title}</strong>
+          <span>{t('staff.common.studentNumber')}: <bdi>{target.student}</bdi></span>
+          <span>{t('staff.common.copy')}: <bdi>{target.copy}</bdi></span>
+          <span>{target.branch}</span>
+        </div>
+        <p>{t('staff.ux.checkoutHelp')}</p>
+        <div className="staff-modal__actions">
+          <button type="button" className="staff-primary-button" disabled={blocked || !activeRead.result?.data.some((record) => record.id === target.id)} onClick={submitCheckout}>{t(busyId ? 'staff.borrow.checkingOut' : 'staff.ux.confirmCheckout')}</button>
+          <button type="button" className="staff-secondary-action" disabled={Boolean(busyId)} onClick={() => setTarget(null)}>{t('staff.common.cancel')}</button>
+        </div>
+      </AdminModal>}
     </section>
   );
 }

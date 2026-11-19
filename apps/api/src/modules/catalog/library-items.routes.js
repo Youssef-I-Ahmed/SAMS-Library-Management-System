@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
+import { assertInactiveAccess, canSeeInactive } from './catalog-visibility.js';
 import {
   listLibraryItems,
   getLibraryItem,
@@ -35,12 +36,6 @@ function parseOrThrow(schema, input) {
   }
 
   return parsed.data;
-}
-
-function canSeeInactive(req) {
-  return req.auth.roles.some((role) =>
-    ['LIBRARIAN', 'MANAGEMENT'].includes(role)
-  );
 }
 
 const nullableUuid = z.union([z.string().uuid(), z.null()]);
@@ -139,7 +134,7 @@ libraryItemsRouter.get('/', async (req, res, next) => {
 
     const requestedInactive = query.includeInactive === 'true';
 
-    if (requestedInactive && !canSeeInactive(req)) {
+    if (requestedInactive && !canSeeInactive(req.auth)) {
       throw new AppError(
         403,
         'FORBIDDEN',
@@ -165,7 +160,9 @@ libraryItemsRouter.get('/:id/contributors', async (req, res, next) => {
       req.params
     );
 
-    const data = await listItemContributors(id);
+    const query = parseOrThrow(z.object({ includeInactive: z.enum(['true', 'false']).optional() }), req.query);
+    const includeInactive = assertInactiveAccess(req.auth, query.includeInactive === 'true');
+    const data = await listItemContributors(id, { includeInactive });
     res.json({ data });
   } catch (error) {
     next(error);
@@ -208,7 +205,7 @@ libraryItemsRouter.get('/:id', async (req, res, next) => {
 
     const requestedInactive = query.includeInactive === 'true';
 
-    if (requestedInactive && !canSeeInactive(req)) {
+    if (requestedInactive && !canSeeInactive(req.auth)) {
       throw new AppError(
         403,
         'FORBIDDEN',

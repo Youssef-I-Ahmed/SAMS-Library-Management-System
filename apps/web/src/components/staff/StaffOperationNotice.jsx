@@ -1,8 +1,11 @@
+import { useLanguage } from '../../hooks/useLanguage';
+
 export function StaffOperationNotice({
   title,
   body,
   onDismiss
 }) {
+  const { t } = useLanguage();
   if (!title) return null;
 
   return (
@@ -16,7 +19,7 @@ export function StaffOperationNotice({
         <button
           type="button"
           onClick={onDismiss}
-          aria-label="Dismiss"
+          aria-label={t('staff.ux.dismiss')}
         >
           ×
         </button>

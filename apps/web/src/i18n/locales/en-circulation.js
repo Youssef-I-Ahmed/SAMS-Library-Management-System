@@ -1,4 +1,13 @@
 export const enCirculation = {
+  circulationUx: {
+    refresh: 'Refresh records',
+    unavailable: 'Records could not be loaded',
+    reservationsReadError: 'Reservations could not be loaded',
+    stale: 'Showing previously loaded records. They may be out of date.',
+    pagination: 'Record pages',
+    cancellationRecorded: 'Reservation status updated.',
+    noTitle: 'Title not supplied'
+  },
   reservations: {
     page: {
       eyebrow: 'Student circulation',
@@ -133,6 +142,11 @@ export const enCirculation = {
   },
 
   profile: {
+    personalTitle: 'Personal information',
+    academicTitle: 'Academic information',
+    readOnly: 'Read-only account details',
+    notProvided: 'Not provided',
+    academicMissing: 'Academic information has not been supplied for this account.',
     menu: 'My profile',
     eyebrow: 'Student account',
     title: 'My Profile',

@@ -6,7 +6,8 @@ export function DiscoveryFilters({
   facets,
   filters,
   onChange,
-  onClear
+  onClear,
+  onShowResults
 }) {
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
@@ -21,6 +22,7 @@ export function DiscoveryFilters({
     setAvailableOnly(filters.availableOnly);
   }, [filters.availableOnly]);
   const fieldsId = useId();
+  const scopeId = useId();
   const fieldsRef = useRef(null);
   const toggleRef = useRef(null);
 
@@ -67,15 +69,8 @@ export function DiscoveryFilters({
 
       <div className="discovery-filters__fields" id={fieldsId} ref={fieldsRef}
         hidden={mobile && !expanded}>
+        <p className="discovery-filters__scope" id={scopeId}>{t('catalogRefinement.facetScope')}</p>
         {[
-          [
-            'type',
-            'discovery.filters.type',
-            facets.types?.map((item) => ({
-              value: item.value,
-              label: `${t(`itemTypes.${item.value}`)} (${item.count})`
-            }))
-          ],
           [
             'categoryId',
             'discovery.filters.category',
@@ -121,9 +116,13 @@ export function DiscoveryFilters({
             <span>{t(labelKey)}</span>
             <select
               value={filters[key]}
+              aria-describedby={scopeId}
               onChange={(event) => update(key, event.target.value)}
             >
               <option value="">{t('discovery.filters.all')}</option>
+              {filters[key] && !(options || []).some((option) => String(option.value) === filters[key]) && (
+                <option value={filters[key]}>{filters[key]}</option>
+              )}
               {(options || []).map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -149,6 +148,15 @@ export function DiscoveryFilters({
             <small>{t('discovery.filters.availableOnlyHint')}</small>
           </span>
         </label>
+
+        {mobile && (
+          <button className="discovery-filters__results" type="button" onClick={() => {
+            setExpanded(false);
+            onShowResults();
+          }}>
+            {t('catalogRefinement.showResults')}
+          </button>
+        )}
       </div>
     </aside>
   );

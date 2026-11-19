@@ -24,6 +24,7 @@ export async function listCopies(token, filters = {}, signal) {
   return apiRequest(`/inventory/copies?${p}`, { token, signal });
 }
 export async function createCopy(token, body) { return apiRequest('/inventory/copies', { method: 'POST', token, body }); }
+export async function getCopy(token, id, signal) { return apiRequest(`/inventory/copies/${encodeURIComponent(id)}`, { token, signal }); }
 export async function updateCopy(token, id, body) { return apiRequest(`/inventory/copies/${encodeURIComponent(id)}`, { method: 'PATCH', token, body }); }
 
 export async function listStudents(token, filters = {}, signal) {

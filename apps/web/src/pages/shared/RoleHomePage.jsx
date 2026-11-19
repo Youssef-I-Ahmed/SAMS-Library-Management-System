@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import '../../styles/staff-reporting.css';
 
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../hooks/useLanguage';
@@ -30,6 +31,16 @@ export function RoleHomePage({ role }) {
 
   const config = roleConfig[role];
   const student = auth.user?.student;
+
+  if (role === 'LIBRARIAN') return <section className="admin-page admin-operations librarian-overview">
+    <header className="admin-page__header"><span>{t('roles.LIBRARIAN')}</span><h1 tabIndex={-1}>{t('admin.reporting.deskTitle')}</h1><p>{t('admin.reporting.deskBody')}</p></header>
+    <nav className="librarian-task-grid" aria-label={t('admin.reporting.tasks')}>
+      {[
+        ['borrow', 'nav.borrow', 'borrowTask'], ['return', 'nav.return', 'returnTask'], ['reservations', 'nav.reservations', 'reservationsTask'],
+        ['visits', 'nav.visits', 'visitsTask'], ['catalog', 'nav.catalog', 'catalogTask'], ['students', 'admin.nav.students', 'studentsTask'], ['analytics', 'admin.nav.analytics', 'analyticsTask']
+      ].map(([path, label, description]) => <Link key={path} to={`/librarian/${path}`}><strong>{t(label)}</strong><span>{t(`admin.reporting.${description}`)}</span></Link>)}
+    </nav>
+  </section>;
 
   return (
     <section className="role-home">

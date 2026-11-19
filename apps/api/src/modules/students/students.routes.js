@@ -4,7 +4,7 @@ import { AcademicStatus } from '@prisma/client';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
-import { importStudents, listStudents, getStudentByStudentId } from './students.service.js';
+import { listStudents, getStudentByStudentId } from './students.service.js';
 
 export const studentsRouter = Router();
 studentsRouter.use(authenticate);
@@ -20,16 +20,6 @@ function parseOrThrow(schema, input) {
   }
   return parsed.data;
 }
-
-const importRecordSchema = z.object({
-  studentId: z.string().trim().min(1).max(80),
-  universityEmail: z.string().trim().email(),
-  displayName: z.string().trim().min(2).max(180),
-  facultyName: z.string().trim().min(2).max(150).optional().nullable(),
-  departmentName: z.string().trim().min(2).max(150).optional().nullable(),
-  academicStatus: z.nativeEnum(AcademicStatus).default(AcademicStatus.ACTIVE),
-  isActive: z.boolean().optional().default(true)
-});
 
 studentsRouter.get(
   '/',
@@ -81,18 +71,10 @@ studentsRouter.get(
 
 studentsRouter.post(
   '/import',
-  authorize('LIBRARIAN'),
-  async (req, res, next) => {
-    try {
-      const body = parseOrThrow(
-        z.object({ students: z.array(importRecordSchema).min(1).max(500) }),
-        req.body
-      );
-
-      const result = await importStudents(body.students);
-      res.json({ data: result });
-    } catch (error) {
-      next(error);
-    }
+  (_req, _res, next) => {
+    // No trusted integration principal or explicit import grant exists yet.
+    // Fail closed in every environment; never substitute a role or dev bypass.
+    next(new AppError(403, 'STUDENT_IMPORT_NOT_CONFIGURED',
+      'Student import is disabled until trusted university integration authorization is configured'));
   }
 );

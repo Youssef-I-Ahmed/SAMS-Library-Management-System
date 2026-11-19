@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 
-import { InlineAlert } from '../../components/ui/InlineAlert';
 import { StatusBadge } from '../../components/circulation/StatusBadge';
+import { CirculationListState, CirculationPagination } from '../../components/circulation/CirculationListState';
+import { useCirculationList } from '../../features/circulation/use-circulation-list';
 import {
   listMyBorrowings
 } from '../../features/circulation/circulation-api';
@@ -21,58 +23,16 @@ export function MyBorrowingsPage() {
 
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
-  const [result, setResult] = useState({
-    data: [],
-    pagination: {
-      page: 1,
-      pageSize: PAGE_SIZE,
-      total: 0,
-      totalPages: 0
-    }
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const totalPages = useMemo(
-    () => Math.max(result.pagination?.totalPages || 0, 1),
-    [result.pagination?.totalPages]
-  );
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    setLoading(true);
-    setError(null);
-
-    listMyBorrowings(
-      auth.token,
-      {
-        status,
-        page,
-        pageSize: PAGE_SIZE
-      },
-      controller.signal
-    )
-      .then(setResult)
-      .catch((nextError) => {
-        if (nextError.name !== 'AbortError') {
-          setError(nextError);
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      });
-
-    return () => controller.abort();
-  }, [auth.token, status, page]);
+  const read = useCirculationList(listMyBorrowings, { token: auth.token, status, page, pageSize: PAGE_SIZE });
+  const { result, loading, error } = read;
+  const headingRef = useRef(null);
+  const totalPages = Math.max(result?.pagination?.totalPages || 0, 1);
 
   return (
-    <section className="circulation-page">
+    <section className="circulation-page circulation-page--student">
       <header className="circulation-page__header">
         <span>{t('borrowings.page.eyebrow')}</span>
-        <h1>{t('borrowings.page.title')}</h1>
+        <h1 ref={headingRef} tabIndex={-1}>{t('borrowings.page.title')}</h1>
         <p>{t('borrowings.page.subtitle')}</p>
       </header>
 
@@ -99,38 +59,26 @@ export function MyBorrowingsPage() {
         </label>
 
         <strong>
-          {result.pagination?.total || 0}
-          {' '}
-          {t('borrowings.page.total')}
+          {loading ? t('borrowings.page.loading') : error ? t('circulationUx.unavailable')
+            : `${result?.pagination?.total ?? ''} ${t('borrowings.page.total')}`}
         </strong>
+        <button type="button" className="circulation-secondary-button" disabled={loading}
+          onClick={read.reload}>{t('circulationUx.refresh')}</button>
       </div>
 
-      {error && (
-        <InlineAlert
-          title={t('borrowings.errors.title')}
-          message={error.message}
-          requestId={error.requestId}
-        />
-      )}
-
-      {loading ? (
-        <div className="catalog-state">
-          <span className="catalog-spinner" aria-hidden="true" />
-          <p>{t('borrowings.page.loading')}</p>
-        </div>
-      ) : result.data.length === 0 ? (
-        <div className="catalog-state">
-          <h2>{t('borrowings.page.emptyTitle')}</h2>
-          <p>{t('borrowings.page.emptyBody')}</p>
-        </div>
-      ) : (
+      <CirculationListState read={read} headingRef={headingRef} totalLabel={t('borrowings.page.total')}
+        loadingText={t('borrowings.page.loading')} emptyTitle={t('borrowings.page.emptyTitle')}
+        emptyBody={t('borrowings.page.emptyBody')} errorTitle={t('borrowings.errors.title')}>
         <div className="borrowing-list">
-          {result.data.map((borrowing) => (
+          {result?.data.map((borrowing) => (
             <article className="circulation-card" key={borrowing.id}>
               <div className="circulation-card__heading">
                 <div>
-                  <span>{t(`itemTypes.${borrowing.item.type}`)}</span>
-                  <h2 dir="auto">{borrowing.item.title}</h2>
+                  {borrowing.item?.type && <span>{t(borrowing.item.type === 'ACADEMIC_WORK'
+                    ? 'catalogRefinement.academicWork' : `itemTypes.${borrowing.item.type}`)}</span>}
+                  <h2 dir="auto">{typeof borrowing.item?.id === 'string' && borrowing.item.id.trim()
+                    ? <Link to={`/student/items/${encodeURIComponent(borrowing.item.id)}`}>{borrowing.item.title || t('circulationUx.noTitle')}</Link>
+                    : borrowing.item?.title || t('circulationUx.noTitle')}</h2>
                 </div>
 
                 <StatusBadge tone={getBorrowingTone(borrowing)}>
@@ -155,22 +103,22 @@ export function MyBorrowingsPage() {
 
               <dl className="circulation-card__meta">
                 <div>
-                  <dt>{t('borrowings.fields.branch')}</dt>
-                  <dd dir="auto">{borrowing.branch.name}</dd>
+                  <dt>{t('borrowings.fields.dueAt')}</dt>
+                  <dd><bdi>{formatDateTime(borrowing.dueAt, language)}</bdi></dd>
                 </div>
                 <div>
                   <dt>{t('borrowings.fields.borrowedAt')}</dt>
-                  <dd>{formatDateTime(borrowing.borrowedAt, language)}</dd>
+                  <dd><bdi>{formatDateTime(borrowing.borrowedAt, language)}</bdi></dd>
                 </div>
                 <div>
-                  <dt>{t('borrowings.fields.dueAt')}</dt>
-                  <dd>{formatDateTime(borrowing.dueAt, language)}</dd>
+                  <dt>{t('borrowings.fields.branch')}</dt>
+                  <dd><bdi>{borrowing.branch?.name || '—'}</bdi></dd>
                 </div>
                 <div>
                   <dt>{t('borrowings.fields.returnedAt')}</dt>
-                  <dd>{formatDateTime(borrowing.returnedAt, language)}</dd>
+                  <dd><bdi>{formatDateTime(borrowing.returnedAt, language)}</bdi></dd>
                 </div>
-                {borrowing.item.callNumber && (
+                {borrowing.item?.callNumber && (
                   <div>
                     <dt>{t('borrowings.fields.callNumber')}</dt>
                     <dd dir="auto">{borrowing.item.callNumber}</dd>
@@ -188,32 +136,11 @@ export function MyBorrowingsPage() {
             </article>
           ))}
         </div>
-      )}
+      </CirculationListState>
 
-      {!loading && result.data.length > 0 && (
-        <nav className="catalog-pagination">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => setPage((value) => value - 1)}
-          >
-            ← {t('discovery.pagination.previous')}
-          </button>
-
-          <span>
-            {t('discovery.pagination.page')} <strong>{page}</strong>
-            {' '}{t('discovery.pagination.of')}{' '}
-            <strong>{totalPages}</strong>
-          </span>
-
-          <button
-            type="button"
-            disabled={page >= totalPages}
-            onClick={() => setPage((value) => value + 1)}
-          >
-            {t('discovery.pagination.next')} →
-          </button>
-        </nav>
+      {Boolean(result?.data.length) && (
+        <CirculationPagination page={page} totalPages={totalPages} disabled={loading || Boolean(error)}
+          onChange={(value) => { setPage(value); headingRef.current?.focus(); }} />
       )}
     </section>
   );

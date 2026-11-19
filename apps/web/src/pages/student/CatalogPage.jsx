@@ -4,7 +4,7 @@ import {
   useRef,
   useState
 } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { DiscoveryFilters } from '../../components/discovery/DiscoveryFilters';
 import { DiscoveryItemCard } from '../../components/discovery/DiscoveryItemCard';
@@ -21,6 +21,7 @@ import {
   buildDiscoverySearchParams,
   readDiscoveryFilters
 } from '../../features/discovery/discovery-query';
+import { getCategoryLabel, getLanguageLabel } from '../../features/discovery/discovery-format';
 
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../hooks/useLanguage';
@@ -38,6 +39,8 @@ const EMPTY_FACETS = {
 export function CatalogPage() {
   const auth = useAuth();
   const { t } = useLanguage();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filters = useMemo(
@@ -51,9 +54,14 @@ export function CatalogPage() {
   const [searchError, setSearchError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [announcement, setAnnouncement] = useState('');
-  const [view, setView] = useState('grid');
+  const view = location.state?.catalogView === 'list' ? 'list' : 'grid';
   const [retryVersion, setRetryVersion] = useState(0);
+  const [facetsRetryVersion, setFacetsRetryVersion] = useState(0);
   const searchRef = useRef(null);
+  const resultsRef = useRef(null);
+  const focusFrameRef = useRef(null);
+
+  useEffect(() => () => window.cancelAnimationFrame(focusFrameRef.current), []);
 
   const [result, setResult] = useState({
     data: [],
@@ -76,17 +84,18 @@ export function CatalogPage() {
 
     getDiscoveryFacets(auth.token, controller.signal)
       .then((response) => {
+        if (controller.signal.aborted) return;
         setFacets(response?.data || EMPTY_FACETS);
         setFacetsError(null);
       })
       .catch((error) => {
-        if (error.name !== 'AbortError') {
+        if (!controller.signal.aborted && error.name !== 'AbortError') {
           setFacetsError(error);
         }
       });
 
     return () => controller.abort();
-  }, [auth.token]);
+  }, [auth.token, facetsRetryVersion]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -153,7 +162,12 @@ export function CatalogPage() {
   }, [loading, searchError, result, t]);
 
   function apply(next) {
-    setSearchParams(buildDiscoverySearchParams(next));
+    setSearchParams(buildDiscoverySearchParams(next), { state: { catalogView: view } });
+  }
+
+  function setView(mode) {
+    // The view belongs to the history entry; API query parameters stay unchanged.
+    navigate(location.pathname + location.search, { replace: true, state: { catalogView: mode } });
   }
 
   function submit(event) {
@@ -173,15 +187,44 @@ export function CatalogPage() {
     });
   }
 
+  function showResults() {
+    // Wait for the disclosure/chip layout to settle before scrolling to its new position.
+    window.cancelAnimationFrame(focusFrameRef.current);
+    focusFrameRef.current = window.requestAnimationFrame(() => {
+      resultsRef.current?.focus({ preventScroll: true });
+      resultsRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    });
+  }
+
+  const typeLabel = (type) => type === 'ACADEMIC_WORK'
+    ? t('catalogRefinement.academicWork') : t(`itemTypes.${type}`);
+  // URL filters remain authoritative, including selections whose facet is missing.
+  const activeFilters = [
+    ['q', filters.q, t('discovery.catalog.search')],
+    ['type', filters.type && typeLabel(filters.type), t('discovery.filters.type')],
+    ['categoryId', filters.categoryId && getCategoryLabel(
+      facets.categories?.find((item) => item.id === filters.categoryId)?.name || filters.categoryId, t
+    ), t('discovery.filters.category')],
+    ['deweyClassificationId', filters.deweyClassificationId && (
+      facets.deweyClassifications?.find((item) => item.id === filters.deweyClassificationId)?.code
+      || filters.deweyClassificationId
+    ), t('discovery.filters.dewey')],
+    ['language', getLanguageLabel(filters.language, t), t('discovery.filters.language')],
+    ['publicationYear', filters.publicationYear, t('discovery.filters.year')],
+    ['branchId', filters.branchId && (
+      facets.branches?.find((item) => item.id === filters.branchId)?.name || filters.branchId
+    ), t('discovery.filters.branch')],
+    ['availableOnly', filters.availableOnly && t('discovery.filters.availableOnly'), '']
+  ].filter(([, value]) => value);
+
   return (
-    <section className="catalog-page">
+    <section className="catalog-page catalog-page--discovery">
       <header className="catalog-header">
         <div className="catalog-header__copy">
           <span>{t('discovery.catalog.eyebrow')}</span>
           <h1>{t('discovery.catalog.title')}</h1>
           <p>{t('discovery.catalog.subtitle')}</p>
         </div>
-        <p className="catalog-header__aside">{t('discovery.catalog.headerNote')}</p>
       </header>
 
       <InventoryNotice />
@@ -202,20 +245,49 @@ export function CatalogPage() {
       </form>
 
       <div className="catalog-types" role="group" aria-label={t('discovery.filters.type')}>
-        {['', ...Array.from(new Set((facets.types || []).map((item) => item.value)))].map((type) => (
+        {['', 'BOOK', 'PROJECT', 'THESIS', 'ACADEMIC_WORK'].map((type) => (
           <button type="button" key={type} aria-pressed={filters.type === type}
             onClick={() => apply({ ...filters, type, page: 1 })}>
-            {type ? t(`itemTypes.${type}`) : t('discovery.catalog.allResources')}
+            {type ? typeLabel(type) : t('discovery.catalog.allResources')}
           </button>
         ))}
       </div>
 
       {facetsError && (
-        <InlineAlert
-          title={t('discovery.errors.facetsTitle')}
-          message={facetsError.message}
-          requestId={facetsError.requestId}
-        />
+        <div className="catalog-facets-error">
+          <InlineAlert
+            title={t('discovery.errors.facetsTitle')}
+            message={facetsError.message}
+            requestId={facetsError.requestId}
+          />
+          <button type="button" onClick={() => {
+            setFacetsRetryVersion((version) => version + 1);
+            searchRef.current?.focus();
+          }}>
+            {t('catalogRefinement.retryFilters')}
+          </button>
+        </div>
+      )}
+
+      {activeFilters.length > 0 && (
+        <section className="catalog-active-filters" aria-label={t('catalogRefinement.appliedFilters')}>
+          <span>{t('catalogRefinement.appliedFilters')}</span>
+          <ul>
+            {activeFilters.map(([key, value, label]) => (
+              <li key={key}>
+                <button type="button"
+                  aria-label={`${t('catalogRefinement.removeFilter')}: ${label ? `${label}: ` : ''}${value}`}
+                  onClick={() => {
+                    apply({ ...filters, [key]: key === 'availableOnly' ? false : '', page: 1 });
+                    showResults();
+                  }}>
+                  <span>{label && <span>{label}: </span>}<bdi>{value}</bdi></span>
+                  <span aria-hidden="true">×</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div className="catalog-layout">
@@ -224,6 +296,7 @@ export function CatalogPage() {
           filters={filters}
           onChange={apply}
           onClear={clearFilters}
+          onShowResults={showResults}
         />
 
         <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
@@ -231,14 +304,14 @@ export function CatalogPage() {
         </div>
 
         <div className="catalog-results" aria-busy={loading}>
-          <h2 className="sr-only">{t('discovery.catalog.resultsHeading')}</h2>
           <div className="catalog-toolbar">
             <div>
-              <strong>
+              <h2 ref={resultsRef} tabIndex={-1} id="catalog-results">
                 {loading
                   ? t('discovery.catalog.loading')
+                  : searchError ? t('catalogRefinement.resultsUnavailable')
                   : `${result.pagination.total} ${t('discovery.catalog.results')}`}
-              </strong>
+              </h2>
 
               {filters.q && (
                 <span dir="auto">
@@ -317,7 +390,8 @@ export function CatalogPage() {
             <>
               <div className={`catalog-grid${view === 'list' ? ' catalog-grid--list' : ''}`}>
                 {result.data.map((item) => (
-                  <DiscoveryItemCard key={item.id} item={item} />
+                  <DiscoveryItemCard key={item.id} item={item}
+                    catalogReturn={{ to: location.pathname + location.search, view }} />
                 ))}
               </div>
 
@@ -328,12 +402,13 @@ export function CatalogPage() {
                 <button
                   type="button"
                   disabled={!result.pagination.hasPreviousPage}
-                  onClick={() =>
+                  onClick={() => {
                     apply({
                       ...filters,
                       page: filters.page - 1
-                    })
-                  }
+                    });
+                    showResults();
+                  }}
                 >
                   <span className="catalog-pagination__arrow" aria-hidden="true">←</span> {t('discovery.pagination.previous')}
                 </button>
@@ -348,12 +423,13 @@ export function CatalogPage() {
                 <button
                   type="button"
                   disabled={!result.pagination.hasNextPage}
-                  onClick={() =>
+                  onClick={() => {
                     apply({
                       ...filters,
                       page: filters.page + 1
-                    })
-                  }
+                    });
+                    showResults();
+                  }}
                 >
                   {t('discovery.pagination.next')} <span className="catalog-pagination__arrow" aria-hidden="true">→</span>
                 </button>

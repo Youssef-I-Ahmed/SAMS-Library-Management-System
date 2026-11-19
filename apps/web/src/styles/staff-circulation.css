@@ -1,0 +1,54 @@
+/* Circulation only: keep the accepted Student, AI and administration designs. */
+.staff-circulation { min-width: 0; gap: 18px; padding-block-end: env(safe-area-inset-bottom, 0px); }
+.staff-circulation h1 { font-size: clamp(28px, 3vw, 36px); line-height: 1.2; }
+.staff-circulation :is(h1, h2, p, strong, small, span, bdi) { overflow-wrap: anywhere; }
+.staff-circulation :is(input, select, textarea, button) { max-width: 100%; min-width: 0; }
+.staff-circulation :is(input:not([type='radio']):not([type='checkbox']), select, textarea) { font-size: 16px; }
+.staff-circulation :is(button, .staff-checkbox) { min-height: 44px; }
+.staff-circulation :is(.staff-form label > span, .staff-notes-field > span, .staff-filter-bar label > span,
+  .staff-workflow-card__toolbar > div > span, .staff-operation-row__facts span, .staff-copy-option small,
+  .staff-selection-summary span, .staff-results-count, .staff-pagination span) { font-size: 12px; }
+.staff-circulation .staff-operation-row__title > span { font-size: 11px; }
+.staff-circulation .staff-operation-row__title strong { font-size: 15px; }
+.staff-circulation :is(.staff-operation-row__title small, .staff-copy-option strong) { font-size: 14px; line-height: 1.5; }
+.staff-circulation :is(.staff-operation-row, .staff-operation-row__title, .staff-operation-row__facts, .staff-form label, .staff-workflow-card__toolbar form) { min-width: 0; }
+.staff-circulation .staff-operation-row__main { flex: 1; }
+.staff-circulation .staff-operation-row__facts > span { max-width: 100%; }
+.staff-circulation .staff-operation-row__actions { flex-wrap: wrap; }
+.staff-circulation .staff-visit-filters input[type='checkbox'] { min-width: 20px; width: 20px; min-height: 20px; height: 20px; padding: 0; flex: 0 0 20px; }
+.staff-circulation .staff-mode-tabs { max-width: 100%; }
+.staff-circulation .staff-mode-tabs button { flex: 0 1 auto; }
+.staff-circulation .staff-search-bar input { flex: 1; }
+.staff-circulation .staff-read-state { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-block: 14px; }
+.staff-circulation .staff-read-state p { margin: 0; font-size: 13px; }
+.staff-circulation .staff-read-state small { flex-basis: 100%; color: var(--text-secondary); font-size: 12px; }
+.staff-circulation .staff-read-state .inline-alert { flex-basis: 100%; }
+.staff-circulation .staff-mutation-feedback > p:empty { display: none; }
+.staff-circulation .staff-uncertain { padding: 14px; border: 1px solid var(--border-strong); border-radius: var(--sams-radius-md); background: var(--surface-subtle); }
+.staff-circulation .admin-modal { width: min(660px, 100%); overflow-wrap: anywhere; max-height: calc(100dvh - 2 * max(12px, env(safe-area-inset-bottom, 0px))); }
+.staff-circulation .admin-modal-backdrop { padding: max(12px, env(safe-area-inset-bottom, 0px)) 12px; }
+.staff-circulation .staff-return-option:focus-within { outline: 2px solid var(--brand-accent); outline-offset: 2px; }
+.staff-circulation .staff-return-option input { width: 18px; height: 18px; position: static; opacity: 1; accent-color: var(--brand-primary); }
+.staff-circulation .staff-return-option span { font-size: 12px; }
+.staff-circulation button:disabled { opacity: .55; cursor: not-allowed; }
+.staff-circulation :is(button, a, input, select, textarea):focus-visible,
+.staff-shell--circulation :is(a, button, [tabindex='-1']):focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 3px; }
+.staff-circulation h1:focus { outline: none; }
+.staff-shell--circulation .staff-skip-link { position: fixed; z-index: 150; inset-inline-start: 12px; inset-block-start: 8px; transform: translateY(-200%); padding: 12px; color: var(--text-primary); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--sams-radius-md); }
+.staff-shell--circulation .staff-skip-link:focus { transform: none; }
+.staff-shell--circulation .staff-sidebar__nav a { min-height: 44px; }
+@media (max-width: 1100px) {
+  .staff-shell--circulation .staff-sidebar__nav { scrollbar-width: thin; padding-block-end: 5px; }
+  .staff-shell--circulation .staff-sidebar__nav::-webkit-scrollbar { display: block; height: 6px; }
+}
+@media (max-width: 720px) {
+  .staff-circulation .staff-workflow-card { padding: 16px; }
+  .staff-circulation .staff-operation-row { padding: 13px; gap: 12px; }
+  .staff-circulation .staff-operation-row__actions { flex-direction: row; align-items: center; }
+  .staff-circulation .staff-operation-row__actions button { flex: 1 1 120px; }
+  .staff-circulation .staff-operation-row__actions .staff-status { margin-inline-end: auto; }
+  .staff-circulation .staff-pagination { flex-wrap: wrap; }
+  .staff-circulation .staff-pagination span { order: -1; flex-basis: 100%; text-align: center; }
+  .staff-circulation .staff-pagination button { flex: 1; }
+  .staff-circulation .staff-modal__actions { flex-direction: column; }
+}

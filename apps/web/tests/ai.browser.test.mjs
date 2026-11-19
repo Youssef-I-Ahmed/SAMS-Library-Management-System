@@ -31,7 +31,7 @@ before(async () => {
       define: { 'import.meta.env.VITE_AI_ASSISTANT_ENABLED': flag }, server: { host: '127.0.0.1', port: 0, open: false } });
     await server.listen(); servers.set(mode, server);
   }
-  for (const [mode, outDir] of [['production-off', join(root, 'dist')], ['production-absent', process.env.SAMS_AI_ABSENT_BUILD_DIR], ['production-on', process.env.SAMS_AI_ENABLED_BUILD_DIR]]) {
+  for (const [mode, outDir] of [['production-off', process.env.SAMS_AI_DISABLED_BUILD_DIR || join(root, 'dist')], ['production-absent', process.env.SAMS_AI_ABSENT_BUILD_DIR], ['production-on', process.env.SAMS_AI_ENABLED_BUILD_DIR]]) {
     if (!outDir) continue;
     const server = await preview({ root, configFile: join(root, 'vite.config.js'), build: { outDir }, preview: { host: '127.0.0.1', port: 0, open: false } });
     servers.set(mode, server);
@@ -96,6 +96,14 @@ async function fixture(t, { mode = 'on', language = 'en', theme = 'light', width
         if (state.scenario === 'null') return json({ data: pending() });
         if (state.scenario === 'preview') return json({ data: pending(true) });
         const payload = done();
+        if (state.scenario === 'no-sources') {
+          payload.result.sources = [];
+          payload.result.answer = 'No supporting book records were found for this question.';
+        }
+        if (state.scenario === 'long') {
+          payload.result.answer = ('A long academic reply with selectable text and a source citation [S1]. ' + 'كلمات عربية ضمن الإجابة. ').repeat(100);
+          payload.result.sources[0].title = 'Long catalogue title '.repeat(30) + 'x'.repeat(160);
+        }
         if (state.scenario === 'cached') payload.cached = true;
         if (state.scenario === 'help') payload.result = { ...payload.result, provider: 'help', sources: [], all_books: null, answer: 'I can help you find books.' };
         if (state.scenario === 'refusal') payload.result = { ...payload.result, is_refusal: true, sources: [], hint: 'Try a book subject.', answer: 'No supporting records.' };
@@ -155,7 +163,7 @@ for (const mode of ['on', 'production-on']) test(`${mode}: protected page and na
   assert.equal(f.aiCalls().filter((call) => call.path.endsWith('/health')).length >= 1, true);
   await f.submit(); await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'done');
   await expect(f.page.locator('.ai-record h4')).toContainText('[S1]');
-  await expect(f.page.locator('.ai-record dd').nth(1)).toHaveText('2007');
+  await expect(f.page.locator('.ai-record dl > div').filter({ has: f.page.getByText(f.tr('ai.year'), { exact: true }) }).locator('dd')).toHaveText('2007');
   await expect(f.page.locator('.student-shell__nav a')).toHaveText(navigationKeys.map(f.tr));
   await expect(f.page.locator('.student-shell__nav a[aria-label], .student-shell__nav .student-mobile-nav__label')).toHaveCount(0);
 });
@@ -221,6 +229,7 @@ for (const [role, workspace, adminPage] of [
   await f.page.getByRole('link', { name: f.tr('ai.nav'), exact: true }).click();
   await expect(f.page).toHaveURL(new RegExp(`/${workspace}/ai$`));
   await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  await f.page.getByRole('button', { name: f.tr('ai.guide'), exact: true }).click();
   await expect(f.page.locator('.knowledge-spirit')).toBeVisible();
   const scope = f.page.getByLabel(f.tr('ai.scopeLabel'));
   await expect(scope.locator('option')).toHaveCount(3);
@@ -306,6 +315,7 @@ test('Knowledge Spirit uses seven distinct visible glyphs and captions with moti
   await f.goto();
   await expect.poll(() => f.state.held.length).toBeGreaterThan(0);
   f.state.release();
+  await f.page.getByRole('button', { name: f.tr('ai.guide'), exact: true }).click();
   await check('greeting');
   await check('idle');
   await f.submit('Network design');
@@ -402,7 +412,7 @@ test('mapped-only detail links; arbitrary HTML/operational links and RAG copy co
   const g = await fixture(t, { scenario: 'unsafe-text' }); await g.goto(); await expect(g.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle'); await g.submit();
   await expect(g.page.locator('.ai-answer')).toContainText('<img'); await expect(g.page.locator('.ai-answer img, .ai-answer a')).toHaveCount(0);
 });
-for (const language of ['en', 'ar']) for (const theme of ['light', 'dark']) for (const width of [1440, 768, 320]) test(`${language}/${theme}/${width}: accessible, responsive and reduced-motion Spirit`, async (t) => {
+for (const language of ['en', 'ar']) for (const theme of ['light', 'dark']) for (const width of [1440, 1024, 768, 390, 320]) test(`${language}/${theme}/${width}: accessible, responsive and reduced-motion Spirit`, async (t) => {
   const f = await fixture(t, { language, theme, width }); await f.goto(); await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
   assert.equal(await f.page.locator('html').getAttribute('dir'), language === 'ar' ? 'rtl' : 'ltr');
   assert.equal(await f.page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
@@ -430,4 +440,389 @@ test('Home, Catalog, reservations, borrowings and Staff stay outside the AI expe
   assert.deepEqual(f.aiCalls(), []);
   const staff = await fixture(t, { role: 'LIBRARIAN' }); await staff.goto('/librarian');
   await expect(staff.page.locator('h1').first()).toBeVisible(); await expect(staff.page.locator('.knowledge-spirit')).toHaveCount(0); assert.deepEqual(staff.aiCalls(), []);
+});
+
+for (const role of ['STUDENT', 'LIBRARIAN', 'MANAGEMENT']) test(`${role}: long replies use one reading scroller and composer survives a short viewport`, async (t) => {
+  const f = await fixture(t, { role, width: 390, language: 'ar', theme: 'dark', scenario: 'long' });
+  await f.goto(`/${role.toLowerCase()}/ai`);
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  await expect(f.page.locator('#ai-companion')).toBeHidden();
+  const guide = f.page.getByRole('button', { name: f.tr('ai.guide'), exact: true });
+  await guide.click();
+  await expect(f.page.locator('.knowledge-spirit')).toBeVisible();
+  await expect(f.page.locator('.knowledge-spirit')).toHaveCount(1);
+  await guide.click();
+  await expect(f.page.locator('.knowledge-spirit')).toHaveAttribute('data-motion', 'paused');
+  await f.submit('A long question ' + 'سؤال '.repeat(70));
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'done');
+  async function geometry() {
+    return f.page.evaluate(() => {
+      const rect = document.querySelector('.ai-composer').getBoundingClientRect();
+      const nav = document.querySelector('.student-mobile-nav');
+      const navTop = nav && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect().top : visualViewport.height;
+      const transcript = document.querySelector('.ai-transcript');
+      return { top: rect.top, bottom: rect.bottom, navTop, height: visualViewport.height,
+        outerHeight: document.documentElement.scrollHeight, outerWidth: document.documentElement.scrollWidth,
+        width: innerWidth, transcriptHeight: transcript.clientHeight,
+        inputSize: parseFloat(getComputedStyle(document.querySelector('#ai-question')).fontSize) };
+    });
+  }
+  const initial = await geometry();
+  assert.ok(initial.outerHeight <= initial.height + 1 && initial.outerWidth <= initial.width, JSON.stringify(initial));
+  assert.ok(initial.bottom <= initial.navTop && initial.top >= 0 && initial.transcriptHeight > 80, JSON.stringify(initial));
+  assert.ok(initial.inputSize >= 16);
+  await f.page.setViewportSize({ width: 390, height: 460 });
+  await expect.poll(async () => (await geometry()).outerHeight).toBeLessThanOrEqual(461);
+  const short = await geometry();
+  assert.ok(short.bottom <= short.navTop && short.top >= 0 && short.transcriptHeight > 24, JSON.stringify(short));
+  await f.page.locator('#ai-question').focus();
+  await expect(f.page.locator('#ai-question')).toBeFocused();
+  await f.page.screenshot({ path: join(evidence, `ai-${role.toLowerCase()}-short-viewport.png`) });
+});
+
+test('Enter sends once, Shift+Enter expands, composition does not send, and copying has feedback', async (t) => {
+  const f = await fixture(t); await f.goto();
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  const input = f.page.locator('#ai-question');
+  const height = await input.evaluate((element) => element.clientHeight);
+  await input.fill('First line'); await input.press('Shift+Enter');
+  await input.press('Shift+Enter'); await input.press('Shift+Enter');
+  await input.type('Second line');
+  assert.ok(await input.evaluate((element) => element.clientHeight) > height);
+  await input.dispatchEvent('keydown', { key: 'Enter', code: 'Enter', isComposing: true, bubbles: true });
+  assert.equal(f.aiCalls().filter((call) => call.method === 'POST').length, 0);
+  await input.press('Enter');
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'done');
+  assert.equal(f.aiCalls().filter((call) => call.method === 'POST').length, 1);
+  await expect(input).toHaveValue(''); await expect(input).toBeFocused();
+  await f.page.evaluate(() => { window.copiedReply = ''; Object.defineProperty(navigator, 'clipboard', {
+    configurable: true, value: { writeText: async (text) => { window.copiedReply = text; } }
+  }); });
+  await f.page.getByRole('button', { name: f.tr('ai.copy'), exact: true }).click();
+  await expect(f.page.getByText(f.tr('ai.copied'), { exact: true })).toBeVisible();
+  assert.equal(await f.page.evaluate(() => window.copiedReply), 'A catalogue reply [S1].');
+  await input.fill('x'.repeat(501)); await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await expect(f.page.getByRole('button', { name: f.tr('ai.send'), exact: true })).toBeDisabled();
+});
+
+test('late replies respect reading position and Latest reply explicitly returns to the bottom', async (t) => {
+  const f = await fixture(t, { scenario: 'long', width: 390 }); await f.goto();
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  await f.submit(); await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'done');
+  f.state.scenario = 'hold-ask'; await f.submit('Follow-up');
+  await expect.poll(() => f.state.held.length).toBeGreaterThan(0);
+  const scroller = f.page.locator('.ai-transcript');
+  await scroller.evaluate((element) => { element.scrollTop = 120; element.dispatchEvent(new Event('scroll')); });
+  await expect.poll(() => scroller.evaluate((element) => element.scrollTop)).toBe(120);
+  f.state.scenario = 'long'; f.state.release();
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'done');
+  await expect(f.page.getByRole('button', { name: f.tr('ai.latest'), exact: true })).toBeVisible();
+  assert.equal(await scroller.evaluate((element) => element.scrollTop), 120);
+  await f.page.getByRole('button', { name: f.tr('ai.latest'), exact: true }).click();
+  await expect.poll(() => scroller.evaluate((element) => element.scrollHeight - element.scrollTop - element.clientHeight)).toBeLessThan(2);
+});
+
+test('All scope cannot silently send only research when books are unavailable; research errors override a book success', async (t) => {
+  const unavailable = await fixture(t, { scenario: 'unavailable' }); await unavailable.goto();
+  await expect(unavailable.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'unavailable');
+  await unavailable.page.locator('#ai-scope').selectOption('all');
+  await unavailable.page.locator('#ai-question').fill('Accounting');
+  await expect(unavailable.page.getByRole('button', { name: unavailable.tr('ai.send'), exact: true })).toBeDisabled();
+  assert.equal(unavailable.aiCalls().filter((call) => call.method === 'POST').length, 0);
+  const f = await fixture(t, { scenario: 'research-error' }); await f.goto();
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  await f.page.locator('#ai-scope').selectOption('all'); await f.submit();
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'done');
+  await expect(f.page.locator('.ai-research .ai-error')).toHaveText(f.tr('ai.researchState.error'));
+  await expect(f.page.locator('.knowledge-spirit')).toHaveAttribute('data-spirit-state', 'error');
+});
+
+for (const role of ['LIBRARIAN', 'MANAGEMENT']) test(`${role}: assistant geometry across desktop, tablet and mobile in both languages`, async (t) => {
+  for (const [language, theme] of [['en', 'light'], ['ar', 'dark']]) for (const width of [1440, 1024, 768, 390, 320]) {
+    const f = await fixture(t, { role, language, theme, width });
+    await f.goto(`/${role.toLowerCase()}/ai`);
+    await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+    const metrics = await f.page.evaluate(() => {
+      const composer = document.querySelector('.ai-composer').getBoundingClientRect();
+      return { documentWidth: document.documentElement.scrollWidth, documentHeight: document.documentElement.scrollHeight,
+        width: innerWidth, height: innerHeight, composerTop: composer.top, composerBottom: composer.bottom,
+        transcriptHeight: document.querySelector('.ai-transcript').clientHeight };
+    });
+    assert.ok(metrics.documentWidth <= width && metrics.documentHeight <= metrics.height + 1 &&
+      metrics.composerTop > 0 && metrics.composerBottom <= metrics.height && metrics.transcriptHeight > 80,
+      `${role}/${language}/${width}: ${JSON.stringify(metrics)}`);
+    if (width === 1440 || width === 320) await f.page.screenshot({ path: join(evidence, `ai-${role.toLowerCase()}-${language}-${width}-empty.png`) });
+  }
+});
+
+test('visible-viewport keyboard sizing and optional Spirit motion', async (t) => {
+  const f = await fixture(t, { width: 390, motion: 'no-preference', scenario: 'hold-ask' }); await f.goto();
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  await f.page.screenshot({ path: join(evidence, 'ai-student-en-390-empty.png') });
+  const guide = f.page.getByRole('button', { name: f.tr('ai.guide'), exact: true });
+  await guide.click();
+  await expect(f.page.locator('.knowledge-spirit')).toHaveAttribute('data-motion', 'playing');
+  await f.page.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(await f.page.locator('.knowledge-spirit__body').evaluate((element) => getComputedStyle(element).animationName), 'none');
+  await guide.click();
+  await expect(f.page.locator('.knowledge-spirit')).toHaveAttribute('data-motion', 'paused');
+  // Exercise the resize event used by visual-only keyboards, with layout viewport unchanged.
+  await f.page.evaluate(() => {
+    Object.defineProperty(visualViewport, 'height', { configurable: true, value: 460 });
+    visualViewport.dispatchEvent(new Event('resize'));
+  });
+  await expect.poll(() => f.page.locator('.student-shell--assistant').evaluate((element) => element.clientHeight)).toBe(460);
+  const box = await f.page.locator('.ai-composer').boundingBox();
+  assert.ok(box.y >= 0 && box.y + box.height < 460);
+  await f.page.evaluate(() => {
+    delete visualViewport.height; visualViewport.dispatchEvent(new Event('resize'));
+  });
+  await f.submit(); await expect.poll(() => f.state.held.length).toBeGreaterThan(0);
+  await f.page.screenshot({ path: join(evidence, 'ai-student-en-390-loading.png') });
+  f.state.release(); await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'done');
+});
+
+test('nonzero device safe-area inset keeps navigation inside the viewport', async (t) => {
+  const f = await fixture(t, { width: 390 }); await f.goto();
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  const cdp = await f.context.newCDPSession(f.page);
+  try {
+    await cdp.send('Emulation.setSafeAreaInsets', { insets: { top: 0, right: 0, bottom: 34, left: 0 } });
+  } catch (error) {
+    if (!error.message.includes("wasn't found")) throw error;
+    t.skip('Installed browser cannot emulate nonzero device insets; real-device validation remains.');
+    return;
+  }
+  const bottomMargin = await f.page.locator('.student-mobile-nav').evaluate((element) => parseFloat(getComputedStyle(element).marginBottom));
+  assert.ok(bottomMargin >= 34, `safe-area bottom gap: ${bottomMargin}`);
+});
+
+for (const [language, theme, width] of [['en', 'light', 390], ['ar', 'dark', 320]]) test(`${language}/${width}: pending reset guidance stays with its action; compact source metadata remains complete`, async (t) => {
+  const f = await fixture(t, { language, theme, width, scenario: 'hold-ask' }); await f.goto();
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  const reset = f.page.getByRole('button', { name: f.tr('ai.newConversation'), exact: true });
+  await expect(reset).not.toHaveAttribute('aria-describedby', 'ai-reset-hint');
+  await f.submit(); await expect.poll(() => f.state.held.length).toBeGreaterThan(0);
+  await expect(reset).toBeDisabled();
+  await expect(reset).toHaveAccessibleDescription(f.tr('ai.resetHint'));
+  assert.equal(await f.page.locator('.ai-transcript #ai-reset-hint').count(), 0);
+  assert.equal((await f.page.locator('.ai-transcript').innerText()).includes(f.tr('ai.resetHint')), false);
+  await f.page.screenshot({ path: join(evidence, `polish-${language}-${width}-pending.png`) });
+  f.state.release(); await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'done');
+  await expect(reset).not.toHaveAttribute('aria-describedby', 'ai-reset-hint');
+  const card = f.page.locator('.ai-record').first();
+  await expect(card.locator('.ai-record__byline')).toContainText('Fixture Author');
+  for (const value of ['2007', '123.45', '1687']) await expect(card.getByText(value, { exact: true })).toBeVisible();
+  await expect(card.locator('h4')).toContainText('[S1]');
+  const box = await card.boundingBox(); assert.ok(box.height < 290, `compact book card: ${box.height}px`);
+  await f.page.screenshot({ path: join(evidence, `polish-${language}-${width}-books.png`) });
+  await f.page.locator('#ai-scope').selectOption('research'); await f.submit('Network design');
+  await expect(f.page.locator('.ai-research .ai-record')).toHaveCount(1);
+  const research = f.page.locator('.ai-research .ai-record');
+  for (const value of ['PR-402', 'Maya Adel', 'Omar Amin', 'Computing', '004.6']) await expect(research.getByText(value, { exact: true })).toBeVisible();
+  await expect(research.getByRole('link', { name: f.tr('ai.details'), exact: true })).toHaveAttribute('href', `/student/items/${UUID}`);
+  await f.page.screenshot({ path: join(evidence, `polish-${language}-${width}-research.png`) });
+});
+
+for (const [language, width] of [['en', 390], ['ar', 320]]) test(`${language}/${width}: a long draft remains usable in a visual-only keyboard viewport`, async (t) => {
+  const f = await fixture(t, { language, theme: language === 'ar' ? 'dark' : 'light', width }); await f.goto();
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  const input = f.page.locator('#ai-question');
+  await input.fill(('A multiline draft\n').repeat(12));
+  await f.page.evaluate(() => {
+    Object.defineProperty(visualViewport, 'height', { configurable: true, value: 390 });
+    visualViewport.dispatchEvent(new Event('resize'));
+  });
+  await expect.poll(() => f.page.locator('.student-shell--assistant').evaluate((element) => element.clientHeight)).toBe(390);
+  const metrics = await f.page.evaluate(() => {
+    const rect = document.querySelector('.ai-composer').getBoundingClientRect();
+    const nav = document.querySelector('.student-mobile-nav').getBoundingClientRect();
+    const input = document.querySelector('#ai-question'), composer = document.querySelector('.ai-composer');
+    return { top: rect.top, bottom: rect.bottom, navTop: nav.top, navBottom: nav.bottom,
+      transcriptHeight: document.querySelector('.ai-transcript').clientHeight, width: document.documentElement.scrollWidth,
+      inputHeight: input.clientHeight, inputShadow: getComputedStyle(input).boxShadow,
+      inputOutline: getComputedStyle(input).outlineStyle, composerOutline: getComputedStyle(composer).outlineWidth };
+  });
+  assert.ok(metrics.top >= 0 && metrics.bottom <= metrics.navTop && metrics.navBottom <= 390 && metrics.width <= width && metrics.transcriptHeight > 24, JSON.stringify(metrics));
+  assert.ok(metrics.inputHeight >= 44 && metrics.inputHeight <= 80);
+  assert.equal(metrics.inputShadow, 'none'); assert.equal(metrics.inputOutline, 'none'); assert.equal(metrics.composerOutline, '2px');
+  await expect(f.page.getByRole('button', { name: f.tr('ai.send'), exact: true })).toBeEnabled();
+  await expect(f.page.getByRole('button', { name: f.tr('ai.latest'), exact: true })).toHaveCount(0);
+  await f.page.screenshot({ path: join(evidence, `polish-${language}-${width}-keyboard.png`), clip: { x: 0, y: 0, width, height: 390 } });
+});
+
+test('confirmed no-results remain visible and distinct from a real service error', async (t) => {
+  const f = await fixture(t, { width: 390, scenario: 'no-sources' }); await f.goto();
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'idle');
+  await f.submit(); await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'done');
+  await expect(f.page.locator('.ai-book-transcript .ai-status')).toHaveText(f.tr('ai.noResults'));
+  await expect(f.page.locator('.ai-book-transcript .ai-status')).toBeVisible();
+  await expect(f.page.locator('.ai-record')).toHaveCount(0);
+  await f.page.screenshot({ path: join(evidence, 'polish-en-390-no-results.png') });
+  f.state.scenario = 503; await f.submit('Another question');
+  await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state', 'uncertain');
+  await expect(f.page.locator('.ai-error')).toHaveText(f.tr('ai.error503'));
+  await expect(f.page.locator('.ai-book-transcript .ai-status')).toHaveText(f.tr('ai.uncertain'));
+  await expect(f.page.locator('.ai-book-transcript .ai-status')).toBeVisible();
+  await f.page.evaluate(axe.source);
+  const violations = await f.page.evaluate(async () => (await axe.run(document.querySelector('.student-ai'), { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations.map(({ id }) => id));
+  assert.deepEqual(violations, []);
+  await f.page.screenshot({ path: join(evidence, 'polish-en-390-error.png') });
+});
+
+for (const mode of ['on', 'production-on']) test(`V3: ${mode} real GLB clips follow controller, load once, pause and dispose`, async (t) => {
+  const f = await fixture(t, { mode, motion: 'no-preference', scenario: 'hold-ask' });
+  const loads = []; f.page.on('request', r => { if (r.url().includes('.glb')) loads.push(r.url()); });
+  await f.goto();
+  const canvas = f.page.locator('.ai-spirit-frame canvas');
+  async function animatedClip(name) {
+    await expect(canvas).toHaveAttribute('data-clip', name);
+    const before = await canvas.screenshot(); await f.page.waitForTimeout(220);
+    assert.notDeepEqual(await canvas.screenshot(), before, `${name} changes rendered pixels`);
+  }
+  await expect(f.page.locator('.ai-spirit-presenter')).toHaveAttribute('data-viewer', '3d');
+  await animatedClip('idle');
+  await expect.poll(() => canvas.getAttribute('data-frame')).not.toBe('1');
+  await f.submit('Network design');
+  await animatedClip('searching');
+  await expect.poll(() => f.state.held.length).toBeGreaterThan(0);
+  f.state.scenario = 'preview'; f.state.pollMode = 'hold'; f.state.release();
+  await animatedClip('thinking');
+  await expect.poll(() => f.state.held.length).toBeGreaterThan(0);
+  f.state.pollMode = 'done'; f.state.release();
+  await animatedClip('success');
+  f.state.scenario = 'no-sources';
+  await f.submit('Another search');
+  await animatedClip('no_results');
+  f.state.scenario = 503; await f.submit('Unavailable search');
+  await animatedClip('error');
+  assert.equal(loads.length, 1);
+  await f.page.screenshot({ path: join(evidence, 'v3-desktop.png') });
+  await f.page.getByRole('button', {name:f.tr('ai.guide'),exact:true}).click();
+  const frame = await canvas.getAttribute('data-frame');
+  await f.page.waitForTimeout(180); assert.equal(await canvas.getAttribute('data-frame'), frame);
+  await f.page.getByRole('button', {name:f.tr('ai.guide'),exact:true}).click();
+  await expect.poll(() => canvas.getAttribute('data-frame')).not.toBe(frame);
+  assert.equal(loads.length,1);
+  await f.page.evaluate(() => {Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
+  const paused = await canvas.getAttribute('data-frame'); await f.page.waitForTimeout(180); assert.equal(await canvas.getAttribute('data-frame'),paused);
+  await f.page.evaluate(() => {delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});
+  const context = await canvas.evaluateHandle(el => el.getContext('webgl2'));
+  await f.page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(canvas).toHaveCount(0); await expect(f.page.locator('.knowledge-spirit')).toBeVisible();
+  await expect.poll(() => context.evaluate(gl => gl.isContextLost())).toBe(true);
+});
+
+for (const role of ['STUDENT','LIBRARIAN','MANAGEMENT']) test(`V3: ${role} mobile opts in; reduced motion restores SVG`, async(t)=> {
+  const f=await fixture(t,{role,width:390,language:'ar',theme:'dark',motion:'no-preference'});
+  const loads=[];f.page.on('request',r=>{if(r.url().includes('.glb'))loads.push(r.url());});
+  const rendererRequests=[];f.page.on('request',r=>{if(/knowledge-spirit-viewer|three/.test(r.url()))rendererRequests.push(r.url());});
+  await f.goto(`/${role.toLowerCase()}/ai`);
+  await f.page.getByRole('button',{name:f.tr('ai.guide'),exact:true}).click();
+  await expect(f.page.locator('.knowledge-spirit')).toBeVisible(); assert.equal(loads.length,0); assert.equal(rendererRequests.length,0);
+  await f.page.getByRole('button',{name:f.tr('ai.show3d'),exact:true}).click();
+  await expect(f.page.locator('.ai-spirit-presenter')).toHaveAttribute('data-viewer','3d');
+  assert.equal(await f.page.locator('canvas').count(),1);
+  assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await f.submit('Network design'); await expect(f.page.getByText('Fixture book',{exact:false})).toBeVisible();
+  await f.page.screenshot({path:join(evidence,`v3-mobile-${role.toLowerCase()}.png`)});
+  await f.page.emulateMedia({reducedMotion:'reduce'});
+  await expect(f.page.locator('canvas')).toHaveCount(0);
+  await expect(f.page.locator('.knowledge-spirit')).toBeVisible();
+});
+
+for (const failure of ['load','context','init','playback']) test(`V3: ${failure} failure leaves SVG and conversation working`,async(t)=>{
+  const f=await fixture(t,{motion:'no-preference'});
+  if(failure==='load')await f.page.route('**/*.glb',route=>route.abort());
+  if(failure==='init')await f.page.addInitScript(()=>{
+    const original=HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/.test(type)?null:original.call(this,type,...args);};
+  });
+  await f.goto();
+  if(failure==='context'){
+    await expect(f.page.locator('.ai-spirit-presenter')).toHaveAttribute('data-viewer','3d');
+    await f.page.locator('canvas').evaluate(canvas=>canvas.dispatchEvent(new Event('webglcontextlost',{cancelable:true})));
+  }
+  if(failure==='playback'){
+    await expect(f.page.locator('.ai-spirit-presenter')).toHaveAttribute('data-viewer','3d');
+    await f.page.evaluate(()=>{WebGL2RenderingContext.prototype.drawElements=()=>{throw new Error('Simulated draw failure');};});
+  }
+  await expect(f.page.getByRole('status').filter({hasText:f.tr('ai.spiritFallback')})).toBeAttached();
+  await expect(f.page.locator('.knowledge-spirit')).toBeVisible();
+  await f.submit();await expect(f.page.getByText('Fixture book',{exact:false})).toBeVisible();
+});
+
+for (const [language,theme,width] of [['en','light',1440],['ar','dark',1440],['ar','light',320],['en','dark',320],['en','light',768],['ar','dark',1024]]) test(`V3: responsive ${language}/${theme}/${width}`,async(t)=>{
+  const f=await fixture(t,{language,theme,width,motion:'no-preference'});
+  await f.goto();
+  if(width<1100)await f.page.getByRole('button',{name:f.tr('ai.guide'),exact:true}).click();
+  const enable=f.page.getByRole('button',{name:f.tr('ai.show3d'),exact:true});
+  if(await enable.count()){await enable.focus();await enable.press('Enter');}
+  await expect(f.page.locator('.ai-spirit-presenter')).toHaveAttribute('data-viewer','3d');
+  assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await expect(f.page.getByLabel(f.tr('ai.composer'),{exact:true})).toBeInViewport();
+  await f.page.screenshot({path:join(evidence,`v3-${language}-${theme}-${width}.png`)});
+});
+
+test('V3: offscreen pause and route unmount release the WebGL context',async(t)=>{
+  const f=await fixture(t,{motion:'no-preference'});await f.goto();
+  const canvas=f.page.locator('.ai-spirit-frame canvas');
+  await expect(f.page.locator('.ai-spirit-presenter')).toHaveAttribute('data-viewer','3d');
+  await f.page.locator('.ai-spirit-frame').evaluate(el=>el.style.transform='translateX(-5000px)');
+  await f.page.waitForTimeout(150);const before=await canvas.getAttribute('data-frame');
+  await f.page.waitForTimeout(180);assert.equal(await canvas.getAttribute('data-frame'),before);
+  await f.page.locator('.ai-spirit-frame').evaluate(el=>el.style.transform='');
+  await expect.poll(()=>canvas.getAttribute('data-frame')).not.toBe(before);
+  const context=await canvas.evaluateHandle(el=>el.getContext('webgl2'));
+  await f.page.locator('.student-shell__nav a').first().click();
+  await expect(canvas).toHaveCount(0);await expect.poll(()=>context.evaluate(gl=>gl.isContextLost())).toBe(true);
+});
+
+for (const width of [320,390,768,1024,1440]) for(const language of ['en','ar']) for(const theme of ['light','dark']) test(`Companion polish: ${width}/${language}/${theme}`,async(t)=>{
+ const f=await fixture(t,{width,language,theme,motion:'no-preference'});
+ const loads=[];f.page.on('request',r=>{if(r.url().includes('.glb'))loads.push(r.url());});
+ await f.goto();if(width<1100)await f.page.getByRole('button',{name:f.tr('ai.guide'),exact:true}).click();
+ const panel=f.page.locator('.ai-companion'),stage=f.page.locator('.ai-spirit-frame'),presenter=f.page.locator('.ai-spirit-presenter');
+ await expect(panel).toBeVisible();
+ const bounds=()=>f.page.evaluate(()=>{const p=document.querySelector('.ai-companion').getBoundingClientRect(),c=document.querySelector('.ai-conversation').getBoundingClientRect();return{panelWidth:p.width,panelHeight:p.height,chatHeight:c.height};});
+ const before=await bounds();
+ if(width<1100){
+   await expect(presenter).toHaveAttribute('data-viewer','svg');assert.equal(loads.length,0);
+   await expect(f.page.locator('#ai-spirit-view-mode')).toHaveText(f.tr('ai.view2dActive'));
+   const enable=f.page.getByRole('button',{name:f.tr('ai.show3d'),exact:true});await enable.focus();await enable.press('Enter');
+ }
+ await expect(presenter).toHaveAttribute('data-viewer','3d');
+ await expect(f.page.locator('#ai-spirit-view-mode')).toHaveText(f.tr('ai.view3dActive'));
+ const button=f.page.getByRole('button',{name:f.tr('ai.showSvg'),exact:true});
+ await expect(button).toHaveAttribute('aria-describedby','ai-spirit-view-mode');await expect(button).toBeVisible();
+ assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+ const after=await bounds(),rect=await stage.boundingBox();
+ assert.equal(after.panelWidth,before.panelWidth);
+ if(width<1100){assert.ok(rect.width>=111);assert.ok(after.chatHeight>=before.chatHeight-4,`${before.chatHeight} -> ${after.chatHeight}`);assert.ok(after.panelHeight<=180);}
+ else {assert.equal(after.panelWidth,220);assert.ok(rect.width>=187);}
+ const visibleControl=await button.evaluate(el=>{const b=el.getBoundingClientRect(),p=el.closest('.ai-companion').getBoundingClientRect();return b.bottom<=p.bottom+1&&b.top>=p.top&&b.left>=p.left&&b.right<=p.right;});assert.ok(visibleControl,'switch stays within companion');
+ await expect(f.page.getByLabel(f.tr('ai.composer'),{exact:true})).toBeInViewport();
+ const canvas=f.page.locator('.ai-spirit-frame canvas'),image=await canvas.screenshot();await f.page.waitForTimeout(180);assert.notDeepEqual(await canvas.screenshot(),image);
+ await f.page.screenshot({path:join(evidence,`companion-final-${width}-${language}-${theme}.png`)});
+ await button.focus();await button.press('Enter');
+ await expect(presenter).toHaveAttribute('data-viewer','svg');await expect(f.page.locator('#ai-spirit-view-mode')).toHaveText(f.tr('ai.view2dActive'));
+ await expect(f.page.locator('.knowledge-spirit')).toBeVisible();await expect(canvas).toHaveCount(0);
+});
+
+for (const width of [320,390,768]) for (const language of ['ar','en']) for (const theme of ['light','dark']) test(`Empty heading regression: ${width}/${language}/${theme}`,async(t)=>{
+ const f=await fixture(t,{width,language,theme,motion:'no-preference'});await f.goto();
+ await expect(f.page.locator('.student-ai')).toHaveAttribute('data-ai-state','idle');
+ await expect(f.page.locator('.ai-empty h2')).toBeAttached();
+ const metrics=()=>f.page.evaluate(()=>{const s=document.querySelector('.ai-transcript'),h=document.querySelector('.ai-empty h2'),bar=document.querySelector('.ai-workspace-toolbar');return{scrollTop:s.scrollTop,clientHeight:s.clientHeight,scrollHeight:s.scrollHeight,headingTop:h.getBoundingClientRect().top,headingBottom:h.getBoundingClientRect().bottom,viewportTop:s.getBoundingClientRect().top,viewportBottom:s.getBoundingClientRect().bottom,toolbarBottom:bar.getBoundingClientRect().bottom,toolbarPosition:getComputedStyle(bar).position,focus:document.activeElement?.id,windowScroll:window.scrollY};});
+ await f.page.waitForTimeout(100);
+ async function check(label){const m=await metrics();assert.equal(m.scrollTop,0,label+JSON.stringify(m));assert.ok(m.headingTop>=m.toolbarBottom-1,label);assert.ok(m.headingBottom<=m.viewportBottom+1,label);assert.equal(m.windowScroll,0);await expect(f.page.getByLabel(f.tr('ai.composer'),{exact:true})).toBeInViewport();}
+ await check('initial');
+ await f.page.getByRole('button',{name:f.tr('ai.guide'),exact:true}).click();await check('SVG companion');
+ await f.page.getByRole('button',{name:f.tr('ai.show3d'),exact:true}).click();
+ await expect(f.page.locator('.ai-spirit-presenter')).toHaveAttribute('data-viewer','3d');await f.page.waitForTimeout(100);await check('3D companion');
+ await f.page.screenshot({path:join(evidence,`empty-heading-${width}-${language}-${theme}.png`)});
+ await f.page.getByRole('button',{name:f.tr('ai.showSvg'),exact:true}).click();await check('back to SVG');
+ await f.page.getByRole('button',{name:f.tr('ai.guide'),exact:true}).click();await check('closed companion');
+ const textarea=f.page.getByLabel(f.tr('ai.composer'),{exact:true});await textarea.focus();await check('composer focus');
+ const region=f.page.getByRole('region',{name:f.tr('ai.conversation'),exact:true});await region.focus();await expect(region).toBeFocused();await check('transcript focus');
 });

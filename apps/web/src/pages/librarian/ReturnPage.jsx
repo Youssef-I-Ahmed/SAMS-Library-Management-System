@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AdminModal } from '../../components/admin/AdminModal';
 
-import { InlineAlert } from '../../components/ui/InlineAlert';
+import { StaffReadState, StaffMutationFeedback } from '../../components/staff/StaffReadState';
+import { useStaffRead, useStaffMutation } from '../../features/staff/use-staff-circulation';
+import '../../styles/staff-circulation.css';
 import { StaffOperationNotice } from '../../components/staff/StaffOperationNotice';
 import { StaffStatusBadge } from '../../components/staff/StaffStatusBadge';
 
@@ -25,86 +27,32 @@ export function ReturnPage() {
   const { t, language } = useLanguage();
 
   const [query, setQuery] = useState('');
-  const [borrowings, setBorrowings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [submittedQuery, setSubmittedQuery] = useState('');
+  const read = useStaffRead(listBorrowings, auth.token, { q: submittedQuery, status: 'ACTIVE', page: 1, pageSize: 50 });
+  const borrowings = read.result?.data || [];
+  const { loading } = read;
+  const action = useStaffMutation(auth.token);
+  const submitting = Boolean(action.pending);
+  const blocked = submitting || action.uncertain || read.loading || Boolean(read.error);
   const [returnTarget, setReturnTarget] = useState(null);
   const [outcome, setOutcome] = useState('GOOD');
   const [notes, setNotes] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState(null);
 
-  async function load(signal) {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await listBorrowings(
-        auth.token,
-        {
-          q: query.trim() || undefined,
-          status: 'ACTIVE',
-          page: 1,
-          pageSize: 50
-        },
-        signal
-      );
-
-      setBorrowings(response.data || []);
-    } catch (nextError) {
-      if (nextError.name !== 'AbortError') {
-        setError(nextError);
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false);
-      }
-    }
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-    load(controller.signal);
-    return () => controller.abort();
-  }, [auth.token]);
-
-  async function submitReturn() {
-    if (!returnTarget || submitting) return;
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const response = await returnBorrowing(
-        auth.token,
-        returnTarget.id,
-        {
-          outcome,
-          notes: notes.trim() || undefined
-        }
-      );
-
-      setNotice({
-        title: t('staff.return.success'),
-        body: `${response.data.student.user.displayName} · ${response.data.item.title}`
-      });
-
-      setReturnTarget(null);
-      setOutcome('GOOD');
-      setNotes('');
-      await load();
-    } catch (nextError) {
-      setError(nextError);
-    } finally {
-      setSubmitting(false);
-    }
+  function submitReturn() {
+    if (!returnTarget || blocked || !borrowings.some((record) => record.id === returnTarget.id)) return;
+    setNotice(null);
+    action.run(returnTarget.id, () => returnBorrowing(auth.token, returnTarget.id, { outcome, notes: notes.trim() || undefined }), (record) => {
+      setNotice({ title: t('staff.ux.confirmed'), body: `${record.student?.user?.displayName || '—'} · ${record.item?.title || '—'} · ${t(`staff.borrowingStatus.${record.status}`)}` });
+      setReturnTarget(null); setOutcome('GOOD'); setNotes('');
+    });
   }
 
   return (
-    <section className="staff-page">
+    <section className="staff-page staff-circulation">
       <header className="staff-page__header">
         <span>{t('staff.return.eyebrow')}</span>
-        <h1>{t('staff.return.title')}</h1>
+        <h1 tabIndex={-1}>{t('staff.return.title')}</h1>
         <p>{t('staff.return.subtitle')}</p>
       </header>
 
@@ -116,23 +64,19 @@ export function ReturnPage() {
         />
       )}
 
-      {error && (
-        <InlineAlert
-          title={t('staff.common.operationFailed')}
-          message={error.message}
-          requestId={error.requestId}
-        />
-      )}
+      {!returnTarget && <StaffMutationFeedback action={action} canVerify={!read.loading && !read.error && Boolean(read.result)} />}
 
       <section className="staff-workflow-card">
         <form
           className="staff-search-bar"
           onSubmit={(event) => {
             event.preventDefault();
-            load();
+            if (submittedQuery === query.trim()) read.reload();
+            else setSubmittedQuery(query.trim());
           }}
         >
           <input
+            aria-label={t('staff.return.searchPlaceholder')}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t('staff.return.searchPlaceholder')}
@@ -142,11 +86,12 @@ export function ReturnPage() {
           </button>
         </form>
 
-        {loading ? (
+        {!returnTarget && <StaffReadState read={read} limit={50} />}
+        {loading && !read.result ? (
           <div className="staff-empty-state">
             {t('staff.common.loading')}
           </div>
-        ) : borrowings.length === 0 ? (
+        ) : !read.result || read.error && borrowings.length === 0 ? null : borrowings.length === 0 ? (
           <div className="staff-empty-state">
             <strong>{t('staff.return.noActive')}</strong>
             <span>{t('staff.return.noActiveBody')}</span>
@@ -157,21 +102,21 @@ export function ReturnPage() {
               <article className="staff-operation-row" key={borrowing.id}>
                 <div className="staff-operation-row__main">
                   <div className="staff-operation-row__title">
-                    <span>{borrowing.student.studentId}</span>
+                    <span><bdi>{borrowing.student.studentId}</bdi></span>
                     <strong>{borrowing.student.user.displayName}</strong>
                     <small dir="auto">{borrowing.item.title}</small>
                   </div>
 
                   <div className="staff-operation-row__facts">
                     <span>
-                      {t('staff.common.copy')}: {copyLabel(borrowing.copy)}
+                      {t('staff.common.copy')}: <bdi>{copyLabel(borrowing.copy)}</bdi>
                     </span>
                     <span>
                       {t('staff.common.branch')}: {borrowing.branch.name}
                     </span>
                     <span>
                       {t('staff.return.due')}:{' '}
-                      {formatDateTime(borrowing.dueAt, language)}
+                      <bdi>{formatDateTime(borrowing.dueAt, language)}</bdi>
                     </span>
                     {borrowing.copy.shelfLocation && (
                       <span>
@@ -191,6 +136,7 @@ export function ReturnPage() {
                   <button
                     type="button"
                     className="staff-primary-button"
+                    disabled={blocked}
                     onClick={() => {
                       setReturnTarget(borrowing);
                       setOutcome('GOOD');
@@ -213,6 +159,8 @@ export function ReturnPage() {
           onClose={() => setReturnTarget(null)}
           canClose={!submitting}
         >
+            <StaffMutationFeedback action={action} canVerify={!read.loading && !read.error && Boolean(read.result)} />
+            <StaffReadState read={read} />
             <p dir="auto">
               {returnTarget.student.user.displayName} · {returnTarget.item.title}
             </p>
@@ -228,6 +176,7 @@ export function ReturnPage() {
                   }
                 >
                   <input
+                    disabled={submitting}
                     type="radio"
                     name="outcome"
                     value={value}
@@ -243,6 +192,7 @@ export function ReturnPage() {
             <label className="staff-notes-field">
               <span>{t('staff.return.notes')}</span>
               <textarea
+                disabled={submitting}
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 maxLength={1000}
@@ -253,7 +203,7 @@ export function ReturnPage() {
               <button
                 type="button"
                 className="staff-primary-button"
-                disabled={submitting}
+                disabled={blocked || !borrowings.some((record) => record.id === returnTarget.id)}
                 onClick={submitReturn}
               >
                 {submitting

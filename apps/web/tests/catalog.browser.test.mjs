@@ -32,7 +32,7 @@ after(async () => {
 });
 
 const facets = {
-  types: ['BOOK', 'THESIS', 'PROJECT'].map((value) => ({ value, count: 2 })),
+  types: ['BOOK', 'THESIS', 'PROJECT', 'ACADEMIC_WORK'].map((value) => ({ value, count: 2 })),
   categories: [{ id: 'category', name: 'Management / الإدارة', count: 6 }],
   deweyClassifications: [{ id: 'dewey', code: '658', name: 'Management', count: 6 }],
   languages: [{ value: 'en', count: 4 }, { value: 'ar', count: 2 }],
@@ -44,11 +44,18 @@ function items(language) {
     ? ['مبادئ الإدارة الحديثة', 'مناهج البحث العلمي', 'نظم المعلومات الإدارية', 'التخطيط الاستراتيجي', 'دراسة في الإدارة والاقتصاد والتحول الرقمي وتطوير المؤسسات في ظل التغيرات العالمية المعاصرة', 'مصدر ببيانات محدودة']
     : ['Principles of Management', 'Research Methods', 'Management Information Systems', 'Strategic Planning', 'A very long title about management, economics, digital transformation and the development of institutions in a changing world', 'An item with minimal metadata'];
   return titles.map((title, index) => ({
-    id: `fixture-${index}`, title, type: ['BOOK', 'BOOK', 'THESIS', 'PROJECT', 'BOOK', 'BOOK'][index],
+    id: `fixture-${index}`, title, type: ['BOOK', 'BOOK', 'THESIS', 'PROJECT', 'ACADEMIC_WORK', 'BOOK'][index],
     ...(index === 5 ? {} : { publicationYear: 2024, language: index === 2 ? 'ar' : 'en',
       callNumber: `658 SAM ${index}`, category: facets.categories[0], deweyClassification: { code: '658' },
       bookDetails: { isbn: '9780000000001', publisher: 'Fixture publisher' },
-      itemContributors: [{ contributor: { fullName: language === 'ar' ? 'مؤلف تجريبي' : 'Fixture contributor' } }] }),
+      itemContributors: [
+        { role: 'EDITOR', contributor: { fullName: 'Fixture editor' } },
+        { role: index < 2 ? 'AUTHOR' : 'RESEARCHER', contributor: { fullName: language === 'ar' ? 'مساهم تجريبي' : 'Fixture contributor' } },
+        { role: 'SUPERVISOR', contributor: { fullName: 'Fixture supervisor' } }
+      ],
+      ...(index >= 2 ? { academicWorkDetails: { academicYear: '2023/2024',
+        faculty: { name: language === 'ar' ? 'كلية العلوم الإدارية' : 'Faculty of Management' },
+        department: { name: language === 'ar' ? 'قسم نظم المعلومات' : 'Information Systems' } } } : {}) }),
     // Public inventory fields intentionally carry no invented verification/source flag.
     availability: { available: index % 3 === 0, totalCopies: index % 3 === 2 ? 0 : 3,
       availableCopies: index % 3 === 0 ? 2 : 0, branches: index % 3 === 2 ? [] : [{ branch: { id: 'branch', name: 'Main branch' } }] }
@@ -57,7 +64,7 @@ function items(language) {
 async function fixture(t, { language = 'en', theme = 'light', viewport = { width: 1440, height: 1000 },
   reducedMotion = 'no-preference', hold = false, facetError = false, emptyCatalog = false } = {}) {
   const context = await browser.newContext({ viewport, reducedMotion });
-  const state = { api: [], errors: [], unexpected: [], hold, waiters: [], failSearch: true };
+  const state = { api: [], errors: [], unexpected: [], hold, waiters: [], failSearch: true, failFacets: facetError };
   state.release = () => { state.hold = false; state.waiters.splice(0).forEach((resolve) => resolve()); };
   t.after(async () => {
     state.release();
@@ -82,13 +89,15 @@ async function fixture(t, { language = 'en', theme = 'light', viewport = { width
       const path = url.pathname.replace('/api/v1', '');
       state.api.push({ path, method: request.method(), query: Object.fromEntries(url.searchParams) });
       if (path === '/auth/me') return json({ user: { id: 'fixture', roles: ['STUDENT'], displayName: language === 'ar' ? 'طالب المكتبة' : 'SAMS Student' } });
-      if (path === '/discovery/facets') return facetError
+      if (path === '/discovery/facets') return state.failFacets
         ? json({ error: { message: 'Fixture facets failure' } }, 500) : json({ data: facets });
       if (path === '/discovery/items') {
         if (state.hold) await new Promise((resolve) => state.waiters.push(resolve));
         const q = url.searchParams.get('q');
         if (q === 'error' && state.failSearch) return json({ error: { message: 'Fixture catalog failure', requestId: 'catalog-fixture' } }, 500);
         let data = q === 'empty' || emptyCatalog ? [] : items(language);
+        if (q === 'long') data = data.map((item) => ({ ...item, title: item.title + 'LongUnbrokenTitle'.repeat(20),
+          callNumber: '658-'.repeat(40) }));
         const type = url.searchParams.get('type');
         if (type) data = data.filter((item) => item.type === type);
         if (url.searchParams.get('availableOnly') === 'true') data = data.filter((item) => item.availability.available);
@@ -135,7 +144,9 @@ async function noOverflow(page) {
 }
 
 for (const [device, viewport] of [
-  ['desktop', { width: 1440, height: 1000 }], ['tablet', { width: 820, height: 1180 }], ['mobile', { width: 390, height: 844 }]
+  ['desktop', { width: 1440, height: 1000 }], ['tablet-wide', { width: 1024, height: 1000 }],
+  ['tablet', { width: 768, height: 1000 }], ['mobile', { width: 390, height: 844 }],
+  ['mobile-small', { width: 320, height: 740 }]
 ]) for (const language of ['en', 'ar']) for (const theme of ['light', 'dark']) {
   test(`${device} ${language} ${theme}: Catalog layout, stock qualification, AA and screenshot`, async (t) => {
     const { page, state, tr } = await fixture(t, { language, theme, viewport });
@@ -155,24 +166,46 @@ for (const [device, viewport] of [
     if (device === 'mobile') await page.screenshot({ path: `${screenshots}/${device}-${language}-${theme}-viewport.png` });
     const violations = await audit(page);
     const performance = await page.evaluate(() => ({ ...window.__catalogMetrics,
+      resultsTop: document.querySelector('.catalog-results').getBoundingClientRect().top + scrollY,
       imageBytes: performance.getEntriesByType('resource').filter((entry) => entry.initiatorType === 'img').reduce((sum, entry) => sum + entry.encodedBodySize, 0) }));
-    metrics.push({ device, language, theme, ...performance, violations });
+    const metric = { device, language, theme, ...performance, violations };
+    metrics.push(metric);
     assert.deepEqual(violations, [], 'whole-page WCAG A/AA scan, including contrast, no exclusions');
     assert.ok(performance.cls < .1, `CLS ${performance.cls}`);
     assert.equal(state.api.every(({ method }) => method === 'GET'), true);
-    if (device !== 'desktop') {
+    assert.equal(await page.getByRole('searchbox').evaluate((node) => getComputedStyle(node).fontSize), '16px');
+    await expect(page.getByRole('combobox', { name: new RegExp(`^${tr('discovery.filters.type')}`) })).toHaveCount(0);
+    if (viewport.width <= 1000) {
       const toggle = page.locator('.discovery-filters__toggle');
       await expect(toggle).toHaveText(`${tr('discovery.filters.show')}+`);
       await toggle.focus(); await page.keyboard.press('Enter');
       await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-      await expect(page.getByRole('combobox', { name: new RegExp(`^${tr('discovery.filters.type')}`) })).toBeVisible();
+      await expect(page.getByRole('combobox', { name: tr('discovery.filters.category'), exact: true })).toBeVisible();
+      await expect(page.getByText(tr('catalogRefinement.facetScope'), { exact: true })).toBeVisible();
+      metric.expandedResultsTop = await page.locator('.catalog-results').evaluate((node) => node.getBoundingClientRect().top + scrollY);
       assert.deepEqual(await audit(page), [], 'expanded filters have no AA violations');
+      await page.screenshot({ path: `${screenshots}/${device}-${language}-${theme}-filters.png` });
+      await page.getByRole('button', { name: tr('catalogRefinement.showResults'), exact: true }).press('Enter');
+      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      await expect(page.locator('#catalog-results')).toBeFocused();
+      const headingBounds = await page.locator('#catalog-results').evaluate((node) => ({ top: node.getBoundingClientRect().top,
+        header: document.querySelector('.student-shell__header').getBoundingClientRect().bottom }));
+      assert.ok(headingBounds.top >= headingBounds.header, JSON.stringify(headingBounds));
     }
     const searches = state.api.filter(({ path }) => path === '/discovery/items').length;
     await page.getByRole('button', { name: tr('discovery.catalog.list'), exact: true }).press('Enter');
     await expect(page.locator('.catalog-grid')).toHaveClass(/catalog-grid--list/);
     await noOverflow(page);
     assert.deepEqual(await audit(page), [], 'list layout passes AA too');
+    await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+    if (viewport.width < 761) {
+      for (const safeBottom of ['0px', '34px']) {
+        await page.locator('.student-shell').evaluate((node, value) => node.style.setProperty('--student-safe-bottom', value), safeBottom);
+        await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+        assert.equal(await page.locator('.catalog-pagination').evaluate((node) =>
+          node.getBoundingClientRect().bottom < document.querySelector('.student-mobile-nav').getBoundingClientRect().top), true, `last controls clear bottom navigation with ${safeBottom} simulated inset`);
+      }
+    }
     assert.equal(state.api.filter(({ path }) => path === '/discovery/items').length, searches, 'layout is local, no contract change');
   });
 }
@@ -187,8 +220,11 @@ for (const language of ['en', 'ar']) {
     const search = page.getByRole('searchbox');
     await search.fill('  إدارة & research  '); await changeQuery(page, () => search.press('Enter'));
     assert.equal(state.api.at(-1).query.q, 'إدارة & research'); assert.equal(state.api.at(-1).query.page, '1');
+    await changeQuery(page, () => page.getByRole('group', { name: tr('discovery.filters.type'), exact: true })
+      .getByRole('button', { name: tr('itemTypes.BOOK'), exact: true }).click());
+    assert.equal(state.api.at(-1).query.type, 'BOOK');
     for (const [key, label, value] of [
-      ['type', 'type', 'BOOK'], ['categoryId', 'category', 'category'], ['deweyClassificationId', 'dewey', 'dewey'],
+      ['categoryId', 'category', 'category'], ['deweyClassificationId', 'dewey', 'dewey'],
       ['language', 'language', 'ar'], ['publicationYear', 'year', '2024'], ['branchId', 'branch', 'branch']
     ]) {
       await changeQuery(page, () => page.getByRole('combobox', { name: new RegExp(`^${tr(`discovery.filters.${label}`)}`) }).selectOption(value));
@@ -232,7 +268,7 @@ for (const language of ['en', 'ar']) {
     await toggle.press('Tab');
     await expect(page.getByRole('button', { name: tr('discovery.filters.clear'), exact: true })).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('combobox', { name: new RegExp(`^${tr('discovery.filters.type')}`) })).toBeFocused();
+    await expect(page.getByRole('combobox', { name: tr('discovery.filters.category'), exact: true })).toBeFocused();
     await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Shift+Tab'); await expect(toggle).toBeFocused();
     await toggle.press('Enter'); await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     await toggle.press('Tab');
@@ -248,6 +284,8 @@ for (const language of ['en', 'ar']) {
         await expect(status).toContainText(tr('discovery.empty.title'));
       } else if (q === 'error') {
         await expect(page.getByRole('alert')).toContainText('Fixture catalog failure');
+        await expect(page.locator('#catalog-results')).toHaveText(tr('catalogRefinement.resultsUnavailable'));
+        await expect(page.getByRole('heading', { name: tr('discovery.empty.title'), exact: true })).toHaveCount(0);
         await expect(status).toHaveText('');
       } else await expect(page.locator('.discovery-item-card')).toHaveCount(6);
       assert.deepEqual(await audit(page), [], `${q} state passes AA`);
@@ -320,4 +358,99 @@ test('responsive filters preserve outside focus and explicitly opened fields', a
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByRole('checkbox')).toBeVisible();
   await expect(page.getByRole('checkbox')).toBeFocused();
+});
+
+for (const language of ['en', 'ar']) {
+  test(`${language}: removable URL filters, deep links and history retain catalog semantics`, async (t) => {
+    const { page, state, tr } = await fixture(t, { language, viewport: { width: 390, height: 844 } });
+    await page.goto(`${origin}/student/catalog?q=research&type=ACADEMIC_WORK&categoryId=missing-facet&sort=YEAR_DESC&pageSize=2`);
+    await ready(page);
+    const academic = page.getByRole('group', { name: tr('discovery.filters.type'), exact: true })
+      .getByRole('button', { name: tr('catalogRefinement.academicWork'), exact: true });
+    await expect(academic).toHaveAttribute('aria-pressed', 'true');
+    const summary = page.getByRole('region', { name: tr('catalogRefinement.appliedFilters'), exact: true });
+    await expect(summary.getByRole('button')).toHaveCount(3);
+    await page.locator('.discovery-filters__toggle').click();
+    await expect(page.getByRole('combobox', { name: tr('discovery.filters.category'), exact: true })).toHaveValue('missing-facet');
+    await page.getByRole('button', { name: tr('catalogRefinement.showResults'), exact: true }).press('Enter');
+    await changeQuery(page, () => summary.getByRole('button', { name: `${tr('catalogRefinement.removeFilter')}: ${tr('discovery.filters.type')}: ${tr('catalogRefinement.academicWork')}`, exact: true }).press('Enter'));
+    assert.equal(state.api.at(-1).query.type, undefined);
+    assert.equal(state.api.at(-1).query.categoryId, 'missing-facet');
+    assert.equal(state.api.at(-1).query.q, 'research');
+    assert.equal(state.api.at(-1).query.sort, 'YEAR_DESC');
+    assert.equal(state.api.at(-1).query.pageSize, '2');
+    await expect(page.locator('#catalog-results')).toBeFocused();
+    await changeQuery(page, () => page.goBack());
+    await expect(academic).toHaveAttribute('aria-pressed', 'true');
+    await changeQuery(page, () => page.goForward());
+    await expect(academic).toHaveAttribute('aria-pressed', 'false');
+    await changeQuery(page, () => summary.getByRole('button', { name: `${tr('catalogRefinement.removeFilter')}: ${tr('discovery.catalog.search')}: research`, exact: true }).click());
+    await expect(page.getByRole('searchbox')).toHaveValue('');
+    await noOverflow(page);
+  });
+
+  test(`${language}: academic cards show actual creator roles and expandable contributors`, async (t) => {
+    const { page, tr } = await fixture(t, { language });
+    await page.goto(`${origin}/student/catalog?type=ACADEMIC_WORK`); await ready(page);
+    const card = page.locator('.discovery-item-card');
+    await expect(card).toHaveCount(1);
+    await expect(card.locator('.item-type-mark')).toHaveText(tr('catalogRefinement.academicWork'));
+    await expect(card.locator('.discovery-cover__book > span').last()).toHaveText(tr('catalogRefinement.academicWork'));
+    await expect(card.locator('.discovery-item-card__contributors > ul li').first()).toContainText(tr('contributorRoles.RESEARCHER'));
+    await expect(card).toContainText('2023/2024');
+    await expect(card).toContainText(language === 'ar' ? 'كلية العلوم الإدارية' : 'Faculty of Management');
+    await expect(card).toContainText(language === 'ar' ? 'قسم نظم المعلومات' : 'Information Systems');
+    await card.locator('summary').press('Enter');
+    await expect(card.locator('details li')).toContainText(tr('contributorRoles.SUPERVISOR'));
+    await expect(card).not.toContainText(tr('itemTypes.ACADEMIC_WORK'));
+    assert.deepEqual(await audit(page), []);
+  });
+
+  test(`${language}: failed initial and refresh requests never advertise a successful zero or stale count`, async (t) => {
+    const { page, state, tr } = await fixture(t, { language, viewport: { width: 320, height: 740 } });
+    await page.goto(`${origin}/student/catalog?q=error`); await ready(page);
+    await expect(page.locator('#catalog-results')).toHaveText(tr('catalogRefinement.resultsUnavailable'));
+    await expect(page.locator('.catalog-state')).toHaveCount(0);
+    await expect(page.locator('.catalog-pagination')).toHaveCount(0);
+    state.failSearch = false;
+    await changeQuery(page, () => page.getByRole('button', { name: tr('discovery.catalog.retry'), exact: true }).click());
+    await expect(page.locator('.discovery-item-card')).toHaveCount(6);
+    state.failSearch = true;
+    await page.getByRole('searchbox').fill('recovered');
+    await changeQuery(page, () => page.getByRole('searchbox').press('Enter'));
+    await page.getByRole('searchbox').fill('error');
+    await changeQuery(page, () => page.getByRole('searchbox').press('Enter'));
+    await expect(page.locator('#catalog-results')).toHaveText(tr('catalogRefinement.resultsUnavailable'));
+    await expect(page.locator('.discovery-item-card')).toHaveCount(0);
+    await expect(page.locator('.catalog-state')).toHaveCount(0);
+  });
+}
+
+test('facet retry is independent, preserves selection and restores the failed controls', async (t) => {
+  const { page, state, tr } = await fixture(t, { facetError: true });
+  await page.goto(`${origin}/student/catalog?categoryId=category&type=PROJECT`); await ready(page);
+  await expect(page.getByRole('alert')).toContainText('Fixture facets failure');
+  await expect(page.getByRole('combobox', { name: tr('discovery.filters.category'), exact: true })).toHaveValue('category');
+  const searches = state.api.filter(({ path }) => path === '/discovery/items').length;
+  state.failFacets = false;
+  await page.getByRole('button', { name: tr('catalogRefinement.retryFilters'), exact: true }).press('Enter');
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  assert.equal(state.api.filter(({ path }) => path === '/discovery/items').length, searches);
+  await expect(page.getByRole('searchbox')).toBeFocused();
+  await expect(page.getByRole('combobox', { name: tr('discovery.filters.category'), exact: true })).toHaveValue('category');
+  await expect(page.getByText(tr('catalogRefinement.facetScope'), { exact: true })).toBeVisible();
+});
+
+test('long mixed-direction titles and identifiers remain contained in both views at every breakpoint', async (t) => {
+  const { page, tr } = await fixture(t, { language: 'ar', theme: 'dark', reducedMotion: 'reduce' });
+  await page.goto(`${origin}/student/catalog?q=long`); await ready(page);
+  for (const width of [320, 390, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (const view of ['grid', 'list']) {
+      await page.getByRole('button', { name: tr(`discovery.catalog.${view}`), exact: true }).press('Enter');
+      await noOverflow(page);
+    }
+  }
+  assert.ok(await page.locator('.discovery-item-card').first().evaluate((node) =>
+    Number.parseFloat(getComputedStyle(node).transitionDuration) <= .001), 'reduced motion uses no perceptible transition');
 });

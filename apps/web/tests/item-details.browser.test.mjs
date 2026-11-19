@@ -135,7 +135,8 @@ async function noOverflow(page) {
 }
 async function capture(page, name) { await page.screenshot({ path: `${evidence}/${name}.png`, fullPage: true }); }
 
-for (const [device, viewport] of [['desktop', { width: 1440, height: 1000 }], ['tablet', { width: 820, height: 1180 }], ['mobile', { width: 390, height: 844 }]])
+for (const [device, viewport] of [['desktop', { width: 1440, height: 1000 }], ['tablet-wide', { width: 1024, height: 1000 }],
+  ['tablet', { width: 768, height: 1000 }], ['mobile', { width: 390, height: 844 }], ['mobile-small', { width: 320, height: 740 }]])
 for (const language of ['en', 'ar']) for (const theme of ['light', 'dark']) {
   test(`${device} ${language} ${theme}: premium Details, recorded inventory, AA and screenshot`, async (t) => {
     const { page, state, tr } = await fixture(t, { language, theme, viewport });

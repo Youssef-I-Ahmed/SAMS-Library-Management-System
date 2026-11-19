@@ -5,6 +5,8 @@ import { BrandLogo } from '../../components/brand/BrandLogo';
 import { InventoryNotice } from '../../components/discovery/InventoryNotice';
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../hooks/useLanguage';
+import { CinematicCampusIntro, skipCampusIntro } from '../../components/landing/CinematicCampusIntro';
+import { DiscoveryDestinations } from '../../components/landing/DiscoveryDestinations';
 
 function HomeIcon({ type }) {
   const paths = {
@@ -37,18 +39,21 @@ export function StudentHomePage() {
   }
 
   return (
-    <section className="student-home">
+    <section className="student-home student-home--cinematic">
       <div className="student-home__hero">
         <figure className="student-home__media">
+          <picture>
+          <source media="(max-width: 767px)" srcSet="/images/scrollVideo/v001/mobile/frame-001.webp" />
           <img
-            src="/images/campus/living-library-concept-1600.webp"
-            srcSet="/images/campus/living-library-concept-960.webp 960w, /images/campus/living-library-concept-1600.webp 1600w"
+            src="/images/scrollVideo/v001/desktop/frame-001.webp"
+            srcSet="/images/scrollVideo/v001/mobile/frame-001.webp 640w, /images/scrollVideo/v001/desktop/frame-001.webp 1280w"
             sizes="100vw"
-            width={1600}
-            height={900}
+            width={1280}
+            height={720}
             alt=""
             fetchpriority="high"
           />
+          </picture>
           <figcaption>{t('studentHome.imageCaption')}</figcaption>
         </figure>
         <div className="home-container student-home__hero-inner">
@@ -73,18 +78,14 @@ export function StudentHomePage() {
             <Link className="student-home__browse" to="/student/catalog">
               {t('studentHome.browseAll')} <span aria-hidden="true">→</span>
             </Link>
-            <nav className="student-home__chips" aria-label={t('studentHome.collectionNavigation')}>
-              {['BOOK', 'ACADEMIC_WORK'].map((type) => (
-                <Link key={type} to={`/student/catalog?type=${type}`}>
-                  <HomeIcon type={type} />{t(`itemTypes.${type}`)}
-                </Link>
-              ))}
-            </nav>
+            <a className="home-skip" href="#home-collections" onClick={skipCampusIntro}>{t('cinematic.skip')} ↓</a>
+            <DiscoveryDestinations />
           </div>
         </div>
       </div>
+      <CinematicCampusIntro />
 
-      <section className="home-container student-home__collections" aria-labelledby="home-collections-title">
+      <section id="home-collections" tabIndex={-1} className="home-container student-home__collections" aria-labelledby="home-collections-title">
         <div className="student-home__heading">
           <div>
             <span>{t('studentHome.browseEyebrow')}</span>

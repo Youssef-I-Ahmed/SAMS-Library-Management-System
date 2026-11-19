@@ -1,4 +1,5 @@
 import { AcademicStatus } from '@prisma/client';
+import { z } from 'zod';
 import { prisma } from '../../config/prisma.js';
 import { AppError } from '../../utils/app-error.js';
 
@@ -9,6 +10,44 @@ const studentInclude = {
 };
 
 const clean = (value) => typeof value === 'string' ? value.trim() : value;
+
+// Omission is meaningful on updates; defaults belong only to new records.
+const importRecordsSchema = z.array(z.object({
+  studentId: z.string().trim().min(1).max(80),
+  universityEmail: z.string().trim().email().transform((value) => value.toLowerCase()),
+  displayName: z.string().trim().min(2).max(180),
+  facultyName: z.string().trim().min(2).max(150).nullable().optional(),
+  departmentName: z.string().trim().min(2).max(150).nullable().optional(),
+  academicStatus: z.nativeEnum(AcademicStatus).optional(),
+  isActive: z.boolean().optional()
+})).min(1).max(500);
+
+const importUserInclude = { userRoles: { include: { role: true } } };
+
+function requireStudentOnlyAccount(user) {
+  if (user.userRoles.length !== 1 || user.userRoles[0].role.name !== 'STUDENT') {
+    throw new AppError(409, 'PROTECTED_ACCOUNT', 'Student import cannot modify a protected or ambiguous account');
+  }
+}
+
+function validateImport(records) {
+  const parsed = importRecordsSchema.safeParse(records);
+  if (!parsed.success) {
+    throw new AppError(400, 'VALIDATION_ERROR', 'Student import requires 1–500 valid student records');
+  }
+  const studentIds = new Set();
+  const emails = new Set();
+  for (const record of parsed.data) {
+    // Reject case variants rather than guessing whether they identify different students.
+    const identity = record.studentId.toLowerCase();
+    if (studentIds.has(identity) || emails.has(record.universityEmail)) {
+      throw new AppError(409, 'DUPLICATE_IMPORT_IDENTITY', 'Student import contains repeated student IDs or email addresses');
+    }
+    studentIds.add(identity);
+    emails.add(record.universityEmail);
+  }
+  return parsed.data;
+}
 
 async function requireRole(tx, name) {
   const role = await tx.role.findUnique({ where: { name } });
@@ -41,78 +80,73 @@ async function resolveDepartment(tx, faculty, departmentName) {
   return department;
 }
 
-async function attachStudentRole(tx, userId) {
-  const role = await requireRole(tx, 'STUDENT');
-  await tx.userRole.upsert({
-    where: { userId_roleId: { userId, roleId: role.id } },
-    update: {},
-    create: { userId, roleId: role.id }
+async function prepareImport(tx, record) {
+  const students = await tx.student.findMany({
+    where: { studentId: { equals: record.studentId, mode: 'insensitive' } },
+    include: { user: { include: importUserInclude }, faculty: true, department: true },
+    take: 2
   });
+  if (students.length > 1 || (students[0] && students[0].studentId !== record.studentId)) {
+    throw new AppError(409, 'AMBIGUOUS_STUDENT_ID', 'Student ID conflicts with an existing institutional identity');
+  }
+  const existingStudent = students[0];
+  if (existingStudent) {
+    requireStudentOnlyAccount(existingStudent.user);
+  }
+  const users = await tx.user.findMany({
+    where: { universityEmail: { equals: record.universityEmail, mode: 'insensitive' } },
+    include: { ...importUserInclude, student: true },
+    take: 2
+  });
+  if (users.length > 1) {
+    throw new AppError(409, 'AMBIGUOUS_EMAIL', 'Email address matches multiple existing accounts');
+  }
+  const existingUser = users[0];
+  if (existingUser) requireStudentOnlyAccount(existingUser);
+  if (existingStudent && existingUser && existingUser.id !== existingStudent.userId) {
+    throw new AppError(409, 'EMAIL_ALREADY_IN_USE', 'Email address is already linked to another account');
+  }
+  if (!existingStudent && existingUser) {
+    throw new AppError(409, 'EXISTING_ACCOUNT_LINK_NOT_ALLOWED', 'Student import cannot attach a new student identity to an existing account');
+  }
+
+  const faculty = record.facultyName === undefined
+    ? existingStudent?.faculty ?? null
+    : await resolveFaculty(tx, record.facultyName);
+  const department = record.departmentName === undefined
+    ? existingStudent?.department ?? null
+    : await resolveDepartment(tx, faculty, record.departmentName);
+  if (department && department.facultyId !== faculty?.id) {
+    throw new AppError(409, 'DEPARTMENT_FACULTY_MISMATCH', 'Explicitly resolve the department when changing or clearing its faculty');
+  }
+
+  return { record, existingStudent, faculty, department };
 }
 
-async function upsertOne(tx, record) {
-  const studentId = clean(record.studentId);
-  const universityEmail = clean(record.universityEmail).toLowerCase();
-  const displayName = clean(record.displayName);
-  const academicStatus = record.academicStatus ?? AcademicStatus.ACTIVE;
-
-  const faculty = await resolveFaculty(tx, record.facultyName);
-  const department = await resolveDepartment(tx, faculty, record.departmentName);
-
-  const existingStudent = await tx.student.findUnique({
-    where: { studentId },
-    include: { user: true }
-  });
-
+async function applyImport(tx, plan, studentRole) {
+  const { record, existingStudent, faculty, department } = plan;
+  const { studentId, universityEmail, displayName } = record;
   if (existingStudent) {
-    const conflictingUser = await tx.user.findUnique({ where: { universityEmail } });
-    if (conflictingUser && conflictingUser.id !== existingStudent.userId) {
-      throw new AppError(409, 'EMAIL_ALREADY_IN_USE', `University email is already linked to another user: ${universityEmail}`);
-    }
-
     await tx.user.update({
       where: { id: existingStudent.userId },
-      data: {
-        universityEmail,
-        displayName,
-        isActive: record.isActive ?? true
-      }
+      data: { universityEmail, displayName,
+        ...(record.isActive !== undefined ? { isActive: record.isActive } : {}) }
     });
-
     await tx.student.update({
       where: { userId: existingStudent.userId },
       data: {
-        facultyId: faculty?.id ?? null,
-        departmentId: department?.id ?? null,
-        academicStatus
+        ...(record.facultyName !== undefined ? { facultyId: faculty?.id ?? null } : {}),
+        ...(record.departmentName !== undefined ? { departmentId: department?.id ?? null } : {}),
+        ...(record.academicStatus !== undefined ? { academicStatus: record.academicStatus } : {})
       }
     });
-
-    await attachStudentRole(tx, existingStudent.userId);
+    // Existing identities and role memberships are never relinked or repaired by import.
     return { action: 'updated', studentId, userId: existingStudent.userId };
   }
 
-  const existingUser = await tx.user.findUnique({
-    where: { universityEmail },
-    include: { student: true }
+  const user = await tx.user.create({
+    data: { universityEmail, displayName, isActive: record.isActive ?? true }
   });
-
-  if (existingUser?.student) {
-    throw new AppError(
-      409,
-      'EMAIL_ALREADY_LINKED_TO_STUDENT',
-      `University email is already linked to student ${existingUser.student.studentId}`
-    );
-  }
-
-  const user = existingUser
-    ? await tx.user.update({
-        where: { id: existingUser.id },
-        data: { displayName, isActive: record.isActive ?? true }
-      })
-    : await tx.user.create({
-        data: { universityEmail, displayName, isActive: record.isActive ?? true }
-      });
 
   await tx.student.create({
     data: {
@@ -120,26 +154,49 @@ async function upsertOne(tx, record) {
       studentId,
       facultyId: faculty?.id ?? null,
       departmentId: department?.id ?? null,
-      academicStatus
+      academicStatus: record.academicStatus ?? AcademicStatus.ACTIVE
     }
   });
 
-  await attachStudentRole(tx, user.id);
+  await tx.userRole.create({ data: { userId: user.id, roleId: studentRole.id } });
   return { action: 'created', studentId, userId: user.id };
 }
 
 export async function importStudents(records) {
-  return prisma.$transaction(async (tx) => {
-    const results = [];
-    for (const record of records) results.push(await upsertOne(tx, record));
-
-    return {
-      total: results.length,
-      created: results.filter((x) => x.action === 'created').length,
-      updated: results.filter((x) => x.action === 'updated').length,
-      results
-    };
-  });
+  // Internal domain operation only. HTTP access remains closed until a trusted
+  // integration authorization mechanism is approved; role names are insufficient.
+  const normalized = validateImport(records);
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const plans = [];
+      const userIds = new Set();
+      // Validate the entire batch against the same snapshot before any writes.
+      for (const record of normalized) {
+        const plan = await prepareImport(tx, record);
+        if (plan.existingStudent) {
+          if (userIds.has(plan.existingStudent.userId)) {
+            throw new AppError(409, 'DUPLICATE_IMPORT_IDENTITY', 'Student import refers to the same account more than once');
+          }
+          userIds.add(plan.existingStudent.userId);
+        }
+        plans.push(plan);
+      }
+      const studentRole = plans.some((plan) => !plan.existingStudent) ? await requireRole(tx, 'STUDENT') : null;
+      const results = [];
+      for (const plan of plans) results.push(await applyImport(tx, plan, studentRole));
+      return {
+        total: results.length,
+        created: results.filter((x) => x.action === 'created').length,
+        updated: results.filter((x) => x.action === 'updated').length,
+        results
+      };
+    }, { isolationLevel: 'Serializable' });
+  } catch (error) {
+    if (['P2034', 'P2002'].includes(error?.code)) {
+      throw new AppError(409, 'STUDENT_IMPORT_CONFLICT', 'Student identities changed or conflicted; reconcile the batch before retrying');
+    }
+    throw error;
+  }
 }
 
 export async function listStudents({

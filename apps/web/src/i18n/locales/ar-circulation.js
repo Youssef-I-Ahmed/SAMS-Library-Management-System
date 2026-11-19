@@ -1,4 +1,13 @@
 export const arCirculation = {
+  circulationUx: {
+    refresh: 'تحديث السجلات',
+    unavailable: 'تعذّر تحميل السجلات',
+    reservationsReadError: 'تعذّر تحميل الحجوزات',
+    stale: 'تُعرض سجلات محمّلة سابقًا وقد لا تكون محدّثة.',
+    pagination: 'صفحات السجلات',
+    cancellationRecorded: 'تم تحديث حالة الحجز.',
+    noTitle: 'العنوان غير مسجل'
+  },
   reservations: {
     page: {
       eyebrow: 'خدمات الطالب',
@@ -133,6 +142,11 @@ export const arCirculation = {
   },
 
   profile: {
+    personalTitle: 'المعلومات الشخصية',
+    academicTitle: 'المعلومات الأكاديمية',
+    readOnly: 'بيانات الحساب للقراءة فقط',
+    notProvided: 'غير مسجل',
+    academicMissing: 'لم تُقدَّم معلومات أكاديمية لهذا الحساب.',
     menu: 'ملفي الشخصي',
     eyebrow: 'حساب الطالب',
     title: 'ملفي الشخصي',

@@ -4,10 +4,10 @@ import { getPilotCover } from '../../features/discovery/book-cover-pilot';
 import { BookCoverPlaceholder } from './BookCoverPlaceholder';
 import './book-cover-pilot.css';
 
-function PilotImage({ item, cover }) {
+function PilotImage({ item, cover, typeLabel }) {
   const [failed, setFailed] = useState(false);
   const { language } = useLanguage();
-  if (failed) return <BookCoverPlaceholder type={item.type} />;
+  if (failed) return <BookCoverPlaceholder type={item.type} typeLabel={typeLabel} />;
   return (
     <div className="discovery-cover discovery-cover--book discovery-cover--pilot">
       <img src={cover.imageUrl} width="180" height="240" alt=""
@@ -20,10 +20,10 @@ function PilotImage({ item, cover }) {
   );
 }
 
-export function BookCover({ item }) {
+export function BookCover({ item, typeLabel }) {
   // Deliberately unavailable in production builds during the local pilot.
   const enabled = import.meta.env.DEV && import.meta.env.VITE_BOOK_COVER_PILOT === 'true';
   const cover = enabled ? getPilotCover(item) : null;
-  if (!cover) return <BookCoverPlaceholder type={item?.type} />;
-  return <PilotImage key={`${item.id}:${cover.imageUrl}`} item={item} cover={cover} />;
+  if (!cover) return <BookCoverPlaceholder type={item?.type} typeLabel={typeLabel} />;
+  return <PilotImage key={`${item.id}:${cover.imageUrl}`} item={item} cover={cover} typeLabel={typeLabel} />;
 }

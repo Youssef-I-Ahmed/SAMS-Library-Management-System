@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { AdminModal } from '../../components/admin/AdminModal';
 import { AdminStatusBadge } from '../../components/admin/AdminStatusBadge';
-import { InlineAlert } from '../../components/ui/InlineAlert';
+import { AdminReadState, AdminPagination } from '../../components/admin/AdminReadState';
+import { useStaffRead } from '../../features/staff/use-staff-circulation';
+import '../../styles/admin-operations.css';
 import { listStudents } from '../../features/admin/admin-api';
 import { ACADEMIC_STATUSES, studentStatusTone } from '../../features/admin/admin-format';
 import { useAuth } from '../../hooks/useAuth';
@@ -12,49 +14,19 @@ export function StudentsAdminPage() {
   const auth = useAuth();
   const { t } = useLanguage();
 
-  const [students, setStudents] = useState([]);
-  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
-  const [academicStatus, setAcademicStatus] = useState('');
-  const [includeInactive, setIncludeInactive] = useState(true);
-  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({ search: '', academicStatus: '', includeInactive: true, page: 1, pageSize: 20 });
+  const { academicStatus, includeInactive } = filters;
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  async function load(signal) {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await listStudents(auth.token, {
-        search: search.trim() || undefined,
-        academicStatus: academicStatus || undefined,
-        includeInactive,
-        page,
-        pageSize: 20
-      }, signal);
-
-      setStudents(response.data || []);
-      setTotal(response.pagination?.total || 0);
-    } catch (nextError) {
-      if (nextError.name !== 'AbortError') setError(nextError);
-    } finally {
-      if (!signal?.aborted) setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-    load(controller.signal);
-    return () => controller.abort();
-  }, [auth.token, academicStatus, includeInactive, page]);
+  const read = useStaffRead(listStudents, auth.token, filters, true, false);
+  const students = read.result?.data || [];
+  const loading = read.loading;
 
   return (
-    <section className="admin-page">
+    <section className="admin-page admin-operations student-directory">
       <header className="admin-page__header">
         <span>{t('studentDirectory.eyebrow')}</span>
-        <h1>{t('studentDirectory.title')}</h1>
+        <h1 tabIndex={-1}>{t('studentDirectory.title')}</h1>
         <p>{t('studentDirectory.subtitle')}</p>
       </header>
 
@@ -63,26 +35,21 @@ export function StudentsAdminPage() {
         <span>{t('studentDirectory.sourceBody')}</span>
       </div>
 
-      {error && (
-        <InlineAlert
-          title={t('admin.common.operationFailed')}
-          message={error.message}
-          requestId={error.requestId}
-        />
-      )}
-
       <section className="admin-card">
         <div className="admin-toolbar">
-          <form onSubmit={(event) => { event.preventDefault(); setPage(1); load(); }}>
+          <form onSubmit={(event) => { event.preventDefault(); if (filters.page === 1 && filters.search === search.trim()) read.reload(); else setFilters(current => ({ ...current, search: search.trim(), page: 1 })); }}>
             <input
+              aria-label={t('studentDirectory.search')}
+              maxLength={180}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder={t('studentDirectory.search')}
             />
 
             <select
+              aria-label={t('studentDirectory.academicStatus')}
               value={academicStatus}
-              onChange={(event) => { setAcademicStatus(event.target.value); setPage(1); }}
+              onChange={(event) => { setFilters(current => ({ ...current, academicStatus: event.target.value, page: 1 })); }}
             >
               <option value="">{t('admin.common.allStatuses')}</option>
               {ACADEMIC_STATUSES.map((value) => (
@@ -96,7 +63,7 @@ export function StudentsAdminPage() {
               <input
                 type="checkbox"
                 checked={includeInactive}
-                onChange={(event) => { setIncludeInactive(event.target.checked); setPage(1); }}
+                onChange={(event) => { setFilters(current => ({ ...current, includeInactive: event.target.checked, page: 1 })); }}
               />
               <span>{t('studentDirectory.includeInactive')}</span>
             </label>
@@ -105,24 +72,22 @@ export function StudentsAdminPage() {
           </form>
         </div>
 
-        <div className="admin-results-count">
-          {total} {t('studentDirectory.records')}
-        </div>
+        <AdminReadState read={read} hintId="directory-table-hint" />
 
-        {loading ? (
+        {loading && !read.result ? (
           <div className="admin-empty">{t('admin.common.loading')}</div>
-        ) : students.length === 0 ? (
+        ) : !read.result || read.error && !students.length ? null : students.length === 0 ? (
           <div className="admin-empty">{t('studentDirectory.empty')}</div>
         ) : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
+          <div className="admin-table-wrap" aria-describedby="directory-table-hint" role="region" tabIndex={0} aria-label={t('studentDirectory.title')}>
+            <table className="admin-table" aria-label={t('studentDirectory.title')}>
               <thead>
                 <tr>
-                  <th>{t('studentDirectory.student')}</th>
-                  <th>{t('studentDirectory.email')}</th>
-                  <th>{t('studentDirectory.academic')}</th>
-                  <th>{t('admin.common.status')}</th>
-                  <th>{t('admin.common.actions')}</th>
+                  <th scope="col">{t('studentDirectory.student')}</th>
+                  <th scope="col">{t('studentDirectory.email')}</th>
+                  <th scope="col">{t('studentDirectory.academic')}</th>
+                  <th scope="col">{t('admin.common.status')}</th>
+                  <th scope="col">{t('admin.common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -131,10 +96,10 @@ export function StudentsAdminPage() {
                     <td>
                       <span className="admin-stack">
                         <strong>{student.user.displayName}</strong>
-                        <small>{student.studentId}</small>
+                        <small><bdi>{student.studentId}</bdi></small>
                       </span>
                     </td>
-                    <td>{student.user.universityEmail}</td>
+                    <td><bdi>{student.user.universityEmail}</bdi></td>
                     <td>
                       <span className="admin-stack">
                         <strong>{student.faculty?.name || '—'}</strong>
@@ -160,15 +125,7 @@ export function StudentsAdminPage() {
           </div>
         )}
 
-        <nav className="admin-pagination">
-          <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>
-            ← {t('discovery.pagination.previous')}
-          </button>
-          <span>{t('discovery.pagination.page')} {page}</span>
-          <button type="button" disabled={students.length < 20} onClick={() => setPage((value) => value + 1)}>
-            {t('discovery.pagination.next')} →
-          </button>
-        </nav>
+        <AdminPagination read={read} onPage={(page) => setFilters(current => ({ ...current, page }))} />
       </section>
 
       {selectedStudent && (
@@ -183,8 +140,8 @@ export function StudentsAdminPage() {
           )}
         >
           <dl className="student-directory-details">
-            <div><dt>{t('studentDirectory.studentId')}</dt><dd>{selectedStudent.studentId}</dd></div>
-            <div><dt>{t('studentDirectory.email')}</dt><dd>{selectedStudent.user.universityEmail}</dd></div>
+            <div><dt>{t('studentDirectory.studentId')}</dt><dd><bdi>{selectedStudent.studentId}</bdi></dd></div>
+            <div><dt>{t('studentDirectory.email')}</dt><dd><bdi>{selectedStudent.user.universityEmail}</bdi></dd></div>
             <div><dt>{t('studentDirectory.name')}</dt><dd dir="auto">{selectedStudent.user.displayName}</dd></div>
             <div><dt>{t('studentDirectory.academicStatus')}</dt><dd>{t(`profile.academicStatus.${selectedStudent.academicStatus}`)}</dd></div>
             <div><dt>{t('admin.catalog.faculty')}</dt><dd dir="auto">{selectedStudent.faculty?.name || '—'}</dd></div>

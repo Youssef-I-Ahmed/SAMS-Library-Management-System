@@ -3,6 +3,7 @@ import { AppError } from '../../utils/app-error.js';
 
 export async function listContributors({
   search,
+  includeInactive = false,
   page = 1,
   pageSize = 20
 }) {
@@ -27,7 +28,7 @@ export async function listContributors({
       include: {
         _count: {
           select: {
-            itemContributors: true
+            itemContributors: includeInactive ? true : { where: { item: { isActive: true } } }
           }
         }
       }
@@ -45,11 +46,12 @@ export async function listContributors({
   };
 }
 
-export async function getContributor(id) {
+export async function getContributor(id, { includeInactive = false } = {}) {
   const contributor = await prisma.contributor.findUnique({
     where: { id },
     include: {
       itemContributors: {
+        ...(includeInactive ? {} : { where: { item: { isActive: true } } }),
         include: {
           item: {
             select: {

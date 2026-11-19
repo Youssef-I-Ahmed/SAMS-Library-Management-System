@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { InlineAlert } from '../../components/ui/InlineAlert';
 import { InventoryNotice } from '../../components/discovery/InventoryNotice';
 import { StatusBadge } from '../../components/circulation/StatusBadge';
+import { AdminModal } from '../../components/admin/AdminModal';
+import { CirculationListState, CirculationPagination } from '../../components/circulation/CirculationListState';
+import { useCirculationList } from '../../features/circulation/use-circulation-list';
 import {
   cancelReservation,
   listMyReservations
@@ -24,84 +28,65 @@ export function MyReservationsPage() {
 
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
-  const [result, setResult] = useState({
-    data: [],
-    pagination: {
-      page: 1,
-      pageSize: PAGE_SIZE,
-      total: 0,
-      totalPages: 0
-    }
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const read = useCirculationList(listMyReservations, { token: auth.token, status, page, pageSize: PAGE_SIZE });
+  const { result, loading, error } = read;
   const [cancelTarget, setCancelTarget] = useState(null);
   const [cancelling, setCancelling] = useState(false);
-
-  const totalPages = useMemo(
-    () => Math.max(result.pagination?.totalPages || 0, 1),
-    [result.pagination?.totalPages]
-  );
-
-  async function loadReservations(signal) {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await listMyReservations(
-        auth.token,
-        {
-          status,
-          page,
-          pageSize: PAGE_SIZE
-        },
-        signal
-      );
-
-      setResult(response);
-    } catch (nextError) {
-      if (nextError.name !== 'AbortError') {
-        setError(nextError);
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false);
-      }
-    }
-  }
+  const [cancelError, setCancelError] = useState(null);
+  const [cancelNotice, setCancelNotice] = useState(false);
+  const headingRef = useRef(null);
+  const confirmRef = useRef(null);
+  const operationRef = useRef(null);
+  const pendingRef = useRef(false);
+  const totalPages = Math.max(result?.pagination?.totalPages || 0, 1);
 
   useEffect(() => {
-    const controller = new AbortController();
-    loadReservations(controller.signal);
-    return () => controller.abort();
-  }, [auth.token, status, page]);
+    const operation = { token: auth.token };
+    operationRef.current = operation;
+    setCancelTarget(null);
+    setCancelling(false);
+    setCancelError(null);
+    setCancelNotice(false);
+    return () => { operationRef.current = null; pendingRef.current = false; };
+  }, [auth.token]);
+
+  useEffect(() => { if (cancelError) confirmRef.current?.focus(); }, [cancelError]);
+  useEffect(() => { if (cancelNotice) headingRef.current?.focus(); }, [cancelNotice]);
 
   async function confirmCancel() {
-    if (!cancelTarget || cancelling) return;
-
+    if (!cancelTarget || pendingRef.current || !operationRef.current) return;
+    const operation = operationRef.current;
+    pendingRef.current = true;
     setCancelling(true);
-    setError(null);
+    setCancelError(null);
 
     try {
-      await cancelReservation(
+      const response = await cancelReservation(
         auth.token,
         cancelTarget.id
       );
 
+      if (operationRef.current !== operation) return;
+      // Use the actual returned status: an expired hold can be returned here too.
+      read.updateRecord(response?.data);
       setCancelTarget(null);
-      await loadReservations();
+      setCancelNotice(true);
+      read.reload();
     } catch (nextError) {
-      setError(nextError);
+      if (operationRef.current === operation) setCancelError(nextError);
     } finally {
-      setCancelling(false);
+      if (operationRef.current === operation) {
+        pendingRef.current = false;
+        setCancelling(false);
+      }
     }
   }
 
   return (
-    <section className="circulation-page">
+    <section className="circulation-page circulation-page--student">
       <header className="circulation-page__header">
         <span>{t('reservations.page.eyebrow')}</span>
-        <h1>{t('reservations.page.title')}</h1>
+        <h1 ref={headingRef} tabIndex={-1}>{t('reservations.page.title')}</h1>
         <p>{t('reservations.page.subtitle')}</p>
       </header>
 
@@ -112,6 +97,7 @@ export function MyReservationsPage() {
           <span>{t('reservations.page.statusFilter')}</span>
           <select
             value={status}
+            disabled={cancelling}
             onChange={(event) => {
               setStatus(event.target.value);
               setPage(1);
@@ -130,38 +116,29 @@ export function MyReservationsPage() {
         </label>
 
         <strong>
-          {result.pagination?.total || 0}
-          {' '}
-          {t('reservations.page.total')}
+          {loading ? t('reservations.page.loading') : error ? t('circulationUx.unavailable')
+            : `${result?.pagination?.total ?? ''} ${t('reservations.page.total')}`}
         </strong>
+        <button type="button" className="circulation-secondary-button" disabled={loading || cancelling}
+          onClick={read.reload}>{t('circulationUx.refresh')}</button>
       </div>
 
-      {error && (
-        <InlineAlert
-          title={t('reservations.errors.title')}
-          message={error.message}
-          requestId={error.requestId}
-        />
-      )}
-
-      {loading ? (
-        <div className="catalog-state">
-          <span className="catalog-spinner" aria-hidden="true" />
-          <p>{t('reservations.page.loading')}</p>
-        </div>
-      ) : result.data.length === 0 ? (
-        <div className="catalog-state">
-          <h2>{t('reservations.page.emptyTitle')}</h2>
-          <p>{t('reservations.page.emptyBody')}</p>
-        </div>
-      ) : (
+      <div role="status" aria-live="polite" className={cancelNotice ? 'circulation-notice' : 'sr-only'}>
+        {cancelNotice ? t('circulationUx.cancellationRecorded') : ''}
+      </div>
+      <CirculationListState read={read} headingRef={headingRef} totalLabel={t('reservations.page.total')}
+        loadingText={t('reservations.page.loading')} emptyTitle={t('reservations.page.emptyTitle')}
+        emptyBody={t('reservations.page.emptyBody')} errorTitle={t('circulationUx.reservationsReadError')}>
         <div className="reservation-list">
-          {result.data.map((reservation) => (
+          {result?.data.map((reservation) => (
             <article className="circulation-card" key={reservation.id}>
               <div className="circulation-card__heading">
                 <div>
-                  <span>{t(`itemTypes.${reservation.item.type}`)}</span>
-                  <h2 dir="auto">{reservation.item.title}</h2>
+                  {reservation.item?.type && <span>{t(reservation.item.type === 'ACADEMIC_WORK'
+                    ? 'catalogRefinement.academicWork' : `itemTypes.${reservation.item.type}`)}</span>}
+                  <h2 dir="auto">{typeof reservation.item?.id === 'string' && reservation.item.id.trim()
+                    ? <Link to={`/student/items/${encodeURIComponent(reservation.item.id)}`}>{reservation.item.title || t('circulationUx.noTitle')}</Link>
+                    : reservation.item?.title || t('circulationUx.noTitle')}</h2>
                 </div>
 
                 <StatusBadge tone={getReservationTone(reservation.status)}>
@@ -171,18 +148,18 @@ export function MyReservationsPage() {
 
               <dl className="circulation-card__meta">
                 <div>
-                  <dt>{t('reservations.fields.branch')}</dt>
-                  <dd dir="auto">{reservation.branch.name}</dd>
+                  <dt>{t('reservations.fields.expiresAt')}</dt>
+                  <dd><bdi>{formatDateTime(reservation.expiresAt, language)}</bdi></dd>
                 </div>
                 <div>
                   <dt>{t('reservations.fields.reservedAt')}</dt>
-                  <dd>{formatDateTime(reservation.reservedAt, language)}</dd>
+                  <dd><bdi>{formatDateTime(reservation.reservedAt, language)}</bdi></dd>
                 </div>
                 <div>
-                  <dt>{t('reservations.fields.expiresAt')}</dt>
-                  <dd>{formatDateTime(reservation.expiresAt, language)}</dd>
+                  <dt>{t('reservations.fields.branch')}</dt>
+                  <dd><bdi>{reservation.branch?.name || '—'}</bdi></dd>
                 </div>
-                {reservation.item.callNumber && (
+                {reservation.item?.callNumber && (
                   <div>
                     <dt>{t('reservations.fields.callNumber')}</dt>
                     <dd dir="auto">{reservation.item.callNumber}</dd>
@@ -192,73 +169,40 @@ export function MyReservationsPage() {
 
               {isReservationCancellable(reservation) && (
                 <div className="circulation-card__actions">
-                  {cancelTarget?.id === reservation.id ? (
-                    <div className="inline-confirm">
-                      <span>
-                        {t('reservations.cancel.confirmText')}
-                      </span>
-
-                      <button
-                        type="button"
-                        className="danger-button"
-                        disabled={cancelling}
-                        onClick={confirmCancel}
-                      >
-                        {cancelling
-                          ? t('reservations.cancel.cancelling')
-                          : t('reservations.cancel.confirm')}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="secondary-button"
-                        disabled={cancelling}
-                        onClick={() => setCancelTarget(null)}
-                      >
-                        {t('reservations.cancel.keep')}
-                      </button>
-                    </div>
-                  ) : (
                     <button
                       type="button"
                       className="danger-link-button"
-                      onClick={() => setCancelTarget(reservation)}
+                      disabled={loading || Boolean(error) || cancelling}
+                      onClick={() => { setCancelTarget(reservation); setCancelError(null); setCancelNotice(false); }}
                     >
                       {t('reservations.cancel.action')}
                     </button>
-                  )}
                 </div>
               )}
             </article>
           ))}
         </div>
+      </CirculationListState>
+
+      {Boolean(result?.data.length) && (
+        <CirculationPagination page={page} totalPages={totalPages} disabled={loading || Boolean(error) || cancelling}
+          onChange={(value) => { setPage(value); headingRef.current?.focus(); }} />
       )}
 
-      {!loading && result.data.length > 0 && (
-        <nav className="catalog-pagination">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => setPage((value) => value - 1)}
-          >
-            ← {t('discovery.pagination.previous')}
-          </button>
-
-          <span>
-            {t('discovery.pagination.page')} <strong>{page}</strong>
-            {' '}{t('discovery.pagination.of')}{' '}
-            <strong>{totalPages}</strong>
-          </span>
-
-          <button
-            type="button"
-            disabled={page >= totalPages}
-            onClick={() => setPage((value) => value + 1)}
-          >
-            {t('discovery.pagination.next')} →
-          </button>
-        </nav>
-      )}
+      {cancelTarget && <div className="circulation-cancel-dialog">
+        <AdminModal title={t('reservations.cancel.action')} canClose={!cancelling}
+          onClose={() => { setCancelTarget(null); setCancelError(null); }} actions={<>
+            <button type="button" className="circulation-secondary-button" disabled={cancelling}
+              onClick={() => { setCancelTarget(null); setCancelError(null); }}>{t('reservations.cancel.keep')}</button>
+            <button type="button" className="circulation-cancel-button" ref={confirmRef} disabled={cancelling}
+              onClick={confirmCancel}>{t(cancelling ? 'reservations.cancel.cancelling' : 'reservations.cancel.confirm')}</button>
+          </>}>
+          <p>{t('reservations.cancel.confirmText')}</p>
+          <p><strong><bdi>{cancelTarget.item?.title || t('circulationUx.noTitle')}</bdi></strong></p>
+          <div role="status" aria-live="polite">{cancelling ? t('reservations.cancel.cancelling') : ''}</div>
+          {cancelError && <InlineAlert title={t('reservations.errors.title')} message={cancelError.message} requestId={cancelError.requestId} />}
+        </AdminModal>
+      </div>}
     </section>
   );
 }
