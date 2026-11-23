@@ -456,6 +456,41 @@ describe('owned sessions, jobs, reset and admission', () => {
     expect((await get('/jobs/' + data.job_id)).status).toBe(404);
     expect(gateway.state.work.size).toBe(1); expect(calls).toHaveLength(1);
   });
+  it('reconciles a completed abandoned job before admitting a fresh question without replay', async () => {
+    const original = await startPending();
+    const oldSession = sessionForJob;
+    clock += 5000;
+    handler = async (req, res, body) => req.url.startsWith('/api/jobs/')
+      ? send(res, done(oldSession)) : send(res, done(body.session_id));
+    const next = await post('/ask', { question: 'new question' });
+    expect(next.status).toBe(200);
+    expect(calls.map(call => call.method)).toEqual(['POST', 'GET', 'POST']);
+    expect(calls[1].path).toContain('?wait=0');
+    expect(calls[2].body.question).toBe('new question');
+    expect(gateway.state.work.size).toBe(0);
+    expect((await get('/jobs/' + original.job_id)).body.data.status).toBe('done');
+    expect(calls).toHaveLength(3);
+  });
+  it('reconciles completed abandoned jobs on availability checks without asking again', async () => {
+    await startPending();
+    const oldSession = sessionForJob;
+    clock += 5000;
+    handler = async (req, res) => send(res, req.url.startsWith('/api/jobs/') ? done(oldSession) : health());
+    expect((await get('/health')).status).toBe(200);
+    expect(gateway.state.work.size).toBe(0);
+    expect(calls.map(call => call.method)).toEqual(['POST', 'GET', 'GET']);
+  });
+  it.each(['pending', 'missing', 'unavailable'])('retains abandoned work after an unconfirmed %s reconciliation', async mode => {
+    await startPending();
+    clock += 5000;
+    handler = async (_req, res) => mode === 'pending' ? send(res, pending(sessionForJob))
+      : send(res, {}, mode === 'missing' ? 404 : 503);
+    const blocked = await post('/ask');
+    expect(blocked.status).toBe(503);
+    expect(blocked.body.error.code).toBe('AI_CAPACITY_BUSY');
+    expect(gateway.state.work.size).toBe(1);
+    expect(calls.filter(call => call.method === 'POST')).toHaveLength(1);
+  });
   it('maps missing or failed jobs without releasing unknown work or resubmitting a question', async () => {
     const data = await startPending();
     handler = async (_req, res) => send(res, {}, 404);

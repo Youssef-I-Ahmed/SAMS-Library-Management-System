@@ -2,6 +2,7 @@ import { app } from '../app.js';
 import { env } from '../config/env.js';
 import { prisma } from '../config/prisma.js';
 import { researchRag } from '../modules/ai/research-rag.js';
+import { prepareDemoAuth } from '../modules/auth/auth.service.js';
 
 export async function startHttpServer({
   port = env.API_PORT,
@@ -9,6 +10,10 @@ export async function startHttpServer({
   logStartup = true,
   disconnectPrismaOnShutdown = true
 } = {}) {
+  if (env.DEMO_AUTH_ENABLED && !['127.0.0.1', '::1', 'localhost'].includes(host)) {
+    throw new Error('Presentation authentication requires a loopback server address.');
+  }
+  await prepareDemoAuth();
   const server =
     await new Promise(
       (

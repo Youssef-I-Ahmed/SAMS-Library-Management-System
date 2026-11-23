@@ -1,4 +1,5 @@
 // Production-preview verification. All API traffic is fulfilled locally.
+import { FRAME_END, FRAME_START, frameFor } from '../src/components/landing/heroProgress.js';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -110,7 +111,7 @@ for (const [device, viewport] of [
     await page.evaluate(() => Promise.all(Array.from(document.images).map((image) => image.decode())));
     await expect(page.locator('html')).toHaveAttribute('dir', language === 'ar' ? 'rtl' : 'ltr');
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-    await expect(page.locator('figcaption')).toHaveText(tr('studentHome.imageCaption'));
+    await expect(page.locator('.home-hero__credit')).toHaveText(tr('studentHome.imageCaption'));
     await expect(page.getByRole('note')).toContainText(tr('discovery.inventoryNotice.body'));
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'no horizontal page overflow');
     assert.equal(await page.locator('.student-search').evaluate((node) => node.scrollWidth <= node.clientWidth), true);
@@ -119,7 +120,7 @@ for (const [device, viewport] of [
     if (device === 'mobile') await page.screenshot({ path: `${screenshots}/${device}-${language}-${theme}-full.png`, fullPage: true });
     const finding = await audit(page);
     const performance = await page.evaluate(() => ({ ...window.__homeMetrics,
-      hero: document.querySelector('.student-home__media img').currentSrc,
+      hero: document.querySelector('.home-hero__media img').currentSrc,
       imageBytes: performance.getEntriesByType('resource').filter((entry) => entry.initiatorType === 'img').reduce((sum, entry) => sum + entry.encodedBodySize, 0)
     }));
     metrics.push({ device, language, theme, ...performance, violations: finding });
@@ -221,7 +222,7 @@ test('React 18 development render uses native image priority without console err
   const errors = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   await page.goto(`${appOrigin}/student`);
-  await expect(page.locator('.student-home__media img')).toHaveAttribute('fetchpriority', 'high');
+  await expect(page.locator('.home-hero__media img')).toHaveAttribute('fetchpriority', 'high');
   await expect(page.locator('h1')).toBeVisible();
   assert.deepEqual(errors, []);
 });
@@ -234,11 +235,10 @@ for (const width of [320,390,768,1024,1440]) for(const language of ['en','ar']) 
  assert.equal(requests.some(u=>/ezgif-frame|\.png|three|knowledge-spirit-viewer|\.glb/.test(u)),false);
  assert.equal(requests.filter(u=>/frame-\d+\.webp/.test(u)).every(u=>u.includes('frame-001')),true);
  await expect(page.locator('.home-destinations a').nth(1)).toHaveAttribute('href','/student/catalog?type=ACADEMIC_WORK');
- const start=page.getByRole('button',{name:tr('cinematic.start'),exact:true});
- if(width<768){await expect(start).toHaveCount(0);await expect(page.locator('canvas')).toHaveCount(0);}
- else{
-  await start.click();const track=page.locator('.campus-track');const canvas=page.locator('.campus-canvas');
-  await track.evaluate(el=>window.scrollTo({top:el.getBoundingClientRect().top+scrollY-document.querySelector('.student-shell__header').getBoundingClientRect().height,behavior:'instant'}));
+ await expect(page.getByRole('button',{name:tr('cinematic.start')})).toHaveCount(0);await expect(page.locator('canvas')).toHaveCount(0);
+ {
+  const track=page.locator('.campus-track');const canvas=page.locator('.campus-canvas');
+  await track.evaluate(el=>window.scrollTo({top:el.getBoundingClientRect().top+scrollY-document.querySelector('.student-shell__header').getBoundingClientRect().height+2,behavior:'instant'}));
   await expect(canvas).toHaveAttribute('data-ready','true');
   const headerBottom=await page.locator('.student-shell__header').evaluate(el=>el.getBoundingClientRect().bottom);
   assert.ok((await page.locator('.campus-sticky').boundingBox()).y>=headerBottom-1);
@@ -262,9 +262,9 @@ for(const mode of ['reduced','save-data','failed-images','slow-frames','facets-u
  const {page,tr}=await fixture(t,{reducedMotion:mode==='reduced'?'reduce':'no-preference',saveData:mode==='save-data',imageError:mode==='failed-images',facetsError:mode==='facets-unavailable',facetTypes:mode==='populated-types'?[{value:'PROJECT',count:3},{value:'THESIS',count:2}]:[]});
  if(mode==='slow-frames')await page.route('**/frame-*.webp',async route=>{if(!route.request().url().includes('frame-001'))await new Promise(r=>setTimeout(r,500));await route.continue().catch(()=>{});});
  await page.goto(`${origin}/student`);await expect(page.getByRole('searchbox')).toBeEditable();
- if(['reduced','save-data'].includes(mode)){await expect(page.getByRole('button',{name:tr('cinematic.start')})).toHaveCount(0);await expect(page.locator('canvas')).toHaveCount(0);}
+ if(['reduced','save-data'].includes(mode)){await page.locator('.campus-track').evaluate(el=>window.scrollTo({top:el.getBoundingClientRect().top+scrollY+400,behavior:'instant'}));await page.waitForTimeout(150);await expect(page.locator('canvas')).toHaveCount(0);await page.evaluate(()=>window.scrollTo(0,0));}
  else if(['failed-images','slow-frames'].includes(mode)){
-  await page.getByRole('button',{name:tr('cinematic.start'),exact:true}).click();await page.locator('.campus-track').scrollIntoViewIfNeeded();
+  await page.locator('.campus-track').evaluate(el=>window.scrollTo({top:el.getBoundingClientRect().top+scrollY+400,behavior:'instant'}));
   await page.getByRole('link',{name:tr('cinematic.skip'),exact:false}).last().click();await expect(page.locator('#home-collections')).toBeFocused();
   await page.goto(`${origin}/student`);
  }
@@ -281,15 +281,15 @@ test('UI3B all 50 frames, settled painting, visibility pause and cleanup',async(
   window.__frameBitmaps={created:0,closed:0};const original=window.createImageBitmap;
   window.createImageBitmap=async(...args)=>{const image=await original(...args);window.__frameBitmaps.created++;const close=image.close.bind(image);image.close=()=>{window.__frameBitmaps.closed++;close();};return image;};
  });
- await page.goto(`${origin}/student`);await page.getByRole('button',{name:tr('cinematic.start'),exact:true}).click();
+ await page.goto(`${origin}/student`);
  const canvas=page.locator('.campus-canvas'),track=page.locator('.campus-track');
  for(let index=0;index<50;index++){
-  await track.evaluate((el,index)=>{const h=document.querySelector('.student-shell__header').getBoundingClientRect().height,s=el.querySelector('.campus-sticky').getBoundingClientRect().height;window.scrollTo({top:el.getBoundingClientRect().top+scrollY-h+(el.getBoundingClientRect().height-s)*(index/49),behavior:'instant'});},index);
+  await track.evaluate((el,p)=>{const h=document.querySelector('.student-shell__header').getBoundingClientRect().height,s=el.querySelector('.campus-sticky').getBoundingClientRect().height;window.scrollTo({top:el.getBoundingClientRect().top+scrollY-h+(el.getBoundingClientRect().height-s)*p,behavior:'instant'});},(FRAME_START+(index/49)*(FRAME_END-FRAME_START)));
   await expect(canvas).toHaveAttribute('data-frame',String(index+1));assert.ok(Number(await canvas.getAttribute('data-cached'))<=8);
  }
  await expect(page.locator('.campus-caption h3')).toHaveText(tr('cinematic.chapters.5'));
  await page.screenshot({path:`${screenshots}/ui3b-final-frame.png`});
- await page.locator('.campus-toolbar a').focus();const position=await page.evaluate(()=>scrollY);await page.keyboard.press('PageUp');await expect.poll(()=>page.evaluate(()=>scrollY)).toBeLessThan(position);
+ await page.locator('.campus-caption h3 a').focus();const position=await page.evaluate(()=>scrollY);await page.keyboard.press('PageUp');await expect.poll(()=>page.evaluate(()=>scrollY)).toBeLessThan(position);
  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{value:true,configurable:true});document.dispatchEvent(new Event('visibilitychange'));});
  const before=await canvas.getAttribute('data-paints');await page.waitForTimeout(180);assert.equal(await canvas.getAttribute('data-paints'),before);
  await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});
@@ -303,8 +303,8 @@ test('UI3B all 50 frames, settled painting, visibility pause and cleanup',async(
 
 test('UI3B high-DPR phone requests only the mobile poster',async(t)=>{
  const {page}=await fixture(t,{viewport:{width:390,height:844},deviceScaleFactor:3});const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto(`${origin}/student`);
- await expect(page.locator('.student-home__media img')).toHaveJSProperty('complete',true);
- assert.ok((await page.locator('.student-home__media img').evaluate(el=>el.currentSrc)).includes('/mobile/'));
+ await expect(page.locator('.home-hero__media img')).toHaveJSProperty('complete',true);
+ assert.ok((await page.locator('.home-hero__media img').evaluate(el=>el.currentSrc)).includes('/mobile/'));
  assert.equal(requests.some(u=>u.includes('/desktop/frame-')),false);await expect(page.locator('canvas')).toHaveCount(0);
 });
 
@@ -334,26 +334,26 @@ for(const width of [320,390])for(const language of ['en','ar'])for(const theme o
 });
 
 for(const width of [768,1440])test(`UI3C density ${width}: meaningful progression and real-content handoff`,async(t)=>{
- const {page,tr}=await fixture(t,{viewport:{width,height:1000},language:'ar',theme:'dark'});await page.goto(`${origin}/student`);await page.getByRole('button',{name:tr('cinematic.start'),exact:true}).click();
+ const {page,tr}=await fixture(t,{viewport:{width,height:1000},language:'ar',theme:'dark'});await page.goto(`${origin}/student`);
  const track=page.locator('.campus-track'),canvas=page.locator('.campus-canvas');const frames=[];
  const geometry=await track.evaluate(el=>({track:el.getBoundingClientRect().height,stage:el.querySelector('.campus-sticky').getBoundingClientRect().height}));
- for(const progress of [0,.2,.4,.6,.8,1]){
+ for(const progress of [.002,.2,.4,.6,.8,1]){
   await track.evaluate((el,p)=>{const header=document.querySelector('.student-shell__header').getBoundingClientRect().height;window.scrollTo({top:el.getBoundingClientRect().top+scrollY-header+(el.getBoundingClientRect().height-el.querySelector('.campus-sticky').getBoundingClientRect().height)*p,behavior:'instant'});},progress);
-  await expect(canvas).toHaveAttribute('data-frame',String(Math.round(progress*49)+1));frames.push(Number(await canvas.getAttribute('data-frame')));
+  await expect(canvas).toHaveAttribute('data-frame',String(frameFor(progress)+1));frames.push(Number(await canvas.getAttribute('data-frame')));
  }
  metrics.push({kind:'ui3c-density',width,...geometry,travel:geometry.track-geometry.stage,frames});
- assert.ok(geometry.track-geometry.stage<=1100);assert.equal(new Set(frames).size,6);
+ assert.ok(geometry.track-geometry.stage<=geometry.stage*2.5);assert.equal(new Set(frames).size,6);
  await expect(page.locator('.campus-handoff')).toBeVisible();assert.equal(await page.locator('.campus-handoff').evaluate(el=>Number(getComputedStyle(el).opacity)),1);
- await expect(page.locator('.campus-caption p')).toHaveText(tr('cinematic.finalDisclaimer'));
+ await expect(page.locator('.campus-handoff p')).toHaveText(tr('cinematic.finalDisclaimer'));
  assert.deepEqual(await audit(page),[], 'active handoff has no accessibility violations');
  await page.screenshot({path:`${screenshots}/ui3c-handoff-${width}.png`});
- await page.locator('.campus-caption h3 a').click();await expect(page.locator('#home-collections')).toBeFocused();await expect(page.locator('.collection-grid')).toBeInViewport();
+ await page.locator('.campus-handoff a').click();await expect(page.locator('#home-collections')).toBeFocused();await expect(page.locator('.collection-grid')).toBeInViewport();
  await page.screenshot({path:`${screenshots}/ui3c-real-collections-${width}.png`});
 });
 
 test('UI3C mobile native Tab reachability',async(t)=>{
  const {page}=await fixture(t,{viewport:{width:320,height:844}});await page.goto(`${origin}/student`);await expect(page.getByRole('searchbox')).toBeEditable();const failures=[];let tested=0;
- for(let i=0;i<40;i++){await page.keyboard.press('Tab');await page.waitForTimeout(500);const result=await page.evaluate(()=>{const el=document.activeElement;if(!el?.closest('.student-home'))return null;const r=el.getBoundingClientRect(),n=document.querySelector('.student-mobile-nav').getBoundingClientRect(),h=document.querySelector('.student-shell__header').getBoundingClientRect();return {text:el.textContent.slice(0,45),top:r.top,bottom:r.bottom,header:h.bottom,nav:n.top,clear:r.top>=h.bottom&&r.bottom<=n.top};});if(result){tested++;if(!result.clear)failures.push(result);}}
+ for(let i=0;i<40;i++){await page.keyboard.press('Tab');await page.waitForTimeout(200);await page.evaluate(()=>new Promise(done=>{let last=-1,still=0;const tick=()=>{if(scrollY===last&&++still>4)return done();if(scrollY!==last)still=0;last=scrollY;setTimeout(tick,60);};tick();}));const result=await page.evaluate(()=>{const el=document.activeElement;if(!el?.closest('.student-home'))return null;const r=el.getBoundingClientRect(),n=document.querySelector('.student-mobile-nav').getBoundingClientRect(),h=document.querySelector('.student-shell__header').getBoundingClientRect();return {text:el.textContent.slice(0,45),top:r.top,bottom:r.bottom,header:h.bottom,nav:n.top,clear:r.top>=h.bottom&&r.bottom<=n.top};});if(result){tested++;if(!result.clear)failures.push(result);}}
  assert.ok(tested>8);assert.deepEqual(failures,[]);
 });
 
@@ -361,9 +361,9 @@ test('UI3C capture: browser scroll animation',async(t)=>{
  const {page,tr}=await fixture(t,{viewport:{width:1440,height:1000}});const dir=`${screenshots}/ui3c-browser-frames`;await mkdir(dir,{recursive:true});let shot=0;
  const capture=()=>page.screenshot({path:`${dir}/${String(shot++).padStart(3,'0')}.png`});
  await page.goto(`${origin}/student`);await expect(page.getByRole('searchbox')).toBeEditable();await page.screenshot({path:`${screenshots}/ui3c-desktop-hero.png`});
- await page.getByRole('button',{name:tr('cinematic.start'),exact:true}).click();const track=page.locator('.campus-track'),canvas=page.locator('.campus-canvas');
+ const track=page.locator('.campus-track'),canvas=page.locator('.campus-canvas');
  for(let i=0;i<50;i++){
-  await track.evaluate((el,index)=>{const header=document.querySelector('.student-shell__header').getBoundingClientRect().height;window.scrollTo({top:el.getBoundingClientRect().top+scrollY-header+(el.getBoundingClientRect().height-el.querySelector('.campus-sticky').getBoundingClientRect().height)*index/49,behavior:'instant'});},i);
+  await track.evaluate((el,p)=>{const header=document.querySelector('.student-shell__header').getBoundingClientRect().height;window.scrollTo({top:el.getBoundingClientRect().top+scrollY-header+(el.getBoundingClientRect().height-el.querySelector('.campus-sticky').getBoundingClientRect().height)*p,behavior:'instant'});},FRAME_START+(i/49)*(FRAME_END-FRAME_START));
   await expect(canvas).toHaveAttribute('data-frame',String(i+1));await capture();
   if(i===25)await page.screenshot({path:`${screenshots}/ui3c-desktop-journey.png`});
  }

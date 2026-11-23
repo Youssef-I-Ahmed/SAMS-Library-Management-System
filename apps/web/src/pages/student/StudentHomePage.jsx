@@ -5,7 +5,7 @@ import { BrandLogo } from '../../components/brand/BrandLogo';
 import { InventoryNotice } from '../../components/discovery/InventoryNotice';
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../hooks/useLanguage';
-import { CinematicCampusIntro, skipCampusIntro } from '../../components/landing/CinematicCampusIntro';
+import { CampusHero, skipCampusIntro } from '../../components/landing/CinematicCampusIntro';
 import { DiscoveryDestinations } from '../../components/landing/DiscoveryDestinations';
 
 function HomeIcon({ type }) {
@@ -40,23 +40,7 @@ export function StudentHomePage() {
 
   return (
     <section className="student-home student-home--cinematic">
-      <div className="student-home__hero">
-        <figure className="student-home__media">
-          <picture>
-          <source media="(max-width: 767px)" srcSet="/images/scrollVideo/v001/mobile/frame-001.webp" />
-          <img
-            src="/images/scrollVideo/v001/desktop/frame-001.webp"
-            srcSet="/images/scrollVideo/v001/mobile/frame-001.webp 640w, /images/scrollVideo/v001/desktop/frame-001.webp 1280w"
-            sizes="100vw"
-            width={1280}
-            height={720}
-            alt=""
-            fetchpriority="high"
-          />
-          </picture>
-          <figcaption>{t('studentHome.imageCaption')}</figcaption>
-        </figure>
-        <div className="home-container student-home__hero-inner">
+      <CampusHero>
           <div className="student-home__copy">
             <span className="student-home__eyebrow">{t('common.academy')}</span>
             <h1>
@@ -81,9 +65,7 @@ export function StudentHomePage() {
             <a className="home-skip" href="#home-collections" onClick={skipCampusIntro}>{t('cinematic.skip')} ↓</a>
             <DiscoveryDestinations />
           </div>
-        </div>
-      </div>
-      <CinematicCampusIntro />
+      </CampusHero>
 
       <section id="home-collections" tabIndex={-1} className="home-container student-home__collections" aria-labelledby="home-collections-title">
         <div className="student-home__heading">

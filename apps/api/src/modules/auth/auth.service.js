@@ -20,6 +20,40 @@ const userInclude = {
 const unavailable = () => new AppError(503, 'AUTH_UNAVAILABLE', 'Authentication is temporarily unavailable');
 const unauthorized = () => new AppError(401, 'UNAUTHORIZED', 'Authentication is required');
 
+const demoAccounts = new Map([
+  ['student@sams.dev', 'STUDENT'],
+  ['librarian@sams.dev', 'LIBRARIAN'],
+  ['management@sams.dev', 'MANAGEMENT']
+]);
+let demoUsers = new Map();
+const demoEnabled = () => env.DEMO_AUTH_ENABLED === true
+  && env.NODE_ENV === 'development' && env.DEV_AUTH_ENABLED === true;
+
+// Local presentation mode snapshots the three existing demo accounts once.
+// Ordinary authentication always retains its live DB/revocation checks.
+export async function prepareDemoAuth() {
+  if (!demoEnabled()) return;
+  const users = await prisma.user.findMany({
+    where: { universityEmail: { in: [...demoAccounts.keys()] }, isActive: true },
+    include: userInclude
+  });
+  const snapshot = new Map();
+  for (const user of users) {
+    const role = demoAccounts.get(user.universityEmail);
+    if (!role || !user.isActive || !user.userRoles.some(link => link.role.name === role)) continue;
+    requireVersion(user);
+    snapshot.set(user.id, structuredClone(user));
+  }
+  if (snapshot.size !== demoAccounts.size) throw unavailable();
+  demoUsers = snapshot;
+}
+
+function demoUserById(id) {
+  const user = demoUsers.get(id);
+  if (!user) throw unauthorized();
+  return user;
+}
+
 async function authTransaction(work, isolationLevel = 'RepeatableRead') {
   try {
     return await prisma.$transaction(async (tx) => {
@@ -73,7 +107,9 @@ export async function devLogin(universityEmail) {
     throw new AppError(404, 'NOT_FOUND', 'Route not found');
   }
 
-  const user = await authTransaction((tx) => tx.user.findUnique({
+  const user = demoEnabled()
+    ? [...demoUsers.values()].find(user => user.universityEmail === universityEmail)
+    : await authTransaction((tx) => tx.user.findUnique({
     where: { universityEmail },
     include: userInclude
   }));
@@ -92,6 +128,7 @@ export async function devLogin(universityEmail) {
 }
 
 export async function getAuthUserById(userId) {
+  if (demoEnabled()) return demoUserById(userId);
   const user = await authTransaction((tx) => tx.user.findUnique({
     where: { id: userId },
     include: userInclude
@@ -107,6 +144,13 @@ export async function getAuthUserById(userId) {
 export async function revokeOwnSessions({ userId, expectedVersion, requestId }) {
   if (!isAuthVersion(expectedVersion)) throw unauthorized();
   if (expectedVersion === 2_147_483_647) throw unavailable();
+
+  if (demoEnabled()) {
+    const user = demoUserById(userId);
+    if (user.authVersion !== expectedVersion) throw unauthorized();
+    user.authVersion++;
+    return;
+  }
 
   // A conditional UPDATE locks the User row and returns its actual resulting
   // version. Concurrent revocations cannot both succeed for the same token.

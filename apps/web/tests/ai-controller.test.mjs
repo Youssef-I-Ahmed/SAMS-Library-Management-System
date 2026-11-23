@@ -194,11 +194,47 @@ test('idle reset rotates handle, clears content and locks sending while in fligh
 test('active reset is rejected locally, failed polling clears preview, logout ignores stale completion', async () => {
   const f = await setup({ ask: () => validateAiReply(pending([record])), poll: () => { throw new AiClientError(503, 'AI_SERVICE_UNAVAILABLE'); } });
   await f.controller.send('question'); assert.equal(await f.controller.reset(), false);
-  await f.time.advance(500); assert.equal(f.state().preview, null); assert.equal(f.state().phase, 'failed');
+  await f.time.advance(3500); assert.equal(f.calls.poll, 3);
+  assert.equal(f.state().preview, null); assert.equal(f.state().phase, 'failed');
   assert.equal(f.calls.reset, 0); f.controller.destroy();
   const waiting = deferred(), g = await setup({ ask: () => waiting.promise });
   const send = g.controller.send('private question'); g.controller.destroy(); waiting.resolve(validateAiReply(done())); await send;
   assert.deepEqual(g.state().turns, []); assert.equal(g.state().sessionId, null);
+});
+
+for (const status of [503, 504]) test(`transient poll ${status} retries the same job and keeps preview without resending`, async () => {
+  let attempts = 0;
+  const jobs = [];
+  const f = await setup({ ask: () => validateAiReply(pending([record])), poll: id => {
+    jobs.push(id);
+    if (++attempts <= 2) throw new AiClientError(status, 'AI_SERVICE_UNAVAILABLE');
+    return validateAiReply(done({ sources: [record] }));
+  } });
+  await f.controller.send('question');
+  await f.time.advance(500);
+  assert.equal(f.state().phase, 'pending');
+  assert.equal(f.state().preview.books.length, 1);
+  assert.equal(f.state().errorStatus, null);
+  await f.time.advance(3000);
+  assert.equal(f.state().phase, 'done');
+  assert.deepEqual(jobs, [J, J, J]);
+  assert.equal(f.calls.ask, 1);
+  assert.equal(f.calls.reset, 0);
+  f.controller.destroy();
+});
+
+test('stopping during a transient polling failure cancels the scheduled retry', async () => {
+  const f = await setup({ ask: () => validateAiReply(pending([record])), poll: () => {
+    throw new AiClientError(503, 'AI_SERVICE_UNAVAILABLE');
+  } });
+  await f.controller.send('question');
+  await f.time.advance(500);
+  f.controller.stop();
+  await f.time.advance(10000);
+  assert.equal(f.state().phase, 'stopped');
+  assert.equal(f.calls.poll, 1);
+  assert.equal(f.calls.ask, 1);
+  f.controller.destroy();
 });
 test('tab-memory controller belongs to one authenticated owner/session and is cleared on logout', () => {
   let destroyed = 0; const factory = () => ({ destroy: () => destroyed++ });

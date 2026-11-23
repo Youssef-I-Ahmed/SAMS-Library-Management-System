@@ -48,10 +48,38 @@ export function createAiGateway({ config, db, now = Date.now, transportOptions, 
     return error;
   }
 
+  async function reconcileOwnedJob(context) {
+    state.cleanup();
+    const job = [...state.jobs.values()].find(job => job.session.owner === context.user.id
+      && state.work.has(job.work) && !job.polling && !job.response && !job.error
+      && now() - job.created >= 5000 && now() >= job.nextPoll);
+    if (!job) return;
+    state.throttle(context.user.id, 'reconcile', 12);
+    job.polling = true;
+    try {
+      // A tab may close or stop polling after receiving a pending handle. Only
+      // an observed terminal upstream response can release its compute slot.
+      // Never replay the question, reset the session, or infer completion by TTL.
+      const response = checkResponse(await call(context, 'poll', 'GET',
+        `/api/jobs/${encodeURIComponent(job.internal)}?wait=0`, undefined,
+        config.AI_POLL_TIMEOUT_MARGIN_MS), job.session);
+      state.assertEpoch(job.work.epoch);
+      if (response.status === 'pending') {
+        if (response.job_id !== job.internal) throw protocolError();
+        job.nextPoll = now() + 500;
+      } else terminal(job, response);
+    } catch {
+      // A missing/failed observation does not prove that work has stopped.
+    } finally { job.polling = false; }
+  }
+
   return {
     state, ready,
     async ask(context, request) {
       ready();
+      // Validate ownership before any reconciliation can contact the upstream.
+      if (request.session_id) state.session(request.session_id, context.user.id);
+      await reconcileOwnedJob(context);
       const work = state.admit(context.user.id, request.session_id, context.requestId);
       const session = work.session;
       let response;
@@ -146,6 +174,7 @@ export function createAiGateway({ config, db, now = Date.now, transportOptions, 
 
     async health(context, signal) {
       ready(); state.throttle(context.user.id, 'health', 30);
+      await reconcileOwnedJob(context);
       try {
         projectUpstream(healthResponse, await call(context, 'health', 'GET', '/api/health',
           undefined, config.AI_HEALTH_TIMEOUT_MS, signal));
