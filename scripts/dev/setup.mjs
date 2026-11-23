@@ -50,9 +50,9 @@ writeFileSync(envPath, text);
 
 // 2. Node dependencies, PostgreSQL and the schema.
 run('npm', ['install']);
+run('npm', ['run', 'db:generate']);   // writes the Prisma client into node_modules only
 if (!skipDb) {
   run('docker', ['compose', 'up', '-d']);
-  run('npm', ['run', 'db:generate']);
   run('npx', ['-w', '@sams/api', 'dotenv', '-e', '../../.env', '--', 'prisma', 'migrate', 'deploy',
     '--schema=../../database/prisma/schema.prisma']);
 }
