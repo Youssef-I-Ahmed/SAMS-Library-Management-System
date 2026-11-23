@@ -2,7 +2,7 @@
   "contractVersion": 1,
   "status": "APPROVED_CONTROLLED_LOCAL_IMPORT_V1",
   "decisionDate": "2026-11-09",
-  "sourceManifestPath": "docs/planning/SPRINT_10D4A_SOURCE_MANIFEST.json",
+  "sourceManifestPath": "scripts/migration/contracts/SPRINT_10D4A_SOURCE_MANIFEST.json",
   "sourceManifestCanonicalSha256": "d9ca2ecb1880f5866ec870ef442eb4d3c58866ba924071af302490d07803082e",
   "sourceNamespace": "LEGACY_PROJECTS_V1",
   "catalogLabel": {

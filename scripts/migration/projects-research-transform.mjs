@@ -7,7 +7,7 @@ import { readXlsx } from './lib/xlsx-lite.mjs';
 export const PROJECT_ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 export const DEFAULT_IMPORT_CONTRACT = resolve(
   PROJECT_ROOT,
-  'docs/planning/SPRINT_10D6_IMPORT_CONTRACT.json'
+  'scripts/migration/contracts/SPRINT_10D6_IMPORT_CONTRACT.json'
 );
 
 const MISSING = new Set(['', 'na', 'n/a', 'nan', 'none', 'null', '\\n', '\\N']);

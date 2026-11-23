@@ -38,4 +38,4 @@ Canonical joined-content fingerprints detect relation/detail changes without upd
 
 The source projection itself participates in the fingerprint, so a role-only contributor edit also invalidates the snapshot even when the flattened searchable name stays the same. Unchanged passage text still reuses its vectors. The 5s poll is not a universal indexing SLA: local fixture visibility is measured in the sprint report; bulk changes/first builds take longer and fail closed when the observed-data stale guard is exceeded.
 
-See [the sprint report](../../docs/planning/SPRINT_10D3_REAL_RUNTIME.md) for actual results, commands, limitations and exact file inventory. No model, prompt, retrieval/evaluation parameter, paid service, schema migration or persistent production-data write is part of this runtime.
+See [the sprint report](../../docs/archive/sprints/SPRINT_10D3_REAL_RUNTIME.md) for actual results, commands, limitations and exact file inventory. No model, prompt, retrieval/evaluation parameter, paid service, schema migration or persistent production-data write is part of this runtime.

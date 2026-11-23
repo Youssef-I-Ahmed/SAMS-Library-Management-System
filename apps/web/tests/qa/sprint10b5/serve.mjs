@@ -4,7 +4,7 @@ import { readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
-const root = resolve(here, '../../../..');
+const root = resolve(here, '../../../../..');
 const dist = resolve(root, 'apps/web/dist');
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.md': 'text/plain; charset=utf-8' };
 export function createAuditServer() { return createServer(async (req, res) => {

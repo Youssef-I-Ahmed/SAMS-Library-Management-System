@@ -1,36 +1,60 @@
-# SAMS Sprint 10 — Recovery & Rebaseline Pack
+# SAMS Library Management System
 
-> Local checkpoint — 28 October 2026: the recovery-pack text below is historical
-> planning context, not the current implementation status or an installation
-> guide. Current verification is recorded in
-> [Sprint 10B closure](docs/frontend/SPRINT10B5_FINAL_QA.md) and
-> [Arabic search verification](docs/architecture/SAMS_ARABIC_SEARCH_NORMALIZATION_CHANGE_REPORT_2026-10-28.md).
-> Referenced local screenshots, logs, evidence ZIPs and the root audit-prompt file
-> remain outside these commits; they were not uploaded and cannot be obtained
-> from this checkout alone. Concept D's six canonical reference PNGs are included.
-> C1 frontend changes remain local and uncommitted because the current browser
-> checks failed; C2 records documentation, not a passing Student release. Covers
-> and AI integration remain future work, not part of this checkpoint.
+Library system for SAMS: a React web app, an Express/Prisma API on PostgreSQL,
+and a set of independent AI services (RAGs and models), each in its own folder.
 
-Date: 2026-10-24 | Status: **PROPOSED / AWAITING LOCAL REPOSITORY AUDIT**
+## Repository layout
 
-## Purpose
-A documentation-only handoff to resume SAMS Library System after Sprint 9 while accommodating the latest library meeting. **No production source code, database, git branch or remote repository has been changed** by this pack.
+```
+apps/
+  web/                  React + Vite front end (port 5173)
+  api/                  Express + Prisma API, the only entry point for the web app (port 4000)
+services/               one folder per AI model / RAG, each runs on its own
+  book-rag/             book search and Q&A
+database/
+  prisma/               schema.prisma, migrations, seed scripts
+  sql/  reference/      PostgreSQL extras and the v1 reference schema
+packages/               shared JS + UI design tokens
+data/                   local data (raw/ and processed/ are not committed)
+scripts/
+  migration/            data import / migration scripts and their contracts
+  archive/              old per-sprint smoke scripts, kept for reference
+docs/                   architecture, database, design, requirements, guides
+  archive/              sprint reports, manifests and release notes
+```
 
-## Files
-1. `docs/planning/SAMS_REBASELINE_2026-10-24.md` — assessed project baseline, assumptions and recovery gates.
-2. `docs/requirements/MEETING_DELTA_2026-10-24.md` — decisions vs assumptions and new requirements.
-3. `docs/planning/SPRINT_10_REVISED.md` — Sprint 10 work breakdown, dependencies and acceptance criteria.
-4. `CODEX_READ_ONLY_AUDIT_PROMPT.md` — ready-to-paste first Codex prompt, **no edits**.
+Planned services (being moved in, see the refactor plan): `research-rag`,
+`subject-classifier`, `book-clustering`.
 
-## How to use
-- Open **the actual working checkout** of SAMS in Codex first. The source in this pack is project history and earlier snapshots, not a live local Git inspection.
-- Paste `CODEX_READ_ONLY_AUDIT_PROMPT.md` into Codex and obtain its baseline report.
-- Compare Codex results with these planning documents; resolve differences in favor of the observed checked-out files and verified tests.
-- Only after reviewing the report, copy approved portions of the two `docs/` planning files to the working repository; avoid overwriting existing documents.
-- Continue using `dev`; do not reset, clean, merge, pull, push or create branches as part of recovery.
+## Run locally
 
-## Three crucial distinctions
-- `LibraryItem` bibliographic record != `PhysicalCopy` inventory record.
-- Student website authentication != physical visit/check-in.
-- AI recommendations/snapshot results != live stock/availability; the authoritative operational data remain in SAMS PostgreSQL.
+Requirements: Node 20+, Docker (for PostgreSQL), Python 3.11+ for the AI services.
+
+```bash
+cp .env.example .env            # then set AUTH_TOKEN_SECRET
+docker compose up -d            # PostgreSQL on localhost:5433
+npm install
+npm run db:generate
+npm run db:migrate
+npm run db:seed                 # or db:seed:frontend for demo data
+npm run dev:api                 # http://localhost:4000
+npm run dev:web                 # http://localhost:5173
+```
+
+AI features are off by default (`AI_ENABLED=false`). The current full local
+demo with the Book RAG still uses `scripts/Start-Local.ps1`; a single
+`npm run dev` that starts every part is the next refactor step.
+
+## Tests
+
+```bash
+npm test              # API (Vitest) + web unit tests
+npm run test:api      # API only
+npm run test:web      # web unit tests only
+```
+
+## Data and privacy
+
+The projects/theses data contains student names. Keep everything under
+`data/raw/` and `data/processed/` on your machine only; those folders are
+git-ignored.

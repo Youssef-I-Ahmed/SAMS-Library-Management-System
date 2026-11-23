@@ -16,7 +16,7 @@ import {fileURLToPath} from 'node:url';
 import {readXlsx} from './lib/xlsx-lite.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
-const DEFAULT_MANIFEST = resolve(ROOT, 'docs/planning/SPRINT_10D4A_SOURCE_MANIFEST.json');
+const DEFAULT_MANIFEST = resolve(ROOT, 'scripts/migration/contracts/SPRINT_10D4A_SOURCE_MANIFEST.json');
 const MISSING = new Set(['', 'na', 'n/a', 'nan', 'none', 'null', '\\n']);
 
 function usage() {

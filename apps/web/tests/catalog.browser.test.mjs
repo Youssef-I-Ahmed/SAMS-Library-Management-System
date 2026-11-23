@@ -13,7 +13,7 @@ import { translate } from '../src/i18n/index.js';
 
 const screenshots = process.env.SAMS_TEST_EVIDENCE_DIR
   ? resolve(process.env.SAMS_TEST_EVIDENCE_DIR, 'catalog')
-  : fileURLToPath(new URL('../../../docs/frontend/screenshots/sprint10b4a/', import.meta.url));
+  : fileURLToPath(new URL('../../../.output/screenshots/sprint10b4a/', import.meta.url));
 const metrics = [];
 let server, browser, origin;
 before(async () => {

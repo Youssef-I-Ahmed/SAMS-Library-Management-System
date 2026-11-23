@@ -7,11 +7,11 @@
     "dev": "dotenv -e ../../.env -- node --watch src/server.js",
     "start": "dotenv -e ../../.env -- node src/server.js",
     "build": "node -e \"console.log('API is plain Node.js ESM; no build step required')\"",
-    "prisma:generate": "dotenv -e ../../.env -- prisma generate --schema=../../prisma/schema.prisma",
-    "prisma:migrate": "dotenv -e ../../.env -- prisma migrate dev --schema=../../prisma/schema.prisma",
-    "prisma:seed": "dotenv -e ../../.env -- node ../../prisma/seed.js",
+    "prisma:generate": "dotenv -e ../../.env -- prisma generate --schema=../../database/prisma/schema.prisma",
+    "prisma:migrate": "dotenv -e ../../.env -- prisma migrate dev --schema=../../database/prisma/schema.prisma",
+    "prisma:seed": "dotenv -e ../../.env -- node ../../database/prisma/seed.js",
     "test": "dotenv -e ../../.env -- vitest run",
-    "prisma:validate": "dotenv -e ../../.env -- prisma validate --schema=../../prisma/schema.prisma"
+    "prisma:validate": "dotenv -e ../../.env -- prisma validate --schema=../../database/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",

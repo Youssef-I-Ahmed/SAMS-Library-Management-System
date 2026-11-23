@@ -11,7 +11,7 @@ import { translate } from '../src/i18n/index.js';
 
 const screenshots = process.env.SAMS_TEST_EVIDENCE_DIR
   ? `${process.env.SAMS_TEST_EVIDENCE_DIR}/student-home`
-  : fileURLToPath(new URL('../../../docs/frontend/screenshots/sprint10b3/', import.meta.url));
+  : fileURLToPath(new URL('../../../.output/screenshots/sprint10b3/', import.meta.url));
 const metrics = [];
 let server;
 let browser;

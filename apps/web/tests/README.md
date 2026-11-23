@@ -32,14 +32,14 @@ Axe scans report all WCAG 2 A/AA and 2.1 AA findings in the selected dialog and
 catalog regions. Existing `color-contrast` findings are printed but are not
 behavioral test failures in this batch; every other reported rule fails the
 suite. This is not a claim of a clean full accessibility audit. See
-[the sprint report](../../../docs/frontend/SPRINT10B1_UX_ACCESSIBILITY.md)
+[the sprint report](../../../docs/archive/frontend/SPRINT10B1_UX_ACCESSIBILITY.md)
 for findings and verification limits.
 
 ## Checkpoint reproducibility — 28 October 2026
 
 The checkpoint includes six browser suites (accessibility, stock transparency,
 Student Home, Catalog, Details and frontend stabilization), six localization
-tests, the modal fixtures, and `docs/frontend/qa/sprint10b5/{serve.mjs,fixtures.js}`.
+tests, the modal fixtures, and `apps/web/tests/qa/sprint10b5/{serve.mjs,fixtures.js}`.
 The production-fixture suites require a current `npm run build` first.
 
 A clean install from the committed manifests/lockfile does **not** provision

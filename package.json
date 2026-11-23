@@ -14,8 +14,10 @@
     "db:migrate": "npm run prisma:migrate -w @sams/api",
     "db:seed": "npm run prisma:seed -w @sams/api",
     "db:seed:frontend": "npm run prisma:seed -w @sams/api -- --frontend",
-    "test": "npm run test -w @sams/api",
-    "db:validate": "npm run prisma:validate -w @sams/api"
+    "test": "npm run test -w @sams/api && npm run test:web",
+    "db:validate": "npm run prisma:validate -w @sams/api",
+    "test:api": "npm run test -w @sams/api",
+    "test:web": "node --test apps/web/tests/i18n.test.mjs apps/web/tests/ai-controller.test.mjs apps/web/tests/discovery-navigation.test.mjs apps/web/tests/book-cover-pilot.test.mjs"
   },
   "engines": {
     "node": ">=20"

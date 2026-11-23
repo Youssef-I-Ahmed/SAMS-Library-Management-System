@@ -24,9 +24,9 @@ and axe packages:
 ```powershell
 npm run build
 node --test --test-reporter=tap apps/web/tests/frontend-stabilization.browser.test.mjs
-node docs/frontend/qa/sprint10b5/serve.mjs
+node apps/web/tests/qa/sprint10b5/serve.mjs
 # In another terminal, after the host prints its loopback address:
-node docs/frontend/qa/sprint10b5/run-qa.mjs after
+node apps/web/tests/qa/sprint10b5/run-qa.mjs after
 ```
 
 `serve.mjs` reads `apps/web/dist`. It rejects all non-GET requests and all real

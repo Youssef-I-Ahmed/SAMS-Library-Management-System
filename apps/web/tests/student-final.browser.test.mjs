@@ -9,13 +9,13 @@ import { after, before, test } from 'node:test';
 import { chromium, expect } from '@playwright/test';
 import axe from 'axe-core';
 import { translate } from '../src/i18n/index.js';
-import { createAuditServer } from '../../../docs/frontend/qa/sprint10b5/serve.mjs';
+import { createAuditServer } from './qa/sprint10b5/serve.mjs';
 
 const evidence = resolve(process.env.SAMS_TEST_EVIDENCE_DIR || tmpdir(), 'student-final');
 let browser, server, origin, baseFixtures;
 before(async () => {
   await mkdir(evidence, { recursive: true });
-  baseFixtures = await readFile(new URL('../../../docs/frontend/qa/sprint10b5/fixtures.js', import.meta.url), 'utf8');
+  baseFixtures = await readFile(new URL('./qa/sprint10b5/fixtures.js', import.meta.url), 'utf8');
   server = createAuditServer(); await new Promise((done) => server.listen(0, '127.0.0.1', done));
   origin = `http://127.0.0.1:${server.address().port}`;
   browser = await chromium.launch({ headless: true, ...(existsSync(chromium.executablePath()) ? {} : { channel: 'msedge' }) });
