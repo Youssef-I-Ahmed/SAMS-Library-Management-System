@@ -12,8 +12,13 @@ const skipDb = args.includes('--skip-db');
 const python = process.env.PYTHON || (isWindows ? 'py' : 'python3');
 
 function run(command, commandArgs, options = {}) {
-  console.log(`\n> ${command} ${commandArgs.join(' ')}`);
-  const result = spawnSync(command, commandArgs, { stdio: 'inherit', cwd: root, shell: isWindows, ...options });
+  const line = `${command} ${commandArgs.join(' ')}`;
+  console.log(`\n> ${line}`);
+  // Windows needs a shell for npm/npx/py; pass one command string (no separate args) for it.
+  const useShell = options.shell ?? isWindows;
+  const result = useShell
+    ? spawnSync(line, { stdio: 'inherit', cwd: root, ...options, shell: true })
+    : spawnSync(command, commandArgs, { stdio: 'inherit', cwd: root, ...options, shell: false });
   if (result.status !== 0) throw new Error(`${command} failed (exit ${result.status ?? result.signal})`);
 }
 
@@ -70,6 +75,8 @@ for (const service of pythonServices) {
     for (const file of service.requirements) {
       run(venvPython(service), ['-m', 'pip', 'install', '-r', file], { cwd: dir, shell: false });
     }
+    // Test runner for `python -m pytest -q` in every service.
+    run(venvPython(service), ['-m', 'pip', 'install', 'pytest', 'httpx'], { cwd: dir, shell: false });
   } catch (error) {
     failed.push(service.name);
     console.error(`! ${service.name}: ${error.message}`);

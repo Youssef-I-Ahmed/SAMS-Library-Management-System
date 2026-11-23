@@ -15,7 +15,7 @@ import pytest
 
 # The engine reads the catalog from a snapshot that the runtime sets per request
 # (app/catalog_runtime.py). Engine-level tests use the Excel catalog as that snapshot.
-ENGINE_TESTS = {"test_api.py", "test_author_list.py", "test_book_app.py", "test_engine.py", "test_recency.py",
+ENGINE_TESTS = {"test_author_list.py", "test_book_app.py", "test_engine.py", "test_recency.py",
                 "test_staged.py", "test_streamlit.py", "test_topic_list.py", "test_untagged.py"}
 MODELS_DIR = os.environ.get("SAMS_MODELS_DIR", os.path.join(ROOT, "models"))
 _HAS_MODELS = os.path.isdir(os.path.join(MODELS_DIR, "intfloat__multilingual-e5-small"))

@@ -57,6 +57,8 @@ class RuntimeSafetyTests(unittest.TestCase):
         self.assertNotIn("queries.jsonl", source)
         self.assertNotIn("log.exception", source)
         for path in ROOT.rglob("*.py"):
+            if {".venv", "venv", "site-packages", "__pycache__"} & set(path.relative_to(ROOT).parts):
+                continue  # only the service's own source, not installed packages
             ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
 
     def test_network_policy_allows_only_loopback_and_forces_offline(self):

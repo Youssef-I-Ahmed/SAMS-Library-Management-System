@@ -53,9 +53,9 @@ for (const service of pythonServices) {
     { cwd: join(root, service.dir), env: { ...process.env, ...service.env(env), PYTHONUNBUFFERED: '1' } });
 }
 
-const npm = isWindows ? 'npm.cmd' : 'npm';
-if (wanted('api')) start('api', npm, ['run', 'dev', '-w', '@sams/api'], { cwd: root, shell: isWindows });
-if (wanted('web')) start('web', npm, ['run', 'dev', '-w', '@sams/web'], { cwd: root, shell: isWindows,
+// One command string with shell: true (Windows runs npm through npm.cmd).
+if (wanted('api')) start('api', 'npm run dev -w @sams/api', [], { cwd: root, shell: true });
+if (wanted('web')) start('web', 'npm run dev -w @sams/web', [], { cwd: root, shell: true,
   env: { ...process.env, VITE_AI_ASSISTANT_ENABLED: String(env.AI_ENABLED === 'true') } });
 
 console.log('\nWeb: http://localhost:5173 | API: http://localhost:4000 | Ctrl+C stops everything.\n');
