@@ -3,6 +3,7 @@ import { InlineAlert } from '../../components/ui/InlineAlert';
 import { AdminReadState, AdminPagination } from '../../components/admin/AdminReadState';
 import { CatalogRecovery } from '../../components/admin/CatalogRecovery';
 import { CopyItemLookup } from '../../components/admin/CopyItemLookup';
+import { AiCatalogSuggestions } from '../../components/admin/AiCatalogSuggestions';
 import { useCatalogWorkflow } from '../../features/admin/use-catalog-workflow';
 import { useStaffRead } from '../../features/staff/use-staff-circulation';
 import '../../styles/admin-operations.css';
@@ -143,6 +144,8 @@ export function CatalogAdminPage() {
       <fieldset disabled={baseLocked} className="admin-form-grid admin-form-grid__wide catalog-base-fields"><legend>{t('admin.workflows.baseFields')}</legend>
         <label><span>{t('admin.catalog.type')}</span><select disabled={!!itemDraft.id} value={itemDraft.type} onChange={e => setItem('type', e.target.value)}>{ITEM_TYPES.map(v => <option key={v} value={v}>{adminItemTypeLabel(v, t)}</option>)}</select></label>
         <label className="admin-form-grid__wide"><span>{t('admin.catalog.titleField')}</span><input required value={itemDraft.title} onChange={e => setItem('title', e.target.value)} /></label>
+        <AiCatalogSuggestions token={auth.token} title={itemDraft.title} subjects={editsSubjects ? subjects : null}
+          onSelectSubject={(id) => setItem('subjectIds', [...new Set([...(itemDraft.subjectIds || []), id])])} />
         <label><span>{t('admin.catalog.category')}</span><select value={itemDraft.categoryId} onChange={e => setItem('categoryId', e.target.value)}><option value="">—</option>{categories.map(x => <option key={x.id} value={x.id}>{getCategoryLabel(x.name, t)}</option>)}</select></label>
         <label><span>{t('admin.catalog.dewey')}</span><select value={itemDraft.deweyClassificationId} onChange={e => setItem('deweyClassificationId', e.target.value)}><option value="">—</option>{dewey.map(x => <option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>
         <label><span>{t('admin.catalog.callNumber')}</span><input value={itemDraft.callNumber} onChange={e => setItem('callNumber', e.target.value)} /></label>

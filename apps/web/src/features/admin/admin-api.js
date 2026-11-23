@@ -17,6 +17,8 @@ export async function listDewey(token, signal) { return apiRequest('/catalog-mas
 export async function listSubjects(token, signal) { return apiRequest('/catalog-master/subjects', { token, signal }); }
 export async function listFaculties(token, signal) { return apiRequest('/master-data/faculties?includeInactive=false', { token, signal }); }
 export async function listDepartments(token, signal) { return apiRequest('/master-data/departments?includeInactive=false', { token, signal }); }
+export async function suggestSubject(token, title, signal) { return apiRequest('/ai/classify-subject', { method: 'POST', token, body: { title }, signal }); }
+export async function suggestCluster(token, title, signal) { return apiRequest('/ai/book-cluster', { method: 'POST', token, body: { title }, signal }); }
 export async function listBranches(token, signal) { return apiRequest('/master-data/branches?includeInactive=false', { token, signal }); }
 
 export async function listCopies(token, filters = {}, signal) {

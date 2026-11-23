@@ -60,3 +60,11 @@
   .admin-operations .admin-pagination button { flex: 1; }
   .admin-operations .admin-lookup-search { display: grid; }
 }
+
+/* AI cataloguing suggestions (subject classifier + book clustering) */
+.ai-catalog-suggest { display: grid; gap: .5rem; justify-items: start; }
+.ai-catalog-suggest__result { display: grid; gap: .35rem; margin: 0; width: 100%; }
+.ai-catalog-suggest__result div { display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline; }
+.ai-catalog-suggest__result dt { font-weight: 600; }
+.ai-catalog-suggest__result dd { margin: 0; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.ai-catalog-suggest__note { margin: 0; font-size: .875rem; opacity: .8; }
