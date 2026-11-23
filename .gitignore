@@ -8,3 +8,21 @@ coverage/
 .DS_Store
 /RAG/projects-research-handoff/
 /data/analysis-starter/projects-research/
+# Local outputs
+.output/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Private / local data: student names and legacy extracts stay on the local machine.
+/data/raw/**
+!/data/raw/README.md
+/data/processed/**
+!/data/processed/.gitkeep
+!/data/processed/README.md
+
+# Model weights live next to each service but are not committed by default.
+/services/*/models/**
+!/services/*/models/README.md

@@ -1,14 +1,9 @@
 # Data Directory
 
-## `raw/`
-Legacy/recovered library exports exactly reserved for inspection and cleaning. Treat these files as input data; do not manually rewrite them during application development.
+- `raw/` — legacy exports and source spreadsheets. **Local only (git-ignored).**
+- `processed/` — cleaned, import-ready outputs produced by scripts. **Local only (git-ignored).**
+- `demo/` — small demo mappings that are safe to commit.
+- `templates/` — import templates.
 
-Current raw datasets:
-- `books-extracted-partial.csv`
-- `books-reconstructed-recovery.csv`
-- `projects-theses-extracted.csv`
-
-## `processed/`
-Place cleaned, validated, import-ready datasets here. Keep transformations reproducible with scripts rather than editing the raw files.
-
-The application database should not depend directly on recovery CSV files at runtime.
+Some sources contain student names, so they must never be committed to a public repository.
+The application database never reads these files at runtime.
