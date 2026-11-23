@@ -17,7 +17,9 @@
     "test": "npm run test -w @sams/api && npm run test:web",
     "db:validate": "npm run prisma:validate -w @sams/api",
     "test:api": "npm run test -w @sams/api",
-    "test:web": "node --test apps/web/tests/i18n.test.mjs apps/web/tests/ai-controller.test.mjs apps/web/tests/discovery-navigation.test.mjs apps/web/tests/book-cover-pilot.test.mjs"
+    "test:web": "node --test apps/web/tests/i18n.test.mjs apps/web/tests/ai-controller.test.mjs apps/web/tests/discovery-navigation.test.mjs apps/web/tests/book-cover-pilot.test.mjs",
+    "setup": "node scripts/dev/setup.mjs",
+    "dev": "node scripts/dev/dev.mjs"
   },
   "engines": {
     "node": ">=20"

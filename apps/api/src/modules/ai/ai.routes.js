@@ -7,9 +7,10 @@ import { authorize } from '../../middleware/authorize.js';
 import { normalizeError } from '../../middleware/error-handler.js';
 import { createAiGateway } from './ai-gateway.js';
 import { researchRag } from './research-rag.js';
+import { bookClustering, subjectClassifier } from './model-services.js';
 import { aiError } from './ai-errors.js';
 import { parseUniqueJson } from './ai-json.js';
-import { askRequest, researchAskRequest, resetRequest, handle, bookCode, validate, queryWait } from './ai-schemas.js';
+import { askRequest, researchAskRequest, resetRequest, handle, bookCode, validate, queryWait, classifyRequest, clusterRequest } from './ai-schemas.js';
 
 export function aiRequestBoundary(req, res, next) {
   req.aiLogPath = '/api/v1/ai';
@@ -18,7 +19,7 @@ export function aiRequestBoundary(req, res, next) {
 }
 
 export function createAiRouter({ gateway = createAiGateway({ config: env, db: prisma }),
-  research = researchRag, config = env, logging = env.REQUEST_LOGGING && env.NODE_ENV !== 'test' } = {}) {
+  research = researchRag, classifier = subjectClassifier, clustering = bookClustering, config = env, logging = env.REQUEST_LOGGING && env.NODE_ENV !== 'test' } = {}) {
   const router = Router();
   router.use(aiRequestBoundary);
   router.use((req, res, next) => {
@@ -32,6 +33,7 @@ export function createAiRouter({ gateway = createAiGateway({ config: env, db: pr
   });
   router.use(authenticate);
   const allRoles = authorize('STUDENT', 'LIBRARIAN', 'MANAGEMENT');
+  const staffRoles = authorize('LIBRARIAN', 'MANAGEMENT');
   const enabled = (_req, _res, next) => { try { gateway.ready(); next(); } catch (error) { next(error); } };
   const bodyParser = raw({ type: () => true, limit: config.AI_REQUEST_MAX_BYTES ?? 8192, inflate: true });
   function body(req, res, next) {
@@ -94,12 +96,34 @@ export function createAiRouter({ gateway = createAiGateway({ config: env, db: pr
     queryWait(req.originalUrl);
     const { question } = validate(researchAskRequest, req.body);
     gateway.state.throttle(ctx.user.id, 'research_ask', 20);
-    return research.ask(question);
+    return research.ask(question, ctx.user);
   }));
   router.get('/research/health', allRoles, endpoint('research_health', (req, ctx) => {
     queryWait(req.originalUrl);
     gateway.state.throttle(ctx.user.id, 'research_health', 30);
     return research.health();
+  }));
+  // Cataloguing helpers for staff: suggestions only, nothing is written.
+  router.post('/classify-subject', staffRoles, body, endpoint('classify_subject', (req, ctx) => {
+    queryWait(req.originalUrl);
+    const { title } = validate(classifyRequest, req.body);
+    gateway.state.throttle(ctx.user.id, 'classify_subject', 30);
+    return classifier.classify(title);
+  }));
+  router.post('/book-cluster', staffRoles, body, endpoint('book_cluster', (req, ctx) => {
+    queryWait(req.originalUrl);
+    const book = validate(clusterRequest, req.body);
+    gateway.state.throttle(ctx.user.id, 'book_cluster', 30);
+    return clustering.predict(book);
+  }));
+  router.get('/services', staffRoles, endpoint('services', async (req) => {
+    queryWait(req.originalUrl);
+    const check = async (service) => {
+      if (!service.configured) return 'disabled';
+      try { await service.health(); return 'ok'; } catch { return 'unavailable'; }
+    };
+    const [subjectClassifierStatus, bookClusteringStatus] = await Promise.all([check(classifier), check(clustering)]);
+    return { subjectClassifier: subjectClassifierStatus, bookClustering: bookClusteringStatus };
   }));
   router.use((_req, _res, next) => next(aiError(404, 'NOT_FOUND')));
   router.use((error, req, res, _next) => {

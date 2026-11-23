@@ -72,11 +72,11 @@ const config = (overrides = {}) => ({
 });
 function setup(overrides = {}, options = {}) {
   const cfg = config(overrides);
-  const { research, ...gatewayOptions } = options;
+  const { research, classifier, clustering, ...gatewayOptions } = options;
   gateway = createAiGateway({ config: cfg, db: prisma, now: () => clock,
     transportOptions: { jitter: () => 0 }, ...gatewayOptions });
   app = express(); app.use(requestContext);
-  app.use('/api/v1/ai', createAiRouter({ config: cfg, gateway, research, logging: true }));
+  app.use('/api/v1/ai', createAiRouter({ config: cfg, gateway, research, classifier, clustering, logging: true }));
   return gateway;
 }
 const get = (path, who = USER) => request(app).get(`/api/v1/ai${path}`).set('Authorization', `Bearer ${tokens[who]}`);
@@ -211,9 +211,28 @@ describe('authentication and trusted outbound identity', () => {
     expect(search.status).toBe(200);
     expect(search.body.data).toEqual(metadata);
     expect(research.ask).toHaveBeenCalledTimes(1);
-    expect(research.ask).toHaveBeenCalledWith('Fixture academic work');
+    expect(research.ask).toHaveBeenCalledWith('Fixture academic work', expect.objectContaining({ id: USER }));
     expect(calls).toHaveLength(5);
     expect(calls.every(({ headers }) => headers['x-user-role'] === role)).toBe(true);
+  });
+  it('offers the cataloguing models to staff only', async () => {
+    const classifier = { configured: true, health: vi.fn().mockResolvedValue({}),
+      classify: vi.fn().mockResolvedValue({ subject: 'Accounting', confidence: 0.8, topK: [] }) };
+    const clustering = { configured: false, health: vi.fn(), predict: vi.fn().mockResolvedValue({ cluster: 3 }) };
+    setup({}, { classifier, clustering });
+    users.set(USER, makeUser(USER, ['STUDENT']));
+    expect((await post('/classify-subject', { title: 'Cost accounting' })).status).toBe(403);
+    users.set(USER, makeUser(USER, ['LIBRARIAN']));
+    const classified = await post('/classify-subject', { title: 'Cost accounting' });
+    expect(classified.status).toBe(200);
+    expect(classified.body.data.subject).toBe('Accounting');
+    expect(classifier.classify).toHaveBeenCalledWith('Cost accounting');
+    expect((await post('/classify-subject', { title: 'x', extra: 1 })).status).toBe(400);
+    const cluster = await post('/book-cluster', { title: 'Marketing', subjects: 'Marketing | Management' });
+    expect(cluster.body.data).toEqual({ cluster: 3 });
+    expect(clustering.predict).toHaveBeenCalledWith({ title: 'Marketing', subjects: 'Marketing | Management' });
+    expect((await get('/services')).body.data).toEqual({ subjectClassifier: 'ok', bookClustering: 'disabled' });
+    expect(calls).toHaveLength(0);
   });
   it('does not invent ADMIN permissions or trust a JWT-only student role', async () => {
     users.set(USER, makeUser(USER, ['ADMIN']));
