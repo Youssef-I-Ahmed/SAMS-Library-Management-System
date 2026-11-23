@@ -50,7 +50,9 @@ for (const service of pythonServices) {
   }
   const port = String(new URL(url).port || service.port);
   start(service.name, venvPython(service), ['-m', 'uvicorn', service.app, '--host', '127.0.0.1', '--port', port],
-    { cwd: join(root, service.dir), env: { ...process.env, ...service.env(env), PYTHONUNBUFFERED: '1' } });
+    { cwd: join(root, service.dir),
+      // The service's own .env (models dir, DB role, API keys) first, then the values shared with the API.
+      env: { ...process.env, ...readEnv(join(root, service.dir, '.env')), ...service.env(env), PYTHONUNBUFFERED: '1' } });
 }
 
 // One command string with shell: true (Windows runs npm through npm.cmd).
