@@ -1,0 +1,19 @@
+# Standalone FastAPI backend runtime (Python 3.12 or 3.13). The Streamlit UI is NOT needed: see requirements-ui.txt.
+# Lower bounds, not hard pins: the exact versions tested here are in requirements-lock-tested.txt.
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.9
+pydantic-settings>=2.5
+SQLAlchemy>=2.0
+psycopg[binary]>=3.2
+PyJWT>=2.9
+RapidFuzz>=3.9
+numpy>=2.0
+pandas>=2.2
+openpyxl>=3.1
+httpx>=0.27
+PyYAML>=6.0
+# Torch-free multilingual embeddings (ONNX). Model (~220 MB) is downloaded from huggingface.co on first start.
+fastembed>=0.5
+
+# Gemini: the code calls the Gemini REST API through httpx (above). No Google SDK is imported, so none is required.

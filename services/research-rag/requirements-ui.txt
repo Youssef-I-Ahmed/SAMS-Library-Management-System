@@ -1,0 +1,3 @@
+# Only for the legacy Streamlit pilot UI (app.py, src/ui). NOT needed by the FastAPI backend.
+-r requirements.txt
+streamlit>=1.40

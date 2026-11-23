@@ -10,7 +10,8 @@ import pandas as pd
 from .catalog import books_df
 from .config import CONFIG
 from .filters import SearchFilters, analyze_query, apply_filters
-from .lexical import bm25_search
+from .expansion import expand_query, expansion_weight, should_expand
+from .lexical import TITLE_NORM, bm25_search, title_phrase_matches
 from .semantic import semantic_search
 from .text import tokenize
 from app import local_models
@@ -92,6 +93,22 @@ def hybrid_search(query, filters: Optional[SearchFilters] = None, k=10, method="
         if method == "rrf":
             rk = CONFIG["rrf_k"]
             fused["score"] = (1.0 / (rk + fused["lexical_rank"])).fillna(0) + (1.0 / (rk + fused["semantic_rank"])).fillna(0)
+            # v13: cross-language expansion of topic questions (see expansion.py) -- two extra RRF lists
+            expansion = ""
+            if CONFIG.get("query_expansion") and should_expand(query, analysis, title_phrase_matches(query), TITLE_NORM):
+                expansion = expand_query(query)
+            if expansion:
+                w = expansion_weight(query, analysis, CONFIG.get("expansion_weight", 1.0),
+                                     CONFIG.get("expansion_weight_heading", 0.3))
+                x_lex = bm25_search(expansion, candidate_ids, pool)[["book_id", "lexical_rank"]].rename(
+                    columns={"lexical_rank": "x_lexical_rank"})
+                x_sem = semantic_search(expansion, candidate_ids, pool, min_similarity)[["book_id", "semantic_rank"]].rename(
+                    columns={"semantic_rank": "x_semantic_rank"})
+                fused = fused.merge(x_lex, on="book_id", how="outer").merge(x_sem, on="book_id", how="outer")
+                fused["score"] = (fused["score"].fillna(0)
+                                  + w * (1.0 / (rk + fused["x_lexical_rank"])).fillna(0)
+                                  + w * (1.0 / (rk + fused["x_semantic_rank"])).fillna(0))
+                meta["expansion"] = expansion
         elif method == "weighted":
             sem_s = fused["semantic_score"]
             sem_s = sem_s.fillna(sem_s.min() if sem_s.notna().any() else 0.0)   # absent from vector list -> worst seen score

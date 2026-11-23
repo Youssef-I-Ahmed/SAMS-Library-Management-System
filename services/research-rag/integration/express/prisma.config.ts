@@ -1,0 +1,5 @@
+import { defineConfig } from "prisma/config";
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  datasource: { url: process.env.DATABASE_URL ?? "postgresql://x:y@localhost:5432/z" },
+});

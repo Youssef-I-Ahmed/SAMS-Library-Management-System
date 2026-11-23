@@ -1,0 +1,34 @@
+# secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+*.pem
+*.key
+# virtualenv / python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+# data: raw dataset and derived artifacts contain student names -> never commit to a public repo
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/store/
+*.db
+*.sqlite
+*.sqlite3
+# model caches
+.cache/
+models/
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+private-import/
+# reference Express gateway: dependencies and generated Prisma client are rebuilt by npm install / prisma generate
+integration/express/node_modules/
+integration/express/generated/

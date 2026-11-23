@@ -14,6 +14,7 @@ from .catalog import books_df, chunks_df, language_changes_df
 from .chat import ChatSession
 from .context import near_duplicates_df
 from .filters import SearchFilters, apply_filters
+from .listing import keep_relevant
 from .search import hybrid_search, reranker
 from .semantic import encoder
 
@@ -53,13 +54,19 @@ def serialize(out):
         items = [{"n": int(r["#"]), "book_codes": list(r["book_codes"]), "title": r["title"], "author": r["author"],
                   "year": _year(r["year"]), "call_number": r["call_number"], "copies": int(r["copies"]),
                   "in_answer": r["in_answer"] == "✓"} for _, r in out["all_books"].iterrows()]
+        if "in_topic" in out["all_books"].columns:                  # v15: topic list -> filed under the subject?
+            for it, (_, r) in zip(items, out["all_books"].iterrows()):
+                it["in_topic"] = bool(r["in_topic"])
         all_books = {"complete": bool(out.get("all_books_complete")), "items": items}
-    return {
+    data = {
         "answer": out["answer"],
         "is_refusal": bool(c["is_refusal"]),
         "hint": out.get("hint"),
         "coverage_note": out.get("coverage_note"),
         "search_query": out.get("search_query"),
+        "recency": bool(out.get("recency")),
+        "topic_list": out.get("topic_list"),
+        "author_list": out.get("author_list"),
         "filters_applied": out.get("filters") or {},
         "provider": out.get("provider"),
         "model": out.get("model"),
@@ -69,6 +76,8 @@ def serialize(out):
         "sources": sources,
         "all_books": all_books,
     }
+    # v16: the list is trimmed here (was only on the book page), so the website API gets the same list
+    return keep_relevant(data, out["query"])
 
 
 def preview(stage):

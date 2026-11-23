@@ -32,6 +32,14 @@ CONFIG = {
     "use_reranker": True,
     "reranker_model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",   # v4: kept. Stronger option: "BAAI/bge-reranker-v2-m3" (0.904 vs 0.882, ~7x slower, 2.2 GB) -- test on the deployment server   # multilingual (incl. Arabic)
     "rerank_pool": 20,
+    "recency_pool": 20,          # v14: "newest" questions -> the newest among the N books closest to the topic
+    "topic_full_list": True,     # v15: topic questions list every book of the subject (False = the closest N, as before)
+    "topic_full_list_max": 400,  # v15: larger subjects keep the closest-N list
+    "topic_from_glossary": True,       # v16: a glossary term whose equivalent is a heading makes a topic question
+    "topic_synonyms": True,            # v16: topic list also takes the glossary equivalents' headings (topics.py)
+    "query_expansion": True,     # v13: cross-language expansion of topic questions (expansion.py); False = v12 behaviour
+    "expansion_weight": 1.0,     # v13: weight of the two expansion lists in RRF
+    "expansion_weight_heading": 0.3,   # v13: ...when the whole question is one subject heading of the catalog
 
     # --- context building (Lab 8) ---
     "max_sources": 6,
@@ -51,7 +59,7 @@ CONFIG = {
     "models_dir": os.getenv("SAMS_MODELS_DIR", "models"),
 
     # --- full list of matching books (v7) ---
-    "all_books_limit": 30,
+    "all_books_limit": 100,      # v16: was 30; the list is then trimmed by relevance (listing.py), as on the book page
 }
 
 # Local folder for the embedding model (notebook Section 6): downloaded once, then loaded offline.

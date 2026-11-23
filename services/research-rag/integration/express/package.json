@@ -1,0 +1,19 @@
+{
+  "name": "sadat-rag-express-reference-gateway",
+  "private": true,
+  "version": "1.0.0",
+  "description": "REFERENCE gateway used to contract-test the Python RAG service (JWT + RBAC + Prisma + PostgreSQL). Not the software team's backend.",
+  "type": "module",
+  "scripts": {
+    "generate": "prisma generate",
+    "test": "node --test --test-concurrency=1 test/*.test.mjs"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.1",
+    "prisma": "7.10.1"
+  }
+}

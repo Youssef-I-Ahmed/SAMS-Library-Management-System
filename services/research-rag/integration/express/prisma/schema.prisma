@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "ts"
+}
+datasource db {
+  provider = "postgresql"
+}
+model User {
+  id           Int    @id @default(autoincrement())
+  email        String @unique
+  passwordHash String @map("password_hash")
+  role         String @default("STUDENT")
+  @@map("users")
+}
+model Project {
+  id             Int      @id @default(autoincrement())
+  bookCode       String   @unique @map("book_code")
+  title          String
+  students       String[]
+  supervisors    String[]
+  publishingDate String?  @map("publishing_date")
+  callNum        String?  @map("call_num")
+  extent         String?
+  dimension      String?
+  subjectsAll    String[] @map("subjects_all")
+  @@map("projects")
+}

@@ -1,0 +1,10 @@
+# Versions below are the ones the model was built and tested with.
+# The model file MUST be loaded with the same scikit-learn version it was trained with.
+fastapi==0.163.2
+uvicorn==0.54.0
+pydantic==2.14.3
+scikit-learn==1.9.1
+joblib==1.6.0
+pandas==3.0.6
+numpy==2.5.4
+openpyxl==3.1.5

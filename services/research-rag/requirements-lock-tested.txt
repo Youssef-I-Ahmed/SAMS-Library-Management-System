@@ -1,0 +1,16 @@
+# Exact versions of the Python 3.13 test environment (reference only)
+fastapi==0.159.0
+uvicorn[standard]==0.54.0
+pydantic==2.14.1
+pydantic-settings==2.16.1
+SQLAlchemy==2.1.6
+psycopg[binary]==3.3.6
+PyJWT==2.15.1
+RapidFuzz==3.14.6
+numpy==2.5.4
+pandas==3.0.6
+openpyxl==3.1.5
+httpx==0.28.1
+PyYAML==6.0.3
+streamlit==1.66.1
+fastembed==0.9.0   # only its model listing was exercised here; no model could be downloaded

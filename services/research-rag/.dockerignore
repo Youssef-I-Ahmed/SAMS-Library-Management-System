@@ -1,0 +1,13 @@
+.venv
+.git
+data/raw
+data/processed
+data/store
+tests
+*.db
+.env
+.streamlit/secrets.toml
+__pycache__
+private-import/
+integration/express/node_modules
+integration/express/generated

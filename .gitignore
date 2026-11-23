@@ -23,6 +23,5 @@ venv/
 !/data/processed/.gitkeep
 !/data/processed/README.md
 
-# Model weights live next to each service but are not committed by default.
-/services/*/models/**
-!/services/*/models/README.md
+# Large model weights (book-rag, research-rag) are git-ignored inside each service.
+# Small trained models (subject-classifier, book-clustering) are committed.
