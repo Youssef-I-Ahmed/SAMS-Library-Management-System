@@ -5,7 +5,7 @@ import {
 } from './catalog-columns.js';
 import { parseTable, serializeTable } from './tabular.js';
 
-export const MAX_IMPORT_ROWS = 5000;
+export const MAX_IMPORT_ROWS = 10000;
 const MAX_EXPORT_ROWS = 20000;
 const ACADEMIC_TYPES = ['ACADEMIC_WORK', 'PROJECT', 'THESIS'];
 const ACADEMIC_CATEGORY = 'مشروعات تخرج ورسائل علمية';
@@ -78,19 +78,29 @@ export async function analyzeImport(buffer, { format, defaultType, mapping: requ
     const { record, errors, warnings } = validateRow(values, mapping, { defaultType, lookups });
     let status = errors.length ? 'invalid' : 'ready';
     let duplicate = null;
-    if (status === 'ready') {
+    // Rows that already exist in the catalog count as duplicates even when an old value
+    // (such as a legacy ISBN) would not pass validation, so an export can be re-imported.
+    if (record.title && record.type) {
       const titleKey = `${group(record.type)}|${normalizeText(record.title)}`;
       const isbnMatch = record.isbn && existing.byIsbn.get(record.isbn);
       const titleMatch = existing.byTitle.get(titleKey)?.find((item) => sameYear(item.publicationYear, record.publication_year));
-      const fileIsbn = record.isbn && seenIsbn.get(record.isbn);
-      const fileTitle = seenTitle.get(titleKey)?.find((seen) => sameYear(seen.year, record.publication_year));
+      const fileIsbn = status === 'ready' && record.isbn && seenIsbn.get(record.isbn);
+      const fileTitle = status === 'ready' && seenTitle.get(titleKey)?.find((seen) => sameYear(seen.year, record.publication_year));
       if (isbnMatch) duplicate = { reason: 'ISBN', id: isbnMatch.id, title: isbnMatch.title };
-      else if (titleMatch) duplicate = { reason: 'TITLE', id: titleMatch.id, title: titleMatch.title };
-      else if (fileIsbn || fileTitle) duplicate = { reason: 'IN_FILE', rowNumber: (fileIsbn || fileTitle).rowNumber };
-      if (duplicate) status = 'duplicate';
-      if (record.isbn && !seenIsbn.has(record.isbn)) seenIsbn.set(record.isbn, { rowNumber });
-      if (!seenTitle.has(titleKey)) seenTitle.set(titleKey, []);
-      seenTitle.get(titleKey).push({ rowNumber, year: record.publication_year });
+      else if (titleMatch) {
+        const bothYears = titleMatch.publicationYear != null && record.publication_year != null;
+        duplicate = { reason: bothYears ? 'TITLE_YEAR' : 'TITLE', id: titleMatch.id, title: titleMatch.title };
+      } else if (fileIsbn || fileTitle) duplicate = { reason: 'IN_FILE', rowNumber: (fileIsbn || fileTitle).rowNumber };
+      if (duplicate) {
+        // A duplicate that also has errors is never created, whatever the policy.
+        if (status === 'invalid') duplicate.blocked = true;
+        status = 'duplicate';
+      }
+      if (!errors.length) {
+        if (record.isbn && !seenIsbn.has(record.isbn)) seenIsbn.set(record.isbn, { rowNumber });
+        if (!seenTitle.has(titleKey)) seenTitle.set(titleKey, []);
+        seenTitle.get(titleKey).push({ rowNumber, year: record.publication_year });
+      }
     }
     return { rowNumber, status, errors, warnings, duplicate, record };
   });
@@ -100,7 +110,8 @@ export async function analyzeImport(buffer, { format, defaultType, mapping: requ
     mapping,
     missingRequired: ['title'].filter((key) => !mapped.has(key)),
     typeColumnMapped: mapped.has('type'),
-    summary: { total: rows.length, ready: count('ready'), duplicates: count('duplicate'), invalid: count('invalid') },
+    summary: { total: rows.length, ready: count('ready'), duplicates: count('duplicate'), invalid: count('invalid'),
+      creatableDuplicates: rows.filter((row) => row.status === 'duplicate' && !row.duplicate.blocked).length },
     rows
   };
 }
@@ -171,7 +182,7 @@ export async function commitImport(buffer, options, db = prisma) {
     failed: [], createdIds: [] };
   for (const row of analysis.rows) {
     if (row.status === 'invalid') continue;
-    if (row.status === 'duplicate' && !createDuplicates) { report.skippedDuplicates += 1; continue; }
+    if (row.status === 'duplicate' && (!createDuplicates || row.duplicate.blocked)) { report.skippedDuplicates += 1; continue; }
     caches.pendingContributors = new Map();
     try {
       const id = await db.$transaction((tx) => createRecord(tx, row.record, caches));

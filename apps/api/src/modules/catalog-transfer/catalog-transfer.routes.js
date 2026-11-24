@@ -9,7 +9,7 @@ import { CONTENT_TYPES, FORMATS } from './tabular.js';
 export const catalogTransferRouter = Router();
 catalogTransferRouter.use(authenticate);
 
-const MAX_UPLOAD = '8mb';
+const MAX_UPLOAD = '16mb';
 const format = z.enum(FORMATS);
 const type = z.enum(['BOOK', 'ACADEMIC_WORK']);
 

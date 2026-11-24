@@ -86,7 +86,7 @@ describe('import', () => {
   it('previews statuses and duplicates without writing', async () => {
     const db = fakeDb(items);
     const result = await analyzeImport(file, { format: 'csv' }, db);
-    expect(result.summary).toEqual({ total: 5, ready: 1, duplicates: 3, invalid: 1 });
+    expect(result.summary).toEqual({ total: 5, ready: 1, duplicates: 3, invalid: 1, creatableDuplicates: 3 });
     expect(result.rows.map((row) => row.duplicate?.reason ?? row.status))
       .toEqual(['ready', 'TITLE', 'ISBN', 'IN_FILE', 'invalid']);
     expect(db.created).toEqual([]);
@@ -98,5 +98,19 @@ describe('import', () => {
       .toMatchObject({ created: 1, skippedDuplicates: 3, invalid: 1, failed: [] });
     const create = fakeDb(items);
     expect((await commitImport(file, { format: 'csv', duplicatePolicy: 'create' }, create)).report.created).toBe(4);
+  });
+});
+
+describe('re-importing an export', () => {
+  it('treats existing records with legacy values as duplicates that are never created', async () => {
+    const file = serializeTable('csv', ['type', 'title', 'isbn', 'publication_year'], [
+      { type: 'BOOK', title: 'Old Book', isbn: '041519550', publication_year: 2001 }
+    ]);
+    const db = fakeDb([{ id: 'o1', type: 'BOOK', title: 'Old Book', publicationYear: 2001, bookDetails: { isbn: '041519550' } }]);
+    const preview = await analyzeImport(file, { format: 'csv' }, db);
+    expect(preview.rows[0]).toMatchObject({ status: 'duplicate', duplicate: { reason: 'TITLE_YEAR', blocked: true } });
+    expect(preview.summary).toMatchObject({ duplicates: 1, invalid: 0, creatableDuplicates: 0 });
+    const result = await commitImport(file, { format: 'csv', duplicatePolicy: 'create' }, db);
+    expect(result.report).toMatchObject({ created: 0, skippedDuplicates: 1 });
   });
 });

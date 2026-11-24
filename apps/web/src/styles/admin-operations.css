@@ -93,3 +93,10 @@
 .catalog-transfer__stats dt { color: var(--text-secondary); font-size: .85rem; }
 .catalog-transfer__stats dd { margin: 4px 0 0; font-size: 1.5rem; font-weight: 800; }
 .catalog-transfer__report { display: grid; gap: 12px; }
+
+/* Student accounts */
+.admin-operations .student-directory__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-operations .admin-danger-button { min-height: 40px; padding-inline: 14px; border: 0; border-radius: var(--sams-radius-md); color: #fff; background: var(--sams-danger); font-weight: 800; }
+.admin-operations .catalog-transfer__report .admin-row-actions :is(.admin-primary-button, .admin-secondary-button) { padding-inline: 14px; }
+.admin-operations .catalog-transfer__report .admin-row-actions .admin-secondary-button { border: 1px solid var(--border-default); color: var(--text-primary); background: var(--surface-elevated); }
+@media (max-width: 760px) { .admin-operations .student-directory__actions > * { flex: 1 1 auto; text-align: center; } }

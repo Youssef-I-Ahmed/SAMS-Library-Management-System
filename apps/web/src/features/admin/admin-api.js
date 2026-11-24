@@ -71,18 +71,35 @@ async function fileRequest(path, { token, method = 'GET', file, signal } = {}) {
   }
   return response;
 }
-export async function downloadCatalogFile(token, kind, params) {
-  const response = await fileRequest(`/catalog-transfer/${kind}?${buildAdminQuery(params)}`, { token });
+async function saveDownload(response, fallback) {
   const blob = await response.blob();
-  const name = /filename="([^"]+)"/.exec(response.headers.get('content-disposition') || '')?.[1]
-    || `sams-catalog.${params.format}`;
+  const name = /filename="([^"]+)"/.exec(response.headers.get('content-disposition') || '')?.[1] || fallback;
   const url = URL.createObjectURL(blob);
   const link = Object.assign(document.createElement('a'), { href: url, download: name });
   document.body.append(link); link.click(); link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+export async function downloadCatalogFile(token, kind, params) {
+  const response = await fileRequest(`/catalog-transfer/${kind}?${buildAdminQuery(params)}`, { token });
+  await saveDownload(response, `sams-catalog.${params.format}`);
+}
 export async function runCatalogImport(token, step, file, params, signal) {
   const query = buildAdminQuery({ ...params, mapping: params.mapping ? JSON.stringify(params.mapping) : undefined });
   const response = await fileRequest(`/catalog-transfer/import/${step}?${query}`, { token, method: 'POST', file, signal });
+  return response.json();
+}
+
+// Student accounts.
+export async function createStudent(token, body) { return apiRequest('/students', { method: 'POST', token, body }); }
+export async function updateStudent(token, studentId, body) {
+  return apiRequest(`/students/${encodeURIComponent(studentId)}`, { method: 'PATCH', token, body });
+}
+export async function downloadStudentFile(token, kind, params) {
+  const response = await fileRequest(`/students/transfer/${kind}?${buildAdminQuery(params)}`, { token });
+  await saveDownload(response, `sams-students.${params.format}`);
+}
+export async function runStudentImport(token, step, file, params, signal) {
+  const query = buildAdminQuery({ ...params, mapping: params.mapping ? JSON.stringify(params.mapping) : undefined });
+  const response = await fileRequest(`/students/transfer/${step}?${query}`, { token, method: 'POST', file, signal });
   return response.json();
 }

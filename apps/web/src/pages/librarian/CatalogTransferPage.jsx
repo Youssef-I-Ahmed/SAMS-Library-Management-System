@@ -90,7 +90,7 @@ export function CatalogTransferPage() {
     if (fileInput.current) fileInput.current.value = '';
   }
 
-  const toImport = preview ? preview.summary.ready + (policy === 'create' ? preview.summary.duplicates : 0) : 0;
+  const toImport = preview ? preview.summary.ready + (policy === 'create' ? (preview.summary.creatableDuplicates ?? preview.summary.duplicates) : 0) : 0;
   const visibleRows = useMemo(() => (preview?.rows || []).filter((row) => !rowFilter || row.status === rowFilter), [preview, rowFilter]);
 
   function downloadErrors() {

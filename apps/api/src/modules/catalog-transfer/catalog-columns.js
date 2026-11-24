@@ -33,7 +33,7 @@ export const templateColumns = (type) => COLUMNS.filter((column) => column.for.i
 export const exportColumns = (type) => [...EXPORT_ONLY.slice(0, 2),
   ...(type ? templateColumns(type) : COLUMNS.map((column) => column.key)), ...EXPORT_ONLY.slice(2)];
 
-const headerKey = (value) => String(value ?? '').normalize('NFKC').toLocaleLowerCase('und')
+export const headerKey = (value) => String(value ?? '').normalize('NFKC').toLocaleLowerCase('und')
   .replace(/[\s_\-./()]+/g, '').replaceAll('أ', 'ا').replaceAll('إ', 'ا').replaceAll('ة', 'ه').replaceAll('ى', 'ي');
 
 const HEADER_INDEX = new Map();
