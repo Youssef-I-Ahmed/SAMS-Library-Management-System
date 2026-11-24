@@ -158,5 +158,56 @@ export const ar9g = {
       students: { title: 'حسابات الطلبة', body: 'عرض الطلبة وإضافتهم وتعديلهم واستيرادهم.' },
       analytics: { title: 'التحليلات', body: 'عرض تقارير المكتبة.' }
     }
+  },
+  auditLog: {
+    "title": "سجل العمليات",
+    "subtitle": "مين عمل إيه وإمتى في السيستم: إضافة وتعديل الكتالوج، والإعارة، والحسابات، والصلاحيات.",
+    "action": "العملية",
+    "allActions": "كل العمليات",
+    "actor": "مين",
+    "everyone": "الكل",
+    "from": "من",
+    "to": "إلى",
+    "clear": "مسح الفلاتر",
+    "empty": "مفيش عمليات مطابقة.",
+    "system": "السيستم",
+    "details": "التفاصيل",
+    "fields": "الحقول اللي اتغيرت",
+    "before": "قبل",
+    "after": "بعد",
+    "actions": {
+      "STUDENT_CREATED": "إضافة طالب",
+      "STUDENT_UPDATED": "تعديل بيانات طالب",
+      "STUDENT_DEACTIVATED": "إيقاف حساب طالب",
+      "STUDENT_ACTIVATED": "تفعيل حساب طالب",
+      "LIBRARIAN_CREATED": "إضافة أمين مكتبة",
+      "LIBRARIAN_UPDATED": "تعديل أمين مكتبة",
+      "LIBRARIAN_ACTIVATED": "تفعيل أمين مكتبة",
+      "LIBRARIAN_DEACTIVATED": "إيقاف أمين مكتبة",
+      "LIBRARIAN_PERMISSIONS_CHANGED": "تغيير صلاحيات أمين مكتبة",
+      "CATALOG_ITEM_CREATED": "إضافة عنصر للكتالوج",
+      "CATALOG_ITEM_UPDATED": "تعديل عنصر في الكتالوج",
+      "CATALOG_ITEM_ARCHIVED": "أرشفة عنصر",
+      "CATALOG_ITEM_RESTORED": "استرجاع عنصر",
+      "CATALOG_IMPORTED": "استيراد كتالوج من ملف",
+      "COPY_CREATED": "إضافة نسخة",
+      "COPY_UPDATED": "تعديل نسخة",
+      "BORROWING_CHECKED_OUT": "إعارة كتاب",
+      "BORROWING_RETURNED": "إرجاع كتاب",
+      "RESERVATION_CANCELLED": "إلغاء حجز",
+      "RESERVATIONS_EXPIRED": "إنهاء الحجوزات المنتهية",
+      "VISIT_CHECKED_IN": "تسجيل دخول زائر",
+      "VISIT_CHECKED_OUT": "تسجيل خروج زائر"
+    },
+    "entities": {
+      "Student": "طالب",
+      "User": "حساب",
+      "LibraryItem": "عنصر في الكتالوج",
+      "Catalog": "الكتالوج",
+      "PhysicalCopy": "نسخة",
+      "Borrowing": "إعارة",
+      "Reservation": "حجز",
+      "LibraryVisit": "زيارة"
+    }
   }
 };

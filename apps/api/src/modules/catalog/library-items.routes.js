@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ContributorRole, ItemType } from '@prisma/client';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { audited } from '../../utils/audit.js';
 import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
@@ -174,6 +175,7 @@ libraryItemsRouter.put(
   '/:id/contributors',
   authorize('LIBRARIAN'),
   requireGrant('catalog.update'),
+  audited('CATALOG_ITEM_UPDATED', 'LibraryItem', { entityId: (req) => req.params.id }),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(
@@ -229,6 +231,7 @@ libraryItemsRouter.post(
   '/',
   authorize('LIBRARIAN'),
   requireGrant('catalog.create'),
+  audited('CATALOG_ITEM_CREATED', 'LibraryItem', { label: (_req, body) => body?.data?.title }),
   async (req, res, next) => {
     try {
       const body = parseOrThrow(createSchema, req.body);
@@ -246,6 +249,8 @@ libraryItemsRouter.patch(
   requireGrant('catalog.update'),
   (req, res, next) => (req.body && Object.hasOwn(req.body, 'isActive')
     ? requireGrant(req.body.isActive === false ? 'catalog.archive' : 'catalog.restore')(req, res, next) : next()),
+  audited((req) => (req.body?.isActive === false ? 'CATALOG_ITEM_ARCHIVED' : req.body?.isActive === true ? 'CATALOG_ITEM_RESTORED' : 'CATALOG_ITEM_UPDATED'),
+    'LibraryItem', { label: (_req, body) => body?.data?.title }),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(
@@ -267,6 +272,7 @@ libraryItemsRouter.put(
   '/:id/book-details',
   authorize('LIBRARIAN'),
   requireGrant('catalog.update'),
+  audited('CATALOG_ITEM_UPDATED', 'LibraryItem', { entityId: (req) => req.params.id }),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(
@@ -288,6 +294,7 @@ libraryItemsRouter.put(
   '/:id/academic-work-details',
   authorize('LIBRARIAN'),
   requireGrant('catalog.update'),
+  audited('CATALOG_ITEM_UPDATED', 'LibraryItem', { entityId: (req) => req.params.id }),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(

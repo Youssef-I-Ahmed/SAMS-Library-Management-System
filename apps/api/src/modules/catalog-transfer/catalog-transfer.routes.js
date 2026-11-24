@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { audited } from '../../utils/audit.js';
 import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
@@ -83,7 +84,8 @@ catalogTransferRouter.post('/import/preview', authorize('LIBRARIAN'), requireGra
   } catch (error) { next(error); }
 });
 
-catalogTransferRouter.post('/import/commit', authorize('LIBRARIAN'), requireGrant('catalog.import'), requireGrant('catalog.create'), upload, async (req, res, next) => {
+catalogTransferRouter.post('/import/commit', authorize('LIBRARIAN'), requireGrant('catalog.import'), requireGrant('catalog.create'),
+  audited('CATALOG_IMPORTED', 'Catalog', { entityId: () => 'import', label: (_req, body) => `created ${body?.data?.report?.created ?? 0} of ${body?.data?.report?.total ?? 0}` }), upload, async (req, res, next) => {
   try {
     res.json({ data: await commitImport(req.body, importOptions(req)) });
   } catch (error) { next(error); }

@@ -14,3 +14,32 @@ export async function writeAudit(db, { actor, action, entityType, entityId, oldV
     }
   });
 }
+
+/**
+ * Route middleware: after a successful response, records who did what.
+ * Stores only field names that changed (not their values) plus a short label,
+ * so student data and free text stay out of the log. A failed write is logged
+ * to the console and never changes the response.
+ */
+export function audited(action, entityType, { entityId, label } = {}) {
+  return (req, res, next) => {
+    const send = res.json.bind(res);
+    res.json = (body) => {
+      if (res.statusCode < 400 && req.auth) {
+        const id = entityId ? entityId(req, body) : body?.data?.id ?? req.params?.id;
+        const name = typeof action === 'function' ? action(req, body) : action;
+        const fields = req.body && typeof req.body === 'object' && !Buffer.isBuffer(req.body) ? Object.keys(req.body) : [];
+        Promise.resolve().then(async () => {
+          const { prisma } = await import('../config/prisma.js');
+          await writeAudit(prisma, {
+            actor: req.auth, action: name, entityType, entityId: id ?? 'unknown',
+            metadata: { fields, ...(label ? { label: String(label(req, body) ?? '').slice(0, 200) } : {}),
+              ...(req.requestId ? { requestId: req.requestId } : {}) }
+          });
+        }).catch((error) => console.error(`[audit] ${name} not recorded: ${error?.code || error?.name || 'error'}`));
+      }
+      return send(body);
+    };
+    next();
+  };
+}

@@ -30,6 +30,7 @@ const RoleHomePage = lazyNamed(() => import('../../pages/shared/RoleHomePage'), 
 const ManagementBorrowingsPage = lazyNamed(() => import('../../pages/management/ManagementBorrowingsPage'), 'ManagementBorrowingsPage');
 const ManagementVisitsPage = lazyNamed(() => import('../../pages/management/ManagementVisitsPage'), 'ManagementVisitsPage');
 const ManagementStaffPage = lazyNamed(() => import('../../pages/management/ManagementStaffPage'), 'ManagementStaffPage');
+const ManagementAuditPage = lazyNamed(() => import('../../pages/management/ManagementAuditPage'), 'ManagementAuditPage');
 const ForbiddenPage = lazyNamed(() => import('../../pages/system/ForbiddenPage'), 'ForbiddenPage');
 const NotFoundPage = lazyNamed(() => import('../../pages/system/NotFoundPage'), 'NotFoundPage');
 
@@ -103,6 +104,7 @@ export function AppRouter() {
                 <Route path="borrowings" element={<ManagementBorrowingsPage />} />
                 <Route path="visits" element={<ManagementVisitsPage />} />
                 <Route path="staff" element={<ManagementStaffPage />} />
+                <Route path="audit" element={<ManagementAuditPage />} />
                 <Route path="ai" element={assistantPage('/management')} />
                 <Route path="ai/items/:itemId" element={staffAssistantDetails('/management')} />
               </Route>

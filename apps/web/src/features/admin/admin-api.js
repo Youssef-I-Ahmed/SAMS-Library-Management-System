@@ -111,3 +111,10 @@ export async function createLibrarian(token, body) { return apiRequest('/staff/l
 export async function updateLibrarian(token, id, body) {
   return apiRequest(`/staff/librarians/${encodeURIComponent(id)}`, { method: 'PATCH', token, body });
 }
+
+// Audit log (Management).
+export async function listAuditLogs(token, filters = {}, signal) {
+  const query = buildAdminQuery({ ...filters, from: toIsoStartOfDay(filters.from), to: toIsoNextDay(filters.to) });
+  return apiRequest(`/audit-logs?${query}`, { token, signal });
+}
+export async function getAuditFacets(token, signal) { return apiRequest('/audit-logs/facets', { token, signal }); }

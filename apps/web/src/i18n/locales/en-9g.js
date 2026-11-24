@@ -158,5 +158,56 @@ export const en9g = {
       students: { title: 'Student accounts', body: 'View, add, edit and import students.' },
       analytics: { title: 'Analytics', body: 'View library reports.' }
     }
+  },
+  auditLog: {
+    "title": "Audit log",
+    "subtitle": "Who did what and when: catalog changes, lending, accounts and permissions.",
+    "action": "Action",
+    "allActions": "All actions",
+    "actor": "Who",
+    "everyone": "Everyone",
+    "from": "From",
+    "to": "To",
+    "clear": "Clear filters",
+    "empty": "No matching activity.",
+    "system": "System",
+    "details": "Details",
+    "fields": "Changed fields",
+    "before": "Before",
+    "after": "After",
+    "actions": {
+      "STUDENT_CREATED": "Student added",
+      "STUDENT_UPDATED": "Student details changed",
+      "STUDENT_DEACTIVATED": "Student account deactivated",
+      "STUDENT_ACTIVATED": "Student account activated",
+      "LIBRARIAN_CREATED": "Librarian added",
+      "LIBRARIAN_UPDATED": "Librarian changed",
+      "LIBRARIAN_ACTIVATED": "Librarian activated",
+      "LIBRARIAN_DEACTIVATED": "Librarian deactivated",
+      "LIBRARIAN_PERMISSIONS_CHANGED": "Librarian permissions changed",
+      "CATALOG_ITEM_CREATED": "Catalog record added",
+      "CATALOG_ITEM_UPDATED": "Catalog record edited",
+      "CATALOG_ITEM_ARCHIVED": "Record archived",
+      "CATALOG_ITEM_RESTORED": "Record restored",
+      "CATALOG_IMPORTED": "Catalog imported from a file",
+      "COPY_CREATED": "Copy added",
+      "COPY_UPDATED": "Copy edited",
+      "BORROWING_CHECKED_OUT": "Book lent",
+      "BORROWING_RETURNED": "Book returned",
+      "RESERVATION_CANCELLED": "Reservation cancelled",
+      "RESERVATIONS_EXPIRED": "Expired reservations closed",
+      "VISIT_CHECKED_IN": "Visitor checked in",
+      "VISIT_CHECKED_OUT": "Visitor checked out"
+    },
+    "entities": {
+      "Student": "Student",
+      "User": "Account",
+      "LibraryItem": "Catalog record",
+      "Catalog": "Catalog",
+      "PhysicalCopy": "Copy",
+      "Borrowing": "Loan",
+      "Reservation": "Reservation",
+      "LibraryVisit": "Visit"
+    }
   }
 };

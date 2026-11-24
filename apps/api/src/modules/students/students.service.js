@@ -152,7 +152,8 @@ async function applyImport(tx, plan, studentRole, { actor, source = 'import' } =
     });
     // Existing identities and role memberships are never relinked or repaired by import.
     if (actor) {
-      await writeAudit(tx, { actor, action: deactivating ? 'STUDENT_DEACTIVATED' : 'STUDENT_UPDATED',
+      await writeAudit(tx, { actor, action: deactivating ? 'STUDENT_DEACTIVATED'
+        : record.isActive === true && existingStudent.user.isActive === false ? 'STUDENT_ACTIVATED' : 'STUDENT_UPDATED',
         entityType: 'Student', entityId: existingStudent.userId,
         oldValues: auditView(existingStudent, existingStudent.user), newValues: auditView(student ?? existingStudent, user ?? existingStudent.user),
         metadata: { source } });
