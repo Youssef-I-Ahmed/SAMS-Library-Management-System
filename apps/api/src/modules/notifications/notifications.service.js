@@ -131,7 +131,8 @@ async function collect(auth, db, now) {
       db.reservation.findMany({ where: { status: 'ACTIVE', expiresAt: { lte: now, gte: staffSince } }, select: { id: true, expiresAt: true, ...who }, take: 50 }),
       db.borrowing.count({ where: { status: 'ACTIVE', dueAt: { lte: now } } }),
       db.auditLog.findMany({ where: { entityType: 'User', entityId: auth.id, action: 'LIBRARIAN_PERMISSIONS_CHANGED', createdAt: { gte: since } },
-        select: { id: true, createdAt: true, metadata: true }, take: 20 })
+        // Only the latest change: several edits in a row become one notice.
+        select: { id: true, createdAt: true, metadata: true }, orderBy: { createdAt: 'desc' }, take: 1 })
     ]);
     events.push(...librarianEvents({ reservations, overdueHolds, overdueCount, permissionChanges, now }));
   }
