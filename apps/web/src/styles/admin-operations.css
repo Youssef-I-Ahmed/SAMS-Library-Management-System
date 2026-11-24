@@ -152,3 +152,11 @@
 .admin-operations .reports-alert--high { border-inline-start: 4px solid var(--sams-danger); }
 .admin-operations .reports-alert--medium { border-inline-start: 4px solid var(--sams-warning); }
 .admin-operations .reports-page__summary { margin: 8px 0 12px; }
+
+/* Category field with an inline "new category" form */
+.admin-operations .catalog-category-field { display: grid; gap: 6px; align-content: start; }
+.admin-operations .catalog-category-field__add { justify-self: start; padding: 2px 0; border: 0; background: transparent; color: var(--brand-primary); font-size: 12px; font-weight: 800; cursor: pointer; }
+.admin-operations .catalog-category-field__new { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.admin-operations .catalog-category-field__new input { flex: 1 1 160px; min-height: 40px; padding: 8px 10px; border: 1px solid var(--border-default); border-radius: var(--sams-radius-md); color: var(--text-primary); background: var(--surface-elevated); }
+.admin-operations .cover-editor__pending { display: grid; place-items: center; width: 120px; aspect-ratio: 3 / 4; overflow: hidden; border-radius: var(--sams-radius-md); background: var(--surface-muted); font-size: 32px; }
+.admin-operations .cover-editor__pending img { width: 100%; height: 100%; object-fit: cover; }

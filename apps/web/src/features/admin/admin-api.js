@@ -13,6 +13,7 @@ export async function updateCatalogItem(token, id, body) { return apiRequest(`/c
 export async function putBookDetails(token, id, body) { return apiRequest(`/catalog/items/${encodeURIComponent(id)}/book-details`, { method: 'PUT', token, body }); }
 export async function putAcademicWorkDetails(token, id, body) { return apiRequest(`/catalog/items/${encodeURIComponent(id)}/academic-work-details`, { method: 'PUT', token, body }); }
 export async function listCategories(token, signal) { return apiRequest('/catalog-master/categories?includeInactive=false', { token, signal }); }
+export async function createCategory(token, body) { return apiRequest('/catalog-master/categories', { method: 'POST', token, body }); }
 export async function listDewey(token, signal) { return apiRequest('/catalog-master/dewey', { token, signal }); }
 export async function listSubjects(token, signal) { return apiRequest('/catalog-master/subjects', { token, signal }); }
 export async function listFaculties(token, signal) { return apiRequest('/master-data/faculties?includeInactive=false', { token, signal }); }
