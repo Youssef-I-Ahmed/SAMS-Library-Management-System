@@ -245,12 +245,16 @@ export function CatalogPage() {
       </form>
 
       <div className="catalog-types" role="group" aria-label={t('discovery.filters.type')}>
-        {['', 'BOOK', 'PROJECT', 'THESIS', 'ACADEMIC_WORK'].map((type) => (
-          <button type="button" key={type} aria-pressed={filters.type === type}
+        {['', 'BOOK', 'PROJECT', 'THESIS', 'ACADEMIC_WORK'].filter((type) => !type || filters.type === type ||
+          !facets.types || (facets.types.find((item) => item.value === type)?.count ?? 0) > 0).map((type) => {
+          const count = type ? facets.types?.find((item) => item.value === type)?.count
+            : facets.types?.reduce((sum, item) => sum + item.count, 0);
+          return <button type="button" key={type} aria-pressed={filters.type === type}
             onClick={() => apply({ ...filters, type, page: 1 })}>
             {type ? typeLabel(type) : t('discovery.catalog.allResources')}
-          </button>
-        ))}
+            {count !== undefined && <span className="catalog-types__count"> ({count})</span>}
+          </button>;
+        })}
       </div>
 
       {facetsError && (

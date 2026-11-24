@@ -72,6 +72,16 @@ export function DiscoveryFilters({
         <p className="discovery-filters__scope" id={scopeId}>{t('catalogRefinement.facetScope')}</p>
         {[
           [
+            'type',
+            'discovery.filters.type',
+            facets.types?.filter((item) => item.count > 0).map((item) => ({
+              value: item.value,
+              label: `${item.value === 'ACADEMIC_WORK' ? t('catalogRefinement.academicWork')
+                : t(`itemTypes.${item.value}`)} (${item.count})`
+            }))
+          ],
+          // One category is not a choice (books carry Dewey classes, not categories).
+          (facets.categories?.length ?? 0) > 1 && [
             'categoryId',
             'discovery.filters.category',
             facets.categories?.map((item) => ({
@@ -111,7 +121,7 @@ export function DiscoveryFilters({
               label: `${item.name} (${item.availableItems}/${item.totalItems})`
             }))
           ]
-        ].map(([key, labelKey, options]) => (
+        ].filter(Boolean).map(([key, labelKey, options]) => (
           <label className="filter-field" key={key}>
             <span>{t(labelKey)}</span>
             <select
