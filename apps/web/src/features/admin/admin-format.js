@@ -1,4 +1,6 @@
-export const ITEM_TYPES = ['BOOK', 'ACADEMIC_WORK', 'THESIS', 'PROJECT'];
+// Projects and theses are one collection (ACADEMIC_WORK). PROJECT and THESIS stay in the
+// schema for older rows but are no longer offered for new items.
+export const ITEM_TYPES = ['BOOK', 'ACADEMIC_WORK'];
 export const COPY_STATUSES = ['AVAILABLE', 'UNAVAILABLE', 'DAMAGED', 'LOST', 'ARCHIVED'];
 export const COPY_CONDITIONS = ['GOOD', 'FAIR', 'DAMAGED'];
 export const ACADEMIC_STATUSES = ['ACTIVE', 'GRADUATED', 'SUSPENDED', 'INACTIVE'];

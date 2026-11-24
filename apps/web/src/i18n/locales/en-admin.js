@@ -41,7 +41,7 @@ export const enAdmin = { admin: {
   workflows: {
     tableHint: 'More columns are available. Scroll the table horizontally, or focus it and use the arrow keys.',
     discardRejected: 'Discard rejected draft',
-    academicWork: 'Academic work',
+    academicWork: 'Graduation projects & theses',
     "unavailable": "Records are not current",
     "loaded": "Records loaded",
     "readFailed": "Could not load records",

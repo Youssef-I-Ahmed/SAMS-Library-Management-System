@@ -1,6 +1,6 @@
 export const arDiscovery = {
   catalogRefinement: {
-    academicWork: 'عمل أكاديمي',
+    academicWork: 'مشروعات تخرج ورسائل علمية',
     appliedFilters: 'الفلاتر المطبّقة',
     removeFilter: 'إزالة الفلتر',
     showResults: 'عرض النتائج',

@@ -41,7 +41,7 @@ export const arAdmin = { admin: {
   workflows: {
     tableHint: 'توجد أعمدة إضافية. مرّر الجدول أفقيًا، أو انقل التركيز إليه واستخدم مفاتيح الأسهم.',
     discardRejected: 'تجاهل المسودة المرفوضة',
-    academicWork: 'عمل أكاديمي',
+    academicWork: 'مشروعات تخرج ورسائل علمية',
     "unavailable": "السجلات غير محدثة",
     "loaded": "تم تحميل السجلات",
     "readFailed": "تعذر تحميل السجلات",

@@ -142,7 +142,7 @@ export function CatalogAdminPage() {
       {editorError && <><InlineAlert title={t('admin.workflows.readFailed')} message={editorError.message} requestId={editorError.requestId} /><button type="button" className="admin-secondary-button" onClick={() => editItem(itemDraft.id)}>{t('admin.workflows.retry')}</button></>}
       <form id="item-form" onSubmit={saveItem}><fieldset disabled={saving || lockedRecovery || editorLoading || Boolean(editorError)} className="admin-form-grid">
       <fieldset disabled={baseLocked} className="admin-form-grid admin-form-grid__wide catalog-base-fields"><legend>{t('admin.workflows.baseFields')}</legend>
-        <label><span>{t('admin.catalog.type')}</span><select disabled={!!itemDraft.id} value={itemDraft.type} onChange={e => setItem('type', e.target.value)}>{ITEM_TYPES.map(v => <option key={v} value={v}>{adminItemTypeLabel(v, t)}</option>)}</select></label>
+        <label><span>{t('admin.catalog.type')}</span><select disabled={!!itemDraft.id} value={itemDraft.type} onChange={e => setItem('type', e.target.value)}>{[...new Set([...ITEM_TYPES, itemDraft.type])].map(v => <option key={v} value={v}>{adminItemTypeLabel(v, t)}</option>)}</select></label>
         <label className="admin-form-grid__wide"><span>{t('admin.catalog.titleField')}</span><input required value={itemDraft.title} onChange={e => setItem('title', e.target.value)} /></label>
         <AiCatalogSuggestions token={auth.token} title={itemDraft.title} subjects={editsSubjects ? subjects : null}
           onSelectSubject={(id) => setItem('subjectIds', [...new Set([...(itemDraft.subjectIds || []), id])])} />

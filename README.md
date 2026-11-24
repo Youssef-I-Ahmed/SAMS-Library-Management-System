@@ -34,7 +34,7 @@ Requirements: Node 20+, Docker Desktop (PostgreSQL only), Python 3.12 or 3.13.
 
 ```bash
 npm run setup      # .env with generated secrets, npm install, PostgreSQL, migrations, one .venv per service
-npm run db:seed    # first time only (or db:seed:frontend for demo data)
+npm run db:seed    # first time only: roles and the three demo logins
 npm run dev        # starts the AI services that are enabled in .env, the API and the web app
 ```
 

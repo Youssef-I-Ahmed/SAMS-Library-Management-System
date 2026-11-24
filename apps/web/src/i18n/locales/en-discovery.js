@@ -1,6 +1,6 @@
 export const enDiscovery = {
   catalogRefinement: {
-    academicWork: 'Academic work',
+    academicWork: 'Graduation projects & theses',
     appliedFilters: 'Applied filters',
     removeFilter: 'Remove filter',
     showResults: 'Show results',

@@ -81,6 +81,8 @@ The architecture and clean ERD images were also reviewed. They are conceptual re
 
 The existing `prisma/seed.js` seeds three roles, active student/librarian/management users, DEV faculty/department and MAIN branch. It does **not** seed catalog, copies, category/Dewey, policies, reservations, loans or visits. Sprint smoke scripts create transient fixtures and clean them up; they are not a durable frontend seed. No live database was inspected, so this assessment describes reproducible seed contents, not any manually populated local DB.
 
+> Update (2026-11-24): the synthetic frontend fixtures (`seed-frontend.js`, `db:seed:frontend`) were removed; the catalog now uses the imported books and academic works. The paragraphs below are kept as history.
+
 Minimal additions are opt-in: `prisma/seed-frontend.js`, called by `npm run db:seed:frontend`. Ordinary `db:seed` retains its baseline behavior. The added fixtures contain only invented data: 5 items, 7 copies, 2 additional student users (a second active student and a suspended student), 2 branches, 1 category, textual Dewey 000/004, 1 contributor, 2 branch policies, 2 reservations, 2 borrowings and 2 visits. Existing Dewey codes are reused without modification. The additional users have the existing STUDENT role, not new RBAC roles.
 
 | Frontend scenario | Baseline | Opt-in fixture / exercise |
