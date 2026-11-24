@@ -59,7 +59,7 @@ export function AnalyticsDashboardPage({ management = false }) {
         <strong>{t(read.stale ? 'admin.reporting.previous' : 'admin.reporting.displayedScope')}</strong>
         {read.stale && <p>{t(read.error ? 'admin.reporting.stale' : 'admin.reporting.updating')}</p>}
         <dl><div><dt>{t('admin.common.branch')}</dt><dd dir="auto">{scope?.branch?.name || (snapshot.filters.branchId ? snapshot.filters.branchId : t('admin.common.allBranches'))}</dd></div>
-          <div><dt>{t('admin.reporting.window')}</dt><dd><bdi>{reportDate(scope?.from, language)}</bdi><span> — </span><bdi>{reportDate(scope?.to, language)}</bdi></dd></div>
+          <div><dt>{t('admin.reporting.window')}</dt><dd><bdi>{reportDate(scope?.from, language, true)}</bdi><span> — </span><bdi>{reportDate(scope?.to ? new Date(new Date(scope.to).getTime() - 1) : null, language, true)}</bdi></dd></div>
         </dl>
         <details className="report-notes"><summary>{t('admin.reporting.notes')}</summary>
           <p>{t('admin.reporting.dateHelp')}</p>
