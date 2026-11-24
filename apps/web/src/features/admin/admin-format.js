@@ -46,7 +46,8 @@ export function itemToDraft(item) {
     isbn: item.bookDetails?.isbn || '', publisher: item.bookDetails?.publisher || '', edition: item.bookDetails?.edition || '',
     facultyId: item.academicWorkDetails?.faculty?.id || '', departmentId: item.academicWorkDetails?.department?.id || '',
     academicYear: item.academicWorkDetails?.academicYear || '',
-    subjectIds: item.itemSubjects?.map(({ subjectId }) => subjectId) ?? []
+    subjectIds: item.itemSubjects?.map(({ subjectId }) => subjectId) ?? [],
+    cover: item.cover ?? null
   };
 }
 

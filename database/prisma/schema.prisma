@@ -277,6 +277,8 @@ model LibraryItem {
   language              String?
   publicationYear       Int?     @map("publication_year") @db.SmallInt
   abstractDescription   String?  @map("abstract_description")
+  coverImagePath        String?  @map("cover_image_path")
+  coverUpdatedAt        DateTime? @map("cover_updated_at") @db.Timestamptz(6)
   isActive              Boolean  @default(true) @map("is_active")
   version               Int      @default(1)
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)

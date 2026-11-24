@@ -25,3 +25,6 @@ venv/
 
 # Large model weights (book-rag, research-rag) are git-ignored inside each service.
 # Small trained models (subject-classifier, book-clustering) are committed.
+
+# Uploaded cover images (local files, served by the API)
+/apps/api/uploads/

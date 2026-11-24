@@ -118,3 +118,10 @@ export async function listAuditLogs(token, filters = {}, signal) {
   return apiRequest(`/audit-logs?${query}`, { token, signal });
 }
 export async function getAuditFacets(token, signal) { return apiRequest('/audit-logs/facets', { token, signal }); }
+
+// Cover images.
+export async function uploadCover(token, itemId, file) {
+  const response = await fileRequest(`/catalog/items/${encodeURIComponent(itemId)}/cover`, { token, method: 'PUT', file });
+  return response.json();
+}
+export async function removeCover(token, itemId) { return apiRequest(`/catalog/items/${encodeURIComponent(itemId)}/cover`, { method: 'DELETE', token }); }

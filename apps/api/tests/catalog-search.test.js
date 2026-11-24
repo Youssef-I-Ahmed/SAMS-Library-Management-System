@@ -140,7 +140,7 @@ describe('catalog search service contracts', () => {
         select: expect.any(Object)
       });
       expect(result.data).toEqual([{
-        ...pageItem, availability: { totalCopies: 0, availableCopies: 0, available: false, branches: [] }
+        ...pageItem, cover: null, availability: { totalCopies: 0, availableCopies: 0, available: false, branches: [] }
       }]);
       expect(result.pagination).toEqual({
         page: 2, pageSize: 1, total: 3, totalPages: 3, hasPreviousPage: true, hasNextPage: true

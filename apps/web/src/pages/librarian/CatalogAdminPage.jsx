@@ -4,6 +4,7 @@ import { InlineAlert } from '../../components/ui/InlineAlert';
 import { AdminReadState, AdminPagination } from '../../components/admin/AdminReadState';
 import { CatalogRecovery } from '../../components/admin/CatalogRecovery';
 import { CopyItemLookup } from '../../components/admin/CopyItemLookup';
+import { CoverEditor } from '../../components/admin/CoverEditor';
 import { AiCatalogSuggestions } from '../../components/admin/AiCatalogSuggestions';
 import { useCatalogWorkflow } from '../../features/admin/use-catalog-workflow';
 import { useStaffRead } from '../../features/staff/use-staff-circulation';
@@ -145,6 +146,7 @@ export function CatalogAdminPage() {
       <fieldset disabled={baseLocked} className="admin-form-grid admin-form-grid__wide catalog-base-fields"><legend>{t('admin.workflows.baseFields')}</legend>
         <label><span>{t('admin.catalog.type')}</span><select disabled={!!itemDraft.id} value={itemDraft.type} onChange={e => setItem('type', e.target.value)}>{[...new Set([...ITEM_TYPES, itemDraft.type])].map(v => <option key={v} value={v}>{adminItemTypeLabel(v, t)}</option>)}</select></label>
         <label className="admin-form-grid__wide"><span>{t('admin.catalog.titleField')}</span><input required value={itemDraft.title} onChange={e => setItem('title', e.target.value)} /></label>
+        {itemDraft.id && <CoverEditor token={auth.token} item={itemDraft} onChange={(cover) => setItem('cover', cover)} />}
         <AiCatalogSuggestions token={auth.token} title={itemDraft.title} subjects={editsSubjects ? subjects : null}
           onSelectSubject={(id) => setItem('subjectIds', [...new Set([...(itemDraft.subjectIds || []), id])])} />
         <label><span>{t('admin.catalog.category')}</span><select value={itemDraft.categoryId} onChange={e => setItem('categoryId', e.target.value)}><option value="">—</option>{categories.map(x => <option key={x.id} value={x.id}>{getCategoryLabel(x.name, t)}</option>)}</select></label>

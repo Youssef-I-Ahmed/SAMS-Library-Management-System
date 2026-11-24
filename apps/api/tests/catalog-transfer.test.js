@@ -114,3 +114,19 @@ describe('re-importing an export', () => {
     expect(result.report).toMatchObject({ created: 0, skippedDuplicates: 1 });
   });
 });
+
+describe('covers', async () => {
+  const { coverOf, imageKind } = await import('../src/modules/catalog/covers.js');
+  it('prefers an uploaded cover, falls back to Open Library for a valid ISBN', () => {
+    expect(coverOf({ type: 'BOOK', coverImagePath: '11111111-1111-4111-8111-111111111111-0123456789ab.jpg', bookDetails: { isbn: '0306406152' } }))
+      .toMatchObject({ source: 'UPLOAD', path: 'covers/11111111-1111-4111-8111-111111111111-0123456789ab.jpg' });
+    expect(coverOf({ type: 'BOOK', bookDetails: { isbn: '0-306-40615-2' } }))
+      .toMatchObject({ source: 'OPEN_LIBRARY', url: 'https://covers.openlibrary.org/b/isbn/0306406152-M.jpg?default=false' });
+    expect(coverOf({ type: 'BOOK', bookDetails: { isbn: '041519550' } })).toBeNull();
+    expect(coverOf({ type: 'ACADEMIC_WORK' })).toBeNull();
+  });
+  it('detects image types from their bytes', () => {
+    expect(imageKind(Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0]))).toBe('jpg');
+    expect(imageKind(Buffer.from('<svg></svg>'))).toBeNull();
+  });
+});
