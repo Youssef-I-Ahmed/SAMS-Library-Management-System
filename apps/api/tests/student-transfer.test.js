@@ -64,7 +64,8 @@ describe('student import', () => {
 
   it('previews new, existing and invalid rows', async () => {
     const result = await analyzeStudentImport(file, { format: 'csv' }, fakeDb());
-    expect(result.summary).toEqual({ total: 6, new: 2, existing: 1, invalid: 3 });
+    expect(result.summary).toEqual({ total: 6, new: 2, existing: 1, invalid: 3, emailChanges: 0 });
+    expect(result.rows[1].warnings).toEqual([{ field: 'name', code: 'NAME_WILL_CHANGE', from: 'Old' }]);
     expect(result.rows.map((row) => row.errors[0]?.code ?? row.status))
       .toEqual(['new', 'existing', 'PROTECTED_ACCOUNT', 'DUPLICATE_IN_FILE', 'DUPLICATE_IN_FILE', 'new']);
   });
@@ -77,5 +78,14 @@ describe('student import', () => {
     expect(saved[0].options).toMatchObject({ mode: 'create', actor, source: 'file-import' });
     const update = await commitStudentImport(file, { format: 'csv', updateExisting: true, actor }, fakeDb());
     expect(update.report).toMatchObject({ created: 1, updated: 1, skippedExisting: 0 });
+  });
+});
+
+describe('existing students with a new email', () => {
+  it('warns before an update would change the email', async () => {
+    const file = serializeTable('csv', ['student_id', 'name', 'email'], [{ student_id: '100', name: 'Old', email: 'changed@uni.edu' }]);
+    const result = await analyzeStudentImport(file, { format: 'csv' }, fakeDb());
+    expect(result.rows[0]).toMatchObject({ status: 'existing', warnings: [{ code: 'EMAIL_WILL_CHANGE', from: 'old@uni.edu' }] });
+    expect(result.summary.emailChanges).toBe(1);
   });
 });

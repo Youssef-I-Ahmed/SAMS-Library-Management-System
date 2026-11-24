@@ -27,7 +27,7 @@ const importUserInclude = { userRoles: { include: { role: true } } };
 
 function requireStudentOnlyAccount(user) {
   if (user.isProtected || user.userRoles.length !== 1 || user.userRoles[0].role.name !== 'STUDENT') {
-    throw new AppError(409, 'PROTECTED_ACCOUNT', 'Student import cannot modify a protected or ambiguous account');
+    throw new AppError(409, 'PROTECTED_ACCOUNT', 'Staff, protected or multi-role accounts cannot be changed from student accounts');
   }
 }
 

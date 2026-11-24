@@ -44,7 +44,7 @@ export function StudentTransferPage() {
   const [result, setResult] = useState(null);
 
   const fieldLabel = (key) => t(`studentTransfer.fields.${key}`);
-  const issueText = (issue) => fill(t(`studentTransfer.codes.${issue.code}`), { field: fieldLabel(issue.field), row: issue.rowNumber });
+  const issueText = (issue) => fill(t(`studentTransfer.codes.${issue.code}`), { field: fieldLabel(issue.field), row: issue.rowNumber, from: issue.from });
 
   async function runDownload(kind, params) {
     setDownload({ busy: kind, error: null });
@@ -208,6 +208,7 @@ export function StudentTransferPage() {
               <td><bdi>{row.record?.universityEmail || '—'}</bdi></td>
               <td><ul className="catalog-transfer__issues">
                 {row.existing && <li>{fill(tr('existingNote'), { name: row.existing.name })}</li>}
+                {(row.warnings || []).map((issue, index) => <li key={`w${index}`}>{issueText(issue)}</li>)}
                 {row.errors.map((issue, index) => <li key={index} className="is-error">{issueText(issue)}</li>)}
               </ul></td>
             </tr>)}</tbody>
@@ -219,6 +220,8 @@ export function StudentTransferPage() {
             {[[false, 'skipExisting'], [true, 'updateExisting']].map(([value, key]) => <label key={key} className="admin-check">
               <input type="radio" name="existing-policy" checked={updateExisting === value} onChange={() => setUpdateExisting(value)} />
               <span>{tr(key)}</span></label>)}
+            {updateExisting && preview.summary.emailChanges > 0 &&
+              <p className="catalog-transfer__warning" role="alert">{fill(tr('emailChangeWarning'), { count: preview.summary.emailChanges })}</p>}
           </fieldset>}
 
           {toImport === 0 ? <p>{tr('nothing')}</p> : phase === 'confirm' ? (

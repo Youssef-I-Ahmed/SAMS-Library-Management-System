@@ -69,6 +69,7 @@ export const en9g = {
     statusExisting: 'Existing',
     statusInvalid: 'Error',
     existingNote: 'Already registered as: {name}',
+    emailChangeWarning: 'Note: {count} students have a different email in the file; updating will change it.',
     existingTitle: 'Existing students',
     skipExisting: 'Leave them unchanged (recommended)',
     updateExisting: 'Update them from the file',
@@ -101,7 +102,9 @@ export const en9g = {
       STUDENT_EXISTS: 'The student was added elsewhere during the import',
       STUDENT_CONFLICT: 'Conflicts with an existing account',
       AMBIGUOUS_STUDENT_ID: 'Student ID conflicts with an existing one',
-      UNEXPECTED_ERROR: 'Not saved'
+      UNEXPECTED_ERROR: 'Not saved',
+      EMAIL_WILL_CHANGE: '{field}: updating changes it from {from}',
+      NAME_WILL_CHANGE: '{field}: updating changes it from {from}'
     }
   }
 };

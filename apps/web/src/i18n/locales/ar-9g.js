@@ -69,6 +69,7 @@ export const ar9g = {
     statusExisting: 'موجود',
     statusInvalid: 'فيه خطأ',
     existingNote: 'الطالب موجود باسم: {name}',
+    emailChangeWarning: 'تنبيه: {count} طالب البريد بتاعهم في الملف مختلف، والتحديث هيغيّر بريدهم.',
     existingTitle: 'الطلبة الموجودين',
     skipExisting: 'سيبهم زي ما هم (مقترح)',
     updateExisting: 'حدّث بياناتهم من الملف',
@@ -101,7 +102,9 @@ export const ar9g = {
       STUDENT_EXISTS: 'الطالب اتضاف من مكان تاني أثناء الاستيراد',
       STUDENT_CONFLICT: 'تعارض مع حساب موجود',
       AMBIGUOUS_STUDENT_ID: 'الرقم الجامعي متعارض مع رقم موجود',
-      UNEXPECTED_ERROR: 'ما اتحفظش'
+      UNEXPECTED_ERROR: 'ما اتحفظش',
+      EMAIL_WILL_CHANGE: '{field}: التحديث هيغيّره من {from}',
+      NAME_WILL_CHANGE: '{field}: التحديث هيغيّره من {from}'
     }
   }
 };

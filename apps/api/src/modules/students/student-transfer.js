@@ -173,13 +173,24 @@ export async function analyzeStudentImport(buffer, { format, mapping: requested 
       else if (owner.student?.studentId !== record.studentId) row.errors.push({ field: 'email', code: 'EMAIL_ALREADY_IN_USE' });
     }
     row.status = row.errors.length ? 'invalid' : existing ? 'existing' : 'new';
-    if (existing) row.existing = { studentId: existing.studentId, name: existing.user.displayName, email: existing.user.universityEmail };
+    row.warnings = [];
+    if (existing) {
+      row.existing = { studentId: existing.studentId, name: existing.user.displayName, email: existing.user.universityEmail };
+      // Updating would overwrite these, so say so before anyone chooses to update.
+      if (record.universityEmail && record.universityEmail !== existing.user.universityEmail.toLowerCase()) {
+        row.warnings.push({ field: 'email', code: 'EMAIL_WILL_CHANGE', from: existing.user.universityEmail });
+      }
+      if (record.displayName && record.displayName !== existing.user.displayName) {
+        row.warnings.push({ field: 'name', code: 'NAME_WILL_CHANGE', from: existing.user.displayName });
+      }
+    }
   }
 
   const count = (status) => rows.filter((row) => row.status === status).length;
   return {
     headers, mapping, missingRequired,
-    summary: { total: rows.length, new: count('new'), existing: count('existing'), invalid: count('invalid') },
+    summary: { total: rows.length, new: count('new'), existing: count('existing'), invalid: count('invalid'),
+      emailChanges: rows.filter((row) => row.warnings?.some((w) => w.code === 'EMAIL_WILL_CHANGE')).length },
     rows
   };
 }
