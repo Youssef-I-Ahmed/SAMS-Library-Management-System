@@ -52,7 +52,7 @@ export const en = {
       'A single SAMS Library experience for students, librarians and university management.',
     welcome: 'Welcome to SAMS Library',
     devIntro:
-      'Choose a development identity to enter the correct role workspace.',
+      'Choose an account type to enter its workspace.',
     continue: 'Continue',
     signingIn: 'Signing in...',
     signOut: 'Sign out',

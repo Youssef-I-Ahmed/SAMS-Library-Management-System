@@ -3,7 +3,7 @@ import { useLanguage } from '../../hooks/useLanguage';
 
 export function AiResearchRecords({ records, itemDetailsBase }) {
   const { t, language } = useLanguage();
-  const year = new Intl.NumberFormat(language, { useGrouping: false });
+  const year = new Intl.NumberFormat(language === 'ar' ? 'ar-u-nu-latn' : language, { useGrouping: false });
   const languages = new Intl.DisplayNames([language], { type: 'language' });
   return <ul className="ai-records__list">
     {records.map((record) => {

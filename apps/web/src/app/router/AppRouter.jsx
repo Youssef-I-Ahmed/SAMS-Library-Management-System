@@ -101,7 +101,7 @@ export function AppRouter() {
             <Route element={<RequireRole roles={['MANAGEMENT']} />}>
               <Route path="/management" element={<StaffShell mode="management" />}>
                 <Route index element={<AnalyticsDashboardPage management />} />
-                <Route path="analytics" element={<AnalyticsDashboardPage management />} />
+                <Route path="analytics" element={<Navigate to="/management" replace />} />
                 <Route path="borrowings" element={<ManagementBorrowingsPage />} />
                 <Route path="visits" element={<ManagementVisitsPage />} />
                 <Route path="staff" element={<ManagementStaffPage />} />

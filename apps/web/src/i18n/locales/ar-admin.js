@@ -1,5 +1,7 @@
 export const arAdmin = { admin: {
   reporting: {
+    "notes": "ملاحظات عن التقرير",
+    "quietHidden": "تم إخفاء {count} يوم بدون نشاط.",
     "filters": "مرشحات التقرير",
     "through": "حتى",
     "apply": "تطبيق المرشحات",

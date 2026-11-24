@@ -19,9 +19,14 @@ export function DiscoveryDestinations() {
   const project = populated('PROJECT'), thesis = populated('THESIS');
   return <nav className="home-destinations" aria-label={t('studentHome.collectionNavigation')}>
     <Link to="/student/catalog?type=BOOK">{t('cinematic.books')}</Link>
-    <Link to={`/student/catalog?type=${project ? 'PROJECT' : 'ACADEMIC_WORK'}`} aria-describedby={!project ? 'home-academic-fallback' : undefined}>{t('cinematic.projects')}</Link>
-    <Link to={`/student/catalog?type=${thesis ? 'THESIS' : 'ACADEMIC_WORK'}`} aria-describedby={!thesis ? 'home-academic-fallback' : undefined}>{t('cinematic.research')}</Link>
+    {/* With no separate projects or theses yet, one link opens the combined academic collection. */}
+    {!project && !thesis
+      ? <Link to="/student/catalog?type=ACADEMIC_WORK">{t('catalogRefinement.academicWork')}</Link>
+      : <>
+        <Link to={`/student/catalog?type=${project ? 'PROJECT' : 'ACADEMIC_WORK'}`} aria-describedby={!project ? 'home-academic-fallback' : undefined}>{t('cinematic.projects')}</Link>
+        <Link to={`/student/catalog?type=${thesis ? 'THESIS' : 'ACADEMIC_WORK'}`} aria-describedby={!thesis ? 'home-academic-fallback' : undefined}>{t('cinematic.research')}</Link>
+      </>}
     {AI_ASSISTANT_ENABLED ? <Link to="/student/ai">{t('ai.nav')}</Link> : <span aria-disabled="true">{t('cinematic.aiUnavailable')}</span>}
-    <small id="home-academic-fallback" aria-hidden={project && thesis}>{(!project || !thesis) ? t('cinematic.combined') : '\u00a0'}</small>
+    <small id="home-academic-fallback" aria-hidden={project === thesis}>{project !== thesis ? t('cinematic.combined') : '\u00a0'}</small>
   </nav>;
 }

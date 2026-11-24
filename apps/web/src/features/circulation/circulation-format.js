@@ -20,7 +20,7 @@ export function formatDateTime(value, language = 'en') {
   if (Number.isNaN(date.getTime())) return '—';
 
   return new Intl.DateTimeFormat(
-    language === 'ar' ? 'ar-EG' : 'en-GB',
+    language === 'ar' ? 'ar-EG-u-nu-latn' : 'en-GB',
     {
       dateStyle: 'medium',
       timeStyle: 'short'
@@ -36,7 +36,7 @@ export function formatDate(value, language = 'en') {
   if (Number.isNaN(date.getTime())) return '—';
 
   return new Intl.DateTimeFormat(
-    language === 'ar' ? 'ar-EG' : 'en-GB',
+    language === 'ar' ? 'ar-EG-u-nu-latn' : 'en-GB',
     { dateStyle: 'medium' }
   ).format(date);
 }

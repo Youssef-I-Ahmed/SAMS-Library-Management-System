@@ -20,7 +20,7 @@ const roleConfig = {
   MANAGEMENT: {
     title: 'roleHome.managementTitle',
     body: 'roleHome.managementBody',
-    next: '/management/analytics',
+    next: '/management',
     nextLabel: 'nav.analytics'
   }
 };

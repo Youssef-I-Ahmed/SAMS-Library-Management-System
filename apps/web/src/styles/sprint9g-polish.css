@@ -417,3 +417,35 @@ html[dir='rtl'] .admin-table td {
     scroll-behavior: auto;
   }
 }
+
+/* Modal: heading and actions stay in view; only the body scrolls. */
+.admin-modal { display: flex; flex-direction: column; overflow: hidden; }
+.admin-modal__heading, .admin-modal__actions { flex: none; }
+.admin-modal__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 760px) {
+  .admin-modal__heading { padding-block: 14px 10px; }
+  .admin-modal__heading h2 { margin: 0; font-size: 20px; }
+  .admin-modal__actions { flex-wrap: wrap; gap: 8px; padding-block: 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .admin-modal__actions > * { flex: 1 1 140px; }
+}
+
+/* A link styled as a button looks like the other buttons. */
+a.admin-secondary-button, a.admin-primary-button {
+  display: inline-flex; align-items: center; justify-content: center; text-decoration: none; white-space: nowrap;
+}
+a.admin-secondary-button:hover { background: var(--surface-muted); }
+
+/* Tables that turn into cards on a phone. Each cell carries its column name in data-label. */
+@media (max-width: 640px) {
+  .admin-table-wrap:has(.admin-table--cards) { overflow: visible; border: 0 !important; }
+  .admin-table.admin-table--cards { min-width: 0 !important; table-layout: auto !important; }
+  .admin-table--cards thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .admin-table--cards, .admin-table--cards tbody { display: block; }
+  .admin-table--cards tr { display: grid; gap: 6px; margin-block-end: 10px; padding: 12px 14px; border: 1px solid var(--border-default); border-radius: var(--sams-radius-lg); background: var(--surface); }
+  .admin-table--cards td { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: auto !important; padding: 2px 0 !important; border: 0 !important; }
+  .admin-table--cards td[data-label]::before { content: attr(data-label); color: var(--text-muted); font-size: 12px; font-weight: 700; }
+  .admin-table--cards td:first-child { font-size: 15px; }
+  .admin-table--cards td:last-child { padding-block-start: 8px !important; border-block-start: 1px solid var(--border-default) !important; }
+  .admin-table--cards td:last-child .admin-row-actions, .admin-table--cards td:last-child > button { width: 100%; justify-content: flex-end; }
+}
+@media (max-width: 640px) { .catalog-admin .admin-table-hint { display: none !important; } }

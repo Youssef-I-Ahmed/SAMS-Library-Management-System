@@ -33,8 +33,8 @@ export function ManagementReportsPage() {
   const [download, setDownload] = useState({ busy: false, error: null });
   const performance = useReport(getStaffPerformance, auth.token, filters);
   const security = useReport(getSecurityAlerts, auth.token, filters);
-  const number = new Intl.NumberFormat(language === 'en' ? 'en' : 'ar-EG');
-  const time = (value) => value ? new Intl.DateTimeFormat(language === 'en' ? 'en-GB' : 'ar-EG', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
+  const number = new Intl.NumberFormat(language === 'en' ? 'en' : 'ar-EG-u-nu-latn');
+  const time = (value) => value ? new Intl.DateTimeFormat(language === 'en' ? 'en-GB' : 'ar-EG-u-nu-latn', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
   const set = (key) => (event) => event.target.value && setFilters((current) => ({ ...current, [key]: event.target.value }));
   const preset = (days) => setFilters({ from: isoDay(new Date(Date.now() - (days - 1) * 864e5)), to: isoDay(new Date()) });
 

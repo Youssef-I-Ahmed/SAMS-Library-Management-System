@@ -34,7 +34,7 @@ export function ManagementAuditPage() {
     const text = t(key);
     return text && text !== key ? text : action;
   };
-  const time = (value) => new Intl.DateTimeFormat(language === 'en' ? 'en-GB' : 'ar-EG', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+  const time = (value) => new Intl.DateTimeFormat(language === 'en' ? 'en-GB' : 'ar-EG-u-nu-latn', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
   const set = (key) => (event) => setFilters((current) => ({ ...current, [key]: event.target.value, page: 1 }));
 
   return (

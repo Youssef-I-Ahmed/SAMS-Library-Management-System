@@ -30,10 +30,10 @@ async function main() {
   }
 
   const faculty = await prisma.faculty.upsert({
-    where: { name: 'DEV Faculty' },
+    where: { name: 'كلية الحاسبات والمعلومات' },
     update: {},
     create: {
-      name: 'DEV Faculty',
+      name: 'كلية الحاسبات والمعلومات',
       isActive: true
     }
   });
@@ -42,13 +42,13 @@ async function main() {
     where: {
       facultyId_name: {
         facultyId: faculty.id,
-        name: 'DEV Department'
+        name: 'نظم المعلومات'
       }
     },
     update: {},
     create: {
       facultyId: faculty.id,
-      name: 'DEV Department',
+      name: 'نظم المعلومات',
       isActive: true
     }
   });
@@ -58,8 +58,8 @@ async function main() {
     update: {},
     create: {
       code: 'MAIN',
-      name: 'Main Library',
-      location: 'Development Seed',
+      name: 'المكتبة الرئيسية',
+      location: 'المبنى الرئيسي',
       isActive: true
     }
   });
@@ -67,12 +67,12 @@ async function main() {
   const studentUser = await prisma.user.upsert({
     where: { universityEmail: 'student@sams.dev' },
     update: {
-      displayName: 'Dev Student',
+      displayName: 'محمد أحمد حسن',
       isActive: true
     },
     create: {
       universityEmail: 'student@sams.dev',
-      displayName: 'Dev Student',
+      displayName: 'محمد أحمد حسن',
       isActive: true
     }
   });
@@ -99,12 +99,12 @@ async function main() {
   const librarianUser = await prisma.user.upsert({
     where: { universityEmail: 'librarian@sams.dev' },
     update: {
-      displayName: 'Dev Librarian',
+      displayName: 'منى عبد الرحمن',
       isActive: true
     },
     create: {
       universityEmail: 'librarian@sams.dev',
-      displayName: 'Dev Librarian',
+      displayName: 'منى عبد الرحمن',
       isActive: true
     }
   });
@@ -114,12 +114,12 @@ async function main() {
   const managementUser = await prisma.user.upsert({
     where: { universityEmail: 'management@sams.dev' },
     update: {
-      displayName: 'Dev Management',
+      displayName: 'أحمد سامي',
       isActive: true
     },
     create: {
       universityEmail: 'management@sams.dev',
-      displayName: 'Dev Management',
+      displayName: 'أحمد سامي',
       isActive: true
     }
   });

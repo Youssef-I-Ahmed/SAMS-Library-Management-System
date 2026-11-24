@@ -1,5 +1,7 @@
 export const enAdmin = { admin: {
   reporting: {
+    "notes": "About this report",
+    "quietHidden": "{count} days with no activity are hidden.",
     "filters": "Report filters",
     "through": "Through",
     "apply": "Apply filters",

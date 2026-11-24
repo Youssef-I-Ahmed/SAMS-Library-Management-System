@@ -97,7 +97,6 @@ export function CampusHero({ children }) {
               </picture>
               {animated && engaged && <Suspense fallback={null}><Sequence track={track} stage={stage} onChapter={setChapter} /></Suspense>}
             </div>
-            <span className="home-hero__credit">{t('studentHome.imageCaption')}</span>
           </div>
           {animated && <>
             <div className="campus-caption" aria-live="off">
