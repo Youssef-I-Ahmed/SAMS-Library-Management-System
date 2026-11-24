@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { getCategoryLabel } from '../../features/discovery/discovery-format';
+import { getCategoryLabel, getLanguageLabel } from '../../features/discovery/discovery-format';
 import { useLanguage } from '../../hooks/useLanguage';
 
 export function DiscoveryFilters({
@@ -9,7 +9,7 @@ export function DiscoveryFilters({
   onClear,
   onShowResults
 }) {
-  const { t } = useLanguage();
+  const { t, language: uiLanguage } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const [mobile, setMobile] = useState(() =>
     window.matchMedia('(max-width: 1000px)').matches
@@ -102,7 +102,7 @@ export function DiscoveryFilters({
             'discovery.filters.language',
             facets.languages?.map((item) => ({
               value: item.value,
-              label: `${item.value} (${item.count})`
+              label: `${getLanguageLabel(item.value, t, uiLanguage)} (${item.count})`
             }))
           ],
           [

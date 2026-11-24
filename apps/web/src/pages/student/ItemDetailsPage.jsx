@@ -22,7 +22,7 @@ export function ItemDetailsPage({ backTo, backLabel = 'discovery.detail.back', c
   const location = useLocation();
   const catalogReturn = readCatalogReturn(location.state);
   const auth = useAuth();
-  const { t } = useLanguage();
+  const { t, language: uiLanguage } = useLanguage();
   const inventoryDescriptionId = useId();
   const titleId = useId();
   const availabilityTitleId = useId();
@@ -141,7 +141,7 @@ export function ItemDetailsPage({ backTo, backLabel = 'discovery.detail.back', c
     ['discovery.detail.year', item.publicationYear],
     [
       'discovery.detail.language',
-      item.language ? getLanguageLabel(item.language, t) : null
+      item.language ? getLanguageLabel(item.language, t, uiLanguage) : null
     ],
     ['discovery.detail.callNumber', item.callNumber],
     [

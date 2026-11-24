@@ -38,7 +38,7 @@ const EMPTY_FACETS = {
 
 export function CatalogPage() {
   const auth = useAuth();
-  const { t } = useLanguage();
+  const { t, language: uiLanguage } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -209,7 +209,7 @@ export function CatalogPage() {
       facets.deweyClassifications?.find((item) => item.id === filters.deweyClassificationId)?.code
       || filters.deweyClassificationId
     ), t('discovery.filters.dewey')],
-    ['language', getLanguageLabel(filters.language, t), t('discovery.filters.language')],
+    ['language', getLanguageLabel(filters.language, t, uiLanguage), t('discovery.filters.language')],
     ['publicationYear', filters.publicationYear, t('discovery.filters.year')],
     ['branchId', filters.branchId && (
       facets.branches?.find((item) => item.id === filters.branchId)?.name || filters.branchId

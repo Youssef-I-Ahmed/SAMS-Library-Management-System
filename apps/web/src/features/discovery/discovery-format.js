@@ -21,7 +21,7 @@ export function getAvailabilityState(availability) {
   return 'noCopies';
 }
 
-export function getLanguageLabel(language, t) {
+export function getLanguageLabel(language, t, locale = 'ar') {
   const normalized = String(language || '').trim().toLowerCase();
 
   if (['en', 'eng', 'english'].includes(normalized)) {
@@ -32,6 +32,13 @@ export function getLanguageLabel(language, t) {
     return t('languages.arabic');
   }
 
+  // Any other ISO code (fr, he, de…) gets its full name in the interface language.
+  if (/^[a-z]{2,3}$/.test(normalized) && typeof Intl.DisplayNames === 'function') {
+    try {
+      const name = new Intl.DisplayNames([locale === 'en' ? 'en' : 'ar'], { type: 'language' }).of(normalized);
+      if (name && name.toLowerCase() !== normalized) return name;
+    } catch { /* unknown code: fall through */ }
+  }
   return language || '';
 }
 
