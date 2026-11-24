@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 import { normalizeCatalogText } from '../catalog/catalog-search.js';
 import { unavailable } from './ai-errors.js';
+import { researchService } from './model-services.js';
 
 const ROLE = 'sams_research_rag_ro';
 const MAX_ROWS = 12_000;
@@ -82,7 +83,17 @@ function connect(connection) {
   }
 }
 
-export function createResearchRag({ connection, load, now = Date.now, refreshMs = 5000 } = {}) {
+/**
+ * Orders catalog rows by the project numbers the research-rag service cited.
+ * Rows stay the PostgreSQL projection, so ids, availability and links are SAMS data.
+ */
+export function rankByCodes(index, codes) {
+  const byCode = new Map(index.filter((entry) => entry.code).map((entry) => [entry.code, entry.row]));
+  const rows = codes.map((code) => byCode.get(normalizeCatalogText(code))).filter(Boolean);
+  return [...new Set(rows)].slice(0, MAX_MATCHES);
+}
+
+export function createResearchRag({ connection, load, now = Date.now, refreshMs = 5000, service = null } = {}) {
   const db = load ? null : connect(connection);
   const fetchRows = load ?? (db && (() => fetchCatalog(db)));
   let active = null;
@@ -135,14 +146,20 @@ export function createResearchRag({ connection, load, now = Date.now, refreshMs 
       const { index } = await current();
       return { status: 'ok', indexedCount: index.length, lastRefresh: new Date(refreshedAt).toISOString() };
     },
-    async ask(question) {
+    async ask(question, user) {
       const { index } = await current();
-      // Ground the reply in the approved projection. No data or credentials
-      // leave the service for model inference and questions never become SQL.
-      const results = searchResearchIndex(index, question);
+      // Ground the reply in the approved projection. Questions never become SQL.
+      // When services/research-rag is configured it ranks the projects (semantic +
+      // structured search); its citations are mapped back to catalog rows. Any
+      // service failure or empty ranking falls back to the local metadata search.
+      let results = [];
+      if (service?.configured) {
+        try { results = rankByCodes(index, await service.rank(question, user)); } catch { results = []; }
+      }
+      if (!results.length) results = searchResearchIndex(index, question);
       return { status: results.length ? 'success' : 'no-results', results };
     }
   };
 }
 
-export const researchRag = createResearchRag({ connection: process.env.RESEARCH_RAG_DATABASE_URL });
+export const researchRag = createResearchRag({ connection: process.env.RESEARCH_RAG_DATABASE_URL, service: researchService });

@@ -56,7 +56,8 @@ export const corsOptions = {
   ],
 
   exposedHeaders: [
-    'X-Request-Id'
+    'X-Request-Id',
+    'Content-Disposition'
   ],
 
   maxAge: 600

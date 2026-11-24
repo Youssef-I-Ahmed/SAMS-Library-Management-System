@@ -11,7 +11,7 @@ import {
 import { useLanguage } from '../../hooks/useLanguage';
 
 export function DiscoveryItemCard({ item, catalogReturn }) {
-  const { t } = useLanguage();
+  const { t, language: uiLanguage } = useLanguage();
   const academic = item.type && item.type !== 'BOOK';
   const typeLabel = item.type === 'ACADEMIC_WORK'
     ? t('catalogRefinement.academicWork') : t(getItemTypeLabelKey(item.type));
@@ -73,7 +73,7 @@ export function DiscoveryItemCard({ item, catalogReturn }) {
           {item.language && (
             <div>
               <dt>{t('discovery.card.language')}</dt>
-              <dd dir="auto">{getLanguageLabel(item.language, t)}</dd>
+              <dd dir="auto">{getLanguageLabel(item.language, t, uiLanguage)}</dd>
             </div>
           )}
 

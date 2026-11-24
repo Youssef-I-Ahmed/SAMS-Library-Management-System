@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { VisitSource } from '@prisma/client';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { audited } from '../../utils/audit.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import {
@@ -41,6 +43,8 @@ function parseOrThrow(
 visitsRouter.post(
   '/check-in',
   authorize('LIBRARIAN'),
+  requireGrant('visits.check_in'),
+  audited('VISIT_CHECKED_IN', 'LibraryVisit'),
   async (req, res, next) => {
     try {
       const body =
@@ -80,6 +84,8 @@ visitsRouter.post(
 visitsRouter.post(
   '/:id/check-out',
   authorize('LIBRARIAN'),
+  requireGrant('visits.check_out'),
+  audited('VISIT_CHECKED_OUT', 'LibraryVisit'),
   async (req, res, next) => {
     try {
       const { id } =

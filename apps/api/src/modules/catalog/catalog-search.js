@@ -7,7 +7,7 @@ const characterMap = {
 // Equivalent to normalize_text in RAG/sams-library-search/sams_rag/text.py.
 // Keep display values intact; do not import its stemming or stopword removal.
 export function normalizeCatalogText(text) {
-  return String(text ?? '')
+  return String(text ?? '').normalize('NFKC')
     .replace(/[٠-٩۰-۹]/g, (digit) =>
       String(digit.charCodeAt(0) - (digit <= '٩' ? 0x0660 : 0x06f0)))
     .replace(/[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed\u0640]/g, '')
@@ -23,6 +23,7 @@ export async function buildCatalogSearchWhere(where, search, { discovery = false
 
   const query = normalizeCatalogText(search);
   if (!query) return { ...where, id: { in: [] } };
+  const words = [...new Set(query.split(' '))];
 
   // Apply existing visibility/facet/inventory filters first, then match before
   // counting and paginating. Nested contributors keep one candidate per item.
@@ -60,7 +61,13 @@ export async function buildCatalogSearchWhere(where, search, { discovery = false
       ] : [])
     ];
 
-    return fields.some((field) => normalizeCatalogText(field).includes(query));
+    // Every word of the query must appear in the same field, in any order, so
+    // "1001 طريقة" still finds a title stored with the words in another order or
+    // apart. Words from different fields never combine into a match.
+    return fields.some((field) => {
+      const text = normalizeCatalogText(field);
+      return text.includes(query) || words.every((word) => text.includes(word));
+    });
   }).map((item) => item.id);
 
   return { ...where, id: { in: ids } };

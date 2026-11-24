@@ -16,6 +16,8 @@ import { ar9g4 } from './locales/ar-9g4.js';
 import { en9g4 } from './locales/en-9g4.js';
 import { arAi } from './locales/ar-ai.js';
 import { enAi } from './locales/en-ai.js';
+import { arNotify } from './locales/ar-notify.js';
+import { enNotify } from './locales/en-notify.js';
 
 export const DEFAULT_LANGUAGE = 'en';
 
@@ -35,6 +37,7 @@ export const resources = {
     ...en9g3,
     ...en9g4,
     ...enAi,
+    ...enNotify,
     // Sprint additions extend the auth namespace; a top-level spread replaces it.
     auth: { ...en.auth, ...en9g3.auth }
   },
@@ -49,6 +52,7 @@ export const resources = {
     ...ar9g3,
     ...ar9g4,
     ...arAi,
+    ...arNotify,
     auth: { ...ar.auth, ...ar9g3.auth }
   }
 };

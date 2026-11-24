@@ -56,6 +56,10 @@ const schema =
       booleanString
         .default('true'),
 
+    DEMO_AUTH_ENABLED:
+      booleanString
+        .default('false'),
+
     API_JSON_LIMIT:
       z.string()
         .regex(
@@ -85,6 +89,13 @@ const schema =
       value,
       context
     ) => {
+      if (value.DEMO_AUTH_ENABLED && (value.NODE_ENV !== 'development' || !value.DEV_AUTH_ENABLED)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['DEMO_AUTH_ENABLED'],
+          message: 'Demo authentication requires development mode and DEV_AUTH_ENABLED'
+        });
+      }
       if (
         value.NODE_ENV !==
         'production'

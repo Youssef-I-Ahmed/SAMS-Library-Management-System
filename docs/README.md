@@ -1,12 +1,14 @@
 # Project Documentation
 
-- `requirements/` — approved scope and requirements documents.
-- `planning/` — roadmap, backlog, sprint planning, and project time plan.
-- `database/` — database design, rules, implementation notes, and machine-readable spec.
-- `architecture/diagrams/` — ERD, architecture, workflow, and use-case diagrams.
-- `design/` — UI/UX specification, design system, and mockups.
-- `references/` — additional source/reference material.
-- `migration/LEGACY_TO_SAMS_MAPPING.md` — current raw-handoff field mappings and deferred decisions.
-- `migration/MIGRATION_PLAN.md` — future migration gates and development seed readiness/usage.
+- `requirements/` — approved scope and requirements.
+- `planning/` — roadmap, backlog and the overall project plan.
+- `architecture/` — system and AI integration design, decision registers, diagrams.
+- `database/` — database design, rules and machine-readable spec.
+- `design/` — UI/UX spec, design system, mockups and design handoff.
+- `frontend/` — current behaviour of each front-end area.
+- `migration/` — legacy data mapping and migration plan.
+- `deployment/`, `hardening/`, `analytics/` — runbooks, security baseline, KPI contract.
+- `archive/` — historical sprint reports, checklists, manifests and release notes.
+  Useful for history, not for the current state of the code.
 
-Runtime/source assets are kept with the code where practical: brand images are in `apps/web/public/brand/`, and reusable design tokens are in `packages/ui/`.
+Brand images live in `apps/web/public/brand/`; design tokens in `packages/ui/`.

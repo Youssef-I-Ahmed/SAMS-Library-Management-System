@@ -6,7 +6,7 @@ export function AiBookRecords({ books, title, itemDetailsBase, preview = false }
   const { t, language } = useLanguage();
   const [shown, setShown] = useState(20);
   if (!books?.length) return null;
-  const number = (n) => new Intl.NumberFormat(language).format(n);
+  const number = (n) => new Intl.NumberFormat(language === 'ar' ? 'ar-u-nu-latn' : language).format(n);
   return <section className="ai-records">
     <h3>{title}</h3>
     {preview && <p className="ai-secondary">{t('ai.previewHint')}</p>}
@@ -18,7 +18,7 @@ export function AiBookRecords({ books, title, itemDetailsBase, preview = false }
         <h4 dir="auto">{book.tag && <bdi className="ai-record__tag">[{book.tag}] </bdi>}{book.title || t('ai.unknownTitle')}</h4>
         <p className="ai-record__byline"><span className="ai-visually-hidden">{t('ai.author')}: </span><bdi>{book.author || t('ai.notRecorded')}</bdi></p>
         <dl>
-          <div><dt>{t('ai.year')}</dt><dd>{book.year == null ? t('ai.notRecorded') : new Intl.NumberFormat(language, { useGrouping: false }).format(book.year)}</dd></div>
+          <div><dt>{t('ai.year')}</dt><dd>{book.year == null ? t('ai.notRecorded') : new Intl.NumberFormat(language === 'ar' ? 'ar-u-nu-latn' : language, { useGrouping: false }).format(book.year)}</dd></div>
           <div><dt>{t('ai.callNumber')}</dt><dd dir="auto">{book.call_number || t('ai.notRecorded')}</dd></div>
           {legacyCodes.length > 0 && <div><dt>{t('discovery.detail.legacyCode')}</dt><dd dir="auto">{legacyCodes.join(' · ')}</dd></div>}
         </dl>

@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { InlineAlert } from '../../components/ui/InlineAlert';
 import { AdminReadState, AdminPagination } from '../../components/admin/AdminReadState';
 import { CatalogRecovery } from '../../components/admin/CatalogRecovery';
 import { CopyItemLookup } from '../../components/admin/CopyItemLookup';
+import { useMyPermissions } from '../../features/admin/use-my-permissions';
+import { CoverEditor } from '../../components/admin/CoverEditor';
+import { AiCatalogSuggestions } from '../../components/admin/AiCatalogSuggestions';
 import { useCatalogWorkflow } from '../../features/admin/use-catalog-workflow';
 import { useStaffRead } from '../../features/staff/use-staff-circulation';
 import '../../styles/admin-operations.css';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { AdminStatusBadge } from '../../components/admin/AdminStatusBadge';
 import {
-  getCatalogItem, listBranches, listCatalogItems,
+  createCategory, getCatalogItem, listBranches, listCatalogItems, uploadCover,
   listCategories, listCopies, listDepartments, listDewey, listFaculties, listSubjects
 } from '../../features/admin/admin-api';
 import {
@@ -17,6 +21,7 @@ import {
   emptyCopyDraft, emptyItemDraft, itemStatusTone, itemToDraft
 } from '../../features/admin/admin-format';
 import { getCategoryLabel } from '../../features/discovery/discovery-format';
+import { arDiscovery } from '../../i18n/locales/ar-discovery.js';
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../hooks/useLanguage';
 
@@ -29,7 +34,7 @@ const loadLookups = async (token, filters, signal) => {
 const loadSubjects = (token, filters, signal) => listSubjects(token, signal);
 
 export function CatalogAdminPage() {
-  const auth = useAuth(); const { t } = useLanguage();
+  const auth = useAuth(); const permissions = useMyPermissions(auth.token); const { t } = useLanguage();
   const [tab, setTab] = useState('items');
   const [itemSearch, setItemSearch] = useState(''); const [copySearch, setCopySearch] = useState('');
   const [itemFilters, setItemFilters] = useState({ search: '', type: '', includeInactive: true, page: 1, pageSize: 20 });
@@ -47,6 +52,12 @@ export function CatalogAdminPage() {
   const [modal, setModal] = useState(null); const [toggleTarget, setToggleTarget] = useState(null);
   const [editorLoading, setEditorLoading] = useState(false); const [editorError, setEditorError] = useState(null);
   const editRequest = useRef(null);
+  // A cover picked while adding an item is uploaded once the item exists.
+  const [pendingCover, setPendingCover] = useState(null);
+  const queuedCover = useRef(null);
+  const [coverError, setCoverError] = useState(null);
+  const [newCategory, setNewCategory] = useState(null);
+  const [categoryError, setCategoryError] = useState(null);
   const flow = useCatalogWorkflow(auth.user.id, auth.token);
   const saving = flow.busy;
   const editsSubjects = itemDraft?.type === 'ACADEMIC_WORK';
@@ -62,6 +73,12 @@ export function CatalogAdminPage() {
   useEffect(() => {
     if (!flow.outcome || lastOutcome.current === flow.outcome) return;
     lastOutcome.current = flow.outcome;
+    const file = queuedCover.current; queuedCover.current = null;
+    if (file && flow.outcome.kind === 'item' && flow.outcome.record?.id) {
+      setCoverError(null);
+      uploadCover(auth.token, flow.outcome.record.id, file).then(() => read.reload()).catch(setCoverError);
+    }
+    setPendingCover(null); setNewCategory(null); setCategoryError(null);
     setModal(null); setItemDraft(null); setCopyDraft(null); setToggleTarget(null);
     read.reload();
     const frame = requestAnimationFrame(() => document.querySelector('.catalog-admin h1')?.focus({ preventScroll: true }));
@@ -92,10 +109,31 @@ export function CatalogAdminPage() {
     finally { if (!controller.signal.aborted) setEditorLoading(false); }
   }
   function setItem(key, value) { setItemDraft(v => ({ ...v, [key]: value })); }
+  // Projects and theses share one category; books use the other categories.
+  const academicCategory = categories.find(c => c.name === arDiscovery.itemTypes.ACADEMIC_WORK);
+  const isAcademicType = type => type && type !== 'BOOK';
+  const categoryChoices = categories.filter(c => !academicCategory || (c.id === academicCategory.id) === isAcademicType(itemDraft?.type) || c.id === itemDraft?.categoryId);
+  function changeType(type) {
+    setItemDraft(v => {
+      const wasAcademic = academicCategory && v.categoryId === academicCategory.id;
+      const categoryId = isAcademicType(type) ? (academicCategory?.id ?? v.categoryId) : (wasAcademic ? '' : v.categoryId);
+      return { ...v, type, categoryId };
+    });
+  }
   function setCopy(key, value) { setCopyDraft(v => ({ ...v, [key]: value })); }
   function saveItem(event) {
     event.preventDefault(); if (!itemDraft || cannotSave) return;
+    queuedCover.current = itemDraft.id ? null : pendingCover;
     flow.save('item', itemDraft);
+  }
+  async function addCategory() {
+    const name = newCategory?.trim();
+    if (!name || name.length < 2) return;
+    setCategoryError(null);
+    try {
+      const { data } = await createCategory(auth.token, { name });
+      lookups.reload(); setItem('categoryId', data.id); setNewCategory(null);
+    } catch (error) { setCategoryError(error); }
   }
   function saveCopy(event) {
     event.preventDefault(); if (!copyDraft || cannotSave || !copyDraft.itemId || !copyDraft.branchId || !copyDraft.id && !lookupValid) return;
@@ -116,20 +154,21 @@ export function CatalogAdminPage() {
 
   return <section className="admin-page admin-operations catalog-admin">
     <header className="admin-page__header"><span>{t('admin.catalog.eyebrow')}</span><h1 tabIndex={-1}>{t('admin.catalog.title')}</h1><p>{t('admin.catalog.subtitle')}</p></header>
-    {flow.outcome && <div className="admin-notice" role="status"><strong>{t('admin.workflows.confirmed')}: <bdi>{flow.outcome.record.id}</bdi> · {t('admin.workflows.version')} <bdi>{flow.outcome.record.version}</bdi>{flow.outcome.kind === 'copy' && ` · ${t(`admin.copyStatus.${flow.outcome.record.status}`)}`}{flow.outcome.kind === 'toggle' && ` · ${t(flow.outcome.record.isActive ? 'admin.common.active' : 'admin.common.archived')}`}</strong><button type="button" aria-label={t('admin.workflows.dismiss')} onClick={flow.dismissOutcome}>×</button></div>}
+    {flow.outcome && <div className="admin-notice" role="status"><strong>{t('admin.workflows.confirmed')}: <bdi>{flow.outcome.record.title || flow.outcome.record.item?.title || '—'}</bdi>{flow.outcome.kind === 'copy' && <> · <bdi>{flow.outcome.record.barcode || flow.outcome.record.copyCode}</bdi></>}{flow.outcome.kind === 'copy' && ` · ${t(`admin.copyStatus.${flow.outcome.record.status}`)}`}{flow.outcome.kind === 'toggle' && ` · ${t(flow.outcome.record.isActive ? 'admin.common.active' : 'admin.common.archived')}`}</strong><button type="button" aria-label={t('admin.workflows.dismiss')} onClick={flow.dismissOutcome}>×</button></div>}
     {journal && !modal && <div className="catalog-recovery-banner" role="status"><p>{t('admin.workflows.unfinished')}</p><button type="button" className="admin-secondary-button" disabled={saving} onClick={resume}>{t('admin.workflows.resume')}</button></div>}
     {!modal && lookups.error && <AdminReadState read={lookups} compact label={t('admin.workflows.formOptions')} />}
+    {coverError && <InlineAlert title={t('admin.cover.afterCreateFailed')} message={coverError.message} requestId={coverError.requestId} />}
     <div className="admin-tabs"><button type="button" disabled={saving} aria-pressed={tab === 'items'} className={tab === 'items' ? 'is-active' : ''} onClick={() => setTab('items')}>{t('admin.catalog.items')}</button><button type="button" disabled={saving} aria-pressed={tab === 'copies'} className={tab === 'copies' ? 'is-active' : ''} onClick={() => setTab('copies')}>{t('admin.catalog.copies')}</button></div>
 
     {tab === 'items' ? <section className="admin-card">
-      <div className="admin-toolbar"><form onSubmit={e => { e.preventDefault(); if (tab === 'items') { if (itemFilters.page === 1 && itemFilters.search === itemSearch.trim()) itemRead.reload(); else setItemFilters(v => ({ ...v, search: itemSearch.trim(), page: 1 })); } else { if (copyFilters.page === 1 && copyFilters.search === copySearch.trim()) copyRead.reload(); else setCopyFilters(v => ({ ...v, search: copySearch.trim(), page: 1 })); } }}><input aria-label={t('admin.catalog.searchItems')} maxLength={300} value={itemSearch} onChange={e => setItemSearch(e.target.value)} placeholder={t('admin.catalog.searchItems')} /><select aria-label={t('admin.catalog.type')} value={itemType} onChange={e => setItemFilters(v => ({ ...v, type: e.target.value, page: 1 }))}><option value="">{t('admin.common.allTypes')}</option>{ITEM_TYPES.map(v => <option key={v} value={v}>{adminItemTypeLabel(v, t)}</option>)}</select><button>{t('admin.common.search')}</button></form><button className="admin-primary-button" disabled={saving || Boolean(journal)} onClick={() => { setEditorError(null); setItemDraft(emptyItemDraft()); setModal('item'); }}>+ {t('admin.catalog.addItem')}</button></div>
+      <div className="admin-toolbar"><form onSubmit={e => { e.preventDefault(); if (tab === 'items') { if (itemFilters.page === 1 && itemFilters.search === itemSearch.trim()) itemRead.reload(); else setItemFilters(v => ({ ...v, search: itemSearch.trim(), page: 1 })); } else { if (copyFilters.page === 1 && copyFilters.search === copySearch.trim()) copyRead.reload(); else setCopyFilters(v => ({ ...v, search: copySearch.trim(), page: 1 })); } }}><input aria-label={t('admin.catalog.searchItems')} maxLength={300} value={itemSearch} onChange={e => setItemSearch(e.target.value)} placeholder={t('admin.catalog.searchItems')} /><select aria-label={t('admin.catalog.type')} value={itemType} onChange={e => setItemFilters(v => ({ ...v, type: e.target.value, page: 1 }))}><option value="">{t('admin.common.allTypes')}</option>{ITEM_TYPES.map(v => <option key={v} value={v}>{adminItemTypeLabel(v, t)}</option>)}</select><button>{t('admin.common.search')}</button></form>{permissions.can('catalog.edit') && <button className="admin-primary-button" disabled={saving || Boolean(journal)} onClick={() => { setEditorError(null); setPendingCover(null); setNewCategory(null); setCategoryError(null); setItemDraft(emptyItemDraft()); setModal('item'); }}>+ {t('admin.catalog.addItem')}</button>}{permissions.can('catalog.transfer') && <Link className="admin-secondary-button" to="/librarian/catalog/transfer">{t('admin.transfer.open')}</Link>}</div>
       <AdminReadState read={read} hintId="catalog-table-hint" />
-      {loading && !read.result ? <div className="admin-empty">{t('admin.common.loading')}</div> : !read.result || read.error && !read.result.data.length ? null : !read.result.data.length ? <div className="admin-empty">{t(tab === 'items' ? 'admin.workflows.emptyItems' : 'admin.workflows.emptyCopies')}</div> : <div className="admin-table-wrap" aria-describedby="catalog-table-hint" tabIndex={0} role="region" aria-label={t(tab === 'items' ? 'admin.catalog.items' : 'admin.catalog.copies')}><table className="admin-table" aria-label={t(tab === 'items' ? 'admin.catalog.items' : 'admin.catalog.copies')}><thead><tr><th scope="col">{t('admin.catalog.item')}</th><th scope="col">{t('admin.catalog.type')}</th><th scope="col">{t('admin.catalog.callNumber')}</th><th scope="col">{t('admin.common.status')}</th><th scope="col">{t('admin.common.actions')}</th></tr></thead><tbody>{items.map(item => <tr key={item.id}><td><strong dir="auto">{item.title}</strong></td><td>{adminItemTypeLabel(item.type, t)}</td><td><bdi>{item.callNumber || '—'}</bdi></td><td><AdminStatusBadge tone={itemStatusTone(item)}>{item.isActive ? t('admin.common.active') : t('admin.common.archived')}</AdminStatusBadge></td><td><div className="admin-row-actions"><button disabled={blocked} onClick={() => editItem(item.id)}>{t('admin.common.edit')}</button><button className={item.isActive ? 'is-danger' : ''} disabled={blocked} onClick={() => { setToggleTarget(item); setModal('toggle'); }}>{item.isActive ? t('admin.common.archive') : t('admin.common.restore')}</button></div></td></tr>)}</tbody></table></div>}
+      {loading && !read.result ? <div className="admin-empty">{t('admin.common.loading')}</div> : !read.result || read.error && !read.result.data.length ? null : !read.result.data.length ? <div className="admin-empty">{t(tab === 'items' ? 'admin.workflows.emptyItems' : 'admin.workflows.emptyCopies')}</div> : <div className="admin-table-wrap" aria-describedby="catalog-table-hint" tabIndex={0} role="region" aria-label={t(tab === 'items' ? 'admin.catalog.items' : 'admin.catalog.copies')}><table className="admin-table admin-table--cards" aria-label={t(tab === 'items' ? 'admin.catalog.items' : 'admin.catalog.copies')}><thead><tr><th scope="col">{t('admin.catalog.item')}</th><th scope="col">{t('admin.catalog.type')}</th><th scope="col">{t('admin.catalog.callNumber')}</th><th scope="col">{t('admin.common.status')}</th><th scope="col">{t('admin.common.actions')}</th></tr></thead><tbody>{items.map(item => <tr key={item.id}><td><strong dir="auto">{item.title}</strong></td><td data-label={t('admin.catalog.type')}>{adminItemTypeLabel(item.type, t)}</td><td data-label={t('admin.catalog.callNumber')}><bdi>{item.callNumber || '—'}</bdi></td><td data-label={t('admin.common.status')}><AdminStatusBadge tone={itemStatusTone(item)}>{item.isActive ? t('admin.common.active') : t('admin.common.archived')}</AdminStatusBadge></td><td><div className="admin-row-actions"><button disabled={blocked} onClick={() => editItem(item.id)}>{t('admin.common.edit')}</button><button className={item.isActive ? 'is-danger' : ''} disabled={blocked} onClick={() => { setToggleTarget(item); setModal('toggle'); }}>{item.isActive ? t('admin.common.archive') : t('admin.common.restore')}</button></div></td></tr>)}</tbody></table></div>}
       <AdminPagination read={read} disabled={saving} onPage={page => setItemFilters(v => ({ ...v, page }))} />
     </section> : <section className="admin-card">
       <div className="admin-toolbar"><form onSubmit={e => { e.preventDefault(); if (tab === 'items') { if (itemFilters.page === 1 && itemFilters.search === itemSearch.trim()) itemRead.reload(); else setItemFilters(v => ({ ...v, search: itemSearch.trim(), page: 1 })); } else { if (copyFilters.page === 1 && copyFilters.search === copySearch.trim()) copyRead.reload(); else setCopyFilters(v => ({ ...v, search: copySearch.trim(), page: 1 })); } }}><input aria-label={t('admin.copies.search')} maxLength={300} value={copySearch} onChange={e => setCopySearch(e.target.value)} placeholder={t('admin.copies.search')} /><select aria-label={t('admin.common.branch')} value={copyBranch} onChange={e => setCopyFilters(v => ({ ...v, branchId: e.target.value, page: 1 }))}><option value="">{t('admin.common.allBranches')}</option>{branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select><select aria-label={t('admin.copies.status')} value={copyStatus} onChange={e => setCopyFilters(v => ({ ...v, status: e.target.value, page: 1 }))}><option value="">{t('admin.common.allStatuses')}</option>{['AVAILABLE','RESERVED','BORROWED','UNAVAILABLE','DAMAGED','LOST','ARCHIVED'].map(v => <option key={v} value={v}>{t(`admin.copyStatus.${v}`)}</option>)}</select><button>{t('admin.common.search')}</button></form><button className="admin-primary-button" disabled={saving || Boolean(journal)} onClick={() => { setEditorError(null); setCopyDraft(emptyCopyDraft()); setModal('copy'); }}>+ {t('admin.copies.add')}</button></div>
       <AdminReadState read={read} hintId="catalog-table-hint" />
-      {loading && !read.result ? <div className="admin-empty">{t('admin.common.loading')}</div> : !read.result || read.error && !read.result.data.length ? null : !read.result.data.length ? <div className="admin-empty">{t(tab === 'items' ? 'admin.workflows.emptyItems' : 'admin.workflows.emptyCopies')}</div> : <div className="admin-table-wrap" aria-describedby="catalog-table-hint" tabIndex={0} role="region" aria-label={t(tab === 'items' ? 'admin.catalog.items' : 'admin.catalog.copies')}><table className="admin-table" aria-label={t(tab === 'items' ? 'admin.catalog.items' : 'admin.catalog.copies')}><thead><tr><th scope="col">{t('admin.catalog.item')}</th><th scope="col">{t('admin.copies.identifiers')}</th><th scope="col">{t('admin.common.branch')}</th><th scope="col">{t('admin.copies.shelf')}</th><th scope="col">{t('admin.common.status')}</th><th scope="col">{t('admin.common.actions')}</th></tr></thead><tbody>{copies.map(copy => <tr key={copy.id}><td><strong dir="auto">{copy.item.title}</strong></td><td><bdi>{copy.barcode || copy.copyCode || '—'}</bdi></td><td>{copy.branch.name}</td><td>{copy.shelfLocation || '—'}</td><td><AdminStatusBadge tone={copyStatusTone(copy.status)}>{t(`admin.copyStatus.${copy.status}`)}</AdminStatusBadge></td><td><button disabled={blocked} onClick={() => { setEditorError(null); setCopyDraft({ ...copyToDraft(copy), itemTitle: copy.item.title }); setModal('copy'); }}>{t('admin.common.edit')}</button></td></tr>)}</tbody></table></div>}
+      {loading && !read.result ? <div className="admin-empty">{t('admin.common.loading')}</div> : !read.result || read.error && !read.result.data.length ? null : !read.result.data.length ? <div className="admin-empty">{t(tab === 'items' ? 'admin.workflows.emptyItems' : 'admin.workflows.emptyCopies')}</div> : <div className="admin-table-wrap" aria-describedby="catalog-table-hint" tabIndex={0} role="region" aria-label={t(tab === 'items' ? 'admin.catalog.items' : 'admin.catalog.copies')}><table className="admin-table admin-table--cards" aria-label={t(tab === 'items' ? 'admin.catalog.items' : 'admin.catalog.copies')}><thead><tr><th scope="col">{t('admin.catalog.item')}</th><th scope="col">{t('admin.copies.identifiers')}</th><th scope="col">{t('admin.common.branch')}</th><th scope="col">{t('admin.copies.shelf')}</th><th scope="col">{t('admin.common.status')}</th><th scope="col">{t('admin.common.actions')}</th></tr></thead><tbody>{copies.map(copy => <tr key={copy.id}><td><strong dir="auto">{copy.item.title}</strong></td><td data-label={t('admin.copies.identifiers')}><bdi>{copy.barcode || copy.copyCode || '—'}</bdi></td><td data-label={t('admin.common.branch')}>{copy.branch.name}</td><td data-label={t('admin.copies.shelf')}>{copy.shelfLocation || '—'}</td><td data-label={t('admin.common.status')}><AdminStatusBadge tone={copyStatusTone(copy.status)}>{t(`admin.copyStatus.${copy.status}`)}</AdminStatusBadge></td><td><button disabled={blocked} onClick={() => { setEditorError(null); setCopyDraft({ ...copyToDraft(copy), itemTitle: copy.item.title }); setModal('copy'); }}>{t('admin.common.edit')}</button></td></tr>)}</tbody></table></div>}
       <AdminPagination read={read} disabled={saving} onPage={page => setCopyFilters(v => ({ ...v, page }))} />
     </section>}
 
@@ -141,9 +180,19 @@ export function CatalogAdminPage() {
       {editorError && <><InlineAlert title={t('admin.workflows.readFailed')} message={editorError.message} requestId={editorError.requestId} /><button type="button" className="admin-secondary-button" onClick={() => editItem(itemDraft.id)}>{t('admin.workflows.retry')}</button></>}
       <form id="item-form" onSubmit={saveItem}><fieldset disabled={saving || lockedRecovery || editorLoading || Boolean(editorError)} className="admin-form-grid">
       <fieldset disabled={baseLocked} className="admin-form-grid admin-form-grid__wide catalog-base-fields"><legend>{t('admin.workflows.baseFields')}</legend>
-        <label><span>{t('admin.catalog.type')}</span><select disabled={!!itemDraft.id} value={itemDraft.type} onChange={e => setItem('type', e.target.value)}>{ITEM_TYPES.map(v => <option key={v} value={v}>{adminItemTypeLabel(v, t)}</option>)}</select></label>
+        <label><span>{t('admin.catalog.type')}</span><select disabled={!!itemDraft.id} value={itemDraft.type} onChange={e => changeType(e.target.value)}>{[...new Set([...ITEM_TYPES, itemDraft.type])].map(v => <option key={v} value={v}>{adminItemTypeLabel(v, t)}</option>)}</select></label>
         <label className="admin-form-grid__wide"><span>{t('admin.catalog.titleField')}</span><input required value={itemDraft.title} onChange={e => setItem('title', e.target.value)} /></label>
-        <label><span>{t('admin.catalog.category')}</span><select value={itemDraft.categoryId} onChange={e => setItem('categoryId', e.target.value)}><option value="">—</option>{categories.map(x => <option key={x.id} value={x.id}>{getCategoryLabel(x.name, t)}</option>)}</select></label>
+        <CoverEditor token={auth.token} item={itemDraft} onChange={(cover) => setItem('cover', cover)} pendingFile={pendingCover} onPendingChange={setPendingCover} />
+        <AiCatalogSuggestions token={auth.token} title={itemDraft.title} subjects={editsSubjects ? subjects : null}
+          onSelectSubject={(id) => setItem('subjectIds', [...new Set([...(itemDraft.subjectIds || []), id])])} />
+        <div className="catalog-category-field"><label><span>{t('admin.catalog.category')}</span><select value={itemDraft.categoryId} onChange={e => setItem('categoryId', e.target.value)}><option value="">—</option>{categoryChoices.map(x => <option key={x.id} value={x.id}>{getCategoryLabel(x.name, t)}</option>)}</select></label>
+          {!isAcademicType(itemDraft.type) && permissions.can('catalog.reference') && (newCategory === null
+            ? <button type="button" className="catalog-category-field__add" onClick={() => setNewCategory('')}>+ {t('admin.catalog.newCategory')}</button>
+            : <div className="catalog-category-field__new"><input aria-label={t('admin.catalog.newCategoryName')} placeholder={t('admin.catalog.newCategoryName')} maxLength={150} value={newCategory} dir="auto"
+                onChange={e => setNewCategory(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCategory(); } }} />
+              <button type="button" className="admin-secondary-button" disabled={(newCategory || '').trim().length < 2} onClick={addCategory}>{t('admin.catalog.addCategory')}</button>
+              <button type="button" className="catalog-category-field__add" onClick={() => { setNewCategory(null); setCategoryError(null); }}>{t('admin.common.cancel')}</button></div>)}
+          {categoryError && <InlineAlert title={t('admin.catalog.categoryFailed')} message={categoryError.message} requestId={categoryError.requestId} />}</div>
         <label><span>{t('admin.catalog.dewey')}</span><select value={itemDraft.deweyClassificationId} onChange={e => setItem('deweyClassificationId', e.target.value)}><option value="">—</option>{dewey.map(x => <option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>
         <label><span>{t('admin.catalog.callNumber')}</span><input value={itemDraft.callNumber} onChange={e => setItem('callNumber', e.target.value)} /></label>
         <label><span>{t('admin.catalog.language')}</span><input value={itemDraft.language} onChange={e => setItem('language', e.target.value)} /></label>

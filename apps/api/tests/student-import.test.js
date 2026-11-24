@@ -5,7 +5,8 @@ import request from 'supertest';
 // Neither a real PrismaClient nor environment files are loaded by this suite.
 vi.mock('../src/config/prisma.js', () => ({ prisma: {
   $transaction: vi.fn(), user: { findUnique: vi.fn() },
-  student: { count: vi.fn(), findMany: vi.fn() }
+  student: { count: vi.fn(), findMany: vi.fn() },
+  permissionGrant: { findMany: vi.fn(async () => [{ permissionKey: 'students.directory.read' }]) }
 } }));
 vi.mock('../src/config/env.js', () => ({ env: {
   AUTH_TOKEN_SECRET: 'student-import-test-signing-secret-not-a-real-credential',
@@ -267,7 +268,17 @@ describe('Student import HTTP access fails closed', () => {
     const user = { id: '11111111-1111-4111-8111-111111111111', authVersion: 1, isActive: true, universityEmail: 'caller@example.invalid', displayName: 'Fixture Caller',
       userRoles: [{ role: { name: role } }], student: null };
     prisma.user.findUnique.mockResolvedValue(user);
+    prisma.permissionGrant.findMany.mockResolvedValue([{ permissionKey: 'students.directory.read' }]);
     const response = await request(app).get('/students').set('Authorization', `Bearer ${issueAccessToken(user)}`).expect(200);
     expect(response.body).toMatchObject({ data: [], pagination: { total: 0 } });
+  });
+
+  it('denies a librarian whom Management has not given the directory permission', async () => {
+    const user = { id: '11111111-1111-4111-8111-111111111111', authVersion: 1, isActive: true, universityEmail: 'caller@example.invalid', displayName: 'Fixture Caller',
+      userRoles: [{ role: { name: 'LIBRARIAN' } }], student: null };
+    prisma.user.findUnique.mockResolvedValue(user);
+    prisma.permissionGrant.findMany.mockResolvedValueOnce([{ permissionKey: 'analytics.read' }]);
+    const response = await request(app).get('/students').set('Authorization', `Bearer ${issueAccessToken(user)}`).expect(403);
+    expect(response.body.error.code).toBe('PERMISSION_DENIED');
   });
 });

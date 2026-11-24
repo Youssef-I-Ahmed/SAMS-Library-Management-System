@@ -1,6 +1,6 @@
 export const enDiscovery = {
   catalogRefinement: {
-    academicWork: 'Academic work',
+    academicWork: 'Graduation projects & theses',
     appliedFilters: 'Applied filters',
     removeFilter: 'Remove filter',
     showResults: 'Show results',
@@ -14,9 +14,9 @@ export const enDiscovery = {
     combined: 'Some project/research links open the combined academic collection.',
     eyebrow: 'A visual introduction', title: 'From curiosity to discovery.', invitation: 'An optional, scroll-controlled journey. Your library is ready whenever you are.',
     start: 'Explore the journey', close: 'Close the journey', skip: 'Skip intro', scroll: 'Scroll to explore · search and navigation remain available',
-    concept: 'Conceptual visual journey. Generated or unverified imagery, not authenticated campus photography.',
+    concept: 'Keep scrolling, or skip the intro at any time.',
     handoffTitle: 'Your next discovery starts here.',
-    finalDisclaimer: 'Conceptual legacy interface, not the current SAMS application. Continue below to the real collections.',
+    finalDisclaimer: 'Continue below to the library collections.',
     chapters: { 0: 'An academic entrance', 1: 'A place for curiosity', 2: 'Approaching the library', 3: 'Discovering the shelves', 4: 'Books, ideas and knowledge', 5: 'Continue in your digital library' }
   },
   itemTypes: {
@@ -116,7 +116,7 @@ export const enDiscovery = {
       branch: 'Branch',
       availableOnly: 'Listed as available',
       availableOnlyHint:
-        'Show items with a copy recorded as available, including any demo copies.'
+        'Show items with a copy recorded as available.'
     },
 
     sort: {
@@ -145,9 +145,9 @@ export const enDiscovery = {
     },
 
     inventoryNotice: {
-      title: 'Confirm physical availability',
+      title: 'Before you visit',
       body:
-        'System availability may include demo copies and does not confirm physical stock. Check with the library before visiting, even with a reservation.'
+        'Availability comes from library records. It is best to check with the library before a visit.'
     },
 
     empty: {

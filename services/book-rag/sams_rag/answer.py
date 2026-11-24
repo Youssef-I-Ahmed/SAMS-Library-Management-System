@@ -13,8 +13,10 @@ from .config import CONFIG
 from .context import build_context_package, is_near_duplicate
 from .filters import SearchFilters, apply_filters
 from .generation import REFUSAL_AR, REFUSAL_EN, generate_answer, last_gemini_model
+from .recency import order_by_recency, wants_recent, year_of
 from .search import hybrid_search, reranker
-from .text import detect_language, normalize_text
+from .topics import topic_books
+from .text import STOPWORDS, detect_language, normalize_text
 
 CITE_RE = re.compile(r"\[S(\d+)\]")
 
@@ -94,8 +96,14 @@ def _books_used(out):
     src = out["package"]["sources"]
     valid = set(src["source"]) if out["package"]["num_sources"] else set()
     explicit = [t for t in out["citations"]["cited"] if t in valid]
-    if explicit or out["citations"]["is_refusal"]:
+    if out["citations"]["is_refusal"]:
         return explicit
+    if explicit:                                       # v16: plus the books named in bold without their [S#] tag
+        extra = [t for t in out["citations"].get("inferred", []) if t in valid and t not in explicit]
+        if not extra:
+            return explicit
+        order = {t: i for i, t in enumerate(src["source"])}   # S1, S2, S3... (the added book takes its own place)
+        return sorted(explicit + extra, key=lambda t: order[t])
     return [t for t in out["citations"].get("inferred", []) if t in valid]
 
 
@@ -126,6 +134,33 @@ def _inferred_tags(answer, package):
     return [r.source for r in src if r.source in tags]
 
 
+def _named_without_tag(answer, package, cited):
+    # v16: the answer cites some books with [S#] tags but names another one of its sources without its tag
+    # (e.g. "**Strategize**" with no [S2]). A source that is not cited is added when a text in **bold** in the answer
+    #   - is its title (or main title, before ":") at >= 85% similarity and no other source is closer (2+ words), or
+    #   - is exactly its whole title (a one-word title: "Strategize"; "Management" is not "Management: An Introduction").
+    # Only adds books (the tagged ones stay as they are) and only among the books given to the LLM.
+    if not package["num_sources"]:
+        return []
+    src = list(package["sources"].itertuples())
+    cited = set(cited)
+    if not any(r.source not in cited for r in src):
+        return []
+    names = {r.source: (normalize_text(str(r.title)), normalize_text(re.split(r"[:=]", str(r.title))[0])) for r in src}
+    tags = set()
+    for x in (normalize_text(b) for b in re.findall(r"\*\*(.+?)\*\*", answer)):
+        if not x:
+            continue
+        if len(x.split()) == 1:
+            tags |= {s for s, (t, m) in names.items() if s not in cited and x == t}
+            continue
+        scores = {s: max(fuzz.ratio(x, t), fuzz.ratio(x, m)) for s, (t, m) in names.items()}
+        best = max(scores.values())
+        if best >= 85:
+            tags |= {s for s, v in scores.items() if v == best and s not in cited}
+    return [r.source for r in src if r.source in tags]
+
+
 REFUSAL_HINT_AR = ("أنا متخصص في البحث في كتب هذه المكتبة. جرّب أن تسأل عن موضوع أو عنوان كتاب أو اسم مؤلف، "
                    "مثل: «كتب عن إدارة المشروعات».")
 REFUSAL_HINT_EN = ("I can only search this library's books. Try asking about a topic, a book title or an author, "
@@ -137,6 +172,40 @@ def coverage_note(query, out):
     filt, total, shown = out.get("filters") or {}, out.get("n_candidates") or 0, out["package"]["num_sources"]
     if out.get("all_books_complete") and out.get("all_books") is not None:
         total = len(out["all_books"])                    # count books, not catalog records (near-duplicates merged)
+    tl = out.get("topic_list")                                     # v15: "5 of the 154 books on «التسويق»"
+    if (tl and not _is_narrow(filt) and not out["citations"]["is_refusal"] and _books_used(out) and shown
+            and tl["count"] > shown):
+        # the list holds the books filed under the subject first, then related books found by the search: say so,
+        # so "4 of 16" is not read against the length of the list (no count of the related books: a website may
+        # shorten that part of the list)
+        related = out.get("all_books") is not None and len(out["all_books"]) > tl["count"]
+        if detect_language(query) == "ar":
+            names = " و".join(f"«{h}»" for h in tl["headings"]) + (" ومرادفاته في الفهرس" if tl.get("synonyms") else "")
+            if related and out.get("recency"):
+                return (f"عُرض {shown} من أصل {tl['count']} كتاباً مصنّفة تحت موضوع {names}. "
+                        f"القائمة بالأسفل فيها هذه الكتب ومعها كتب قريبة من الموضوع، من الأحدث للأقدم.")
+            if related:
+                return (f"عُرض {shown} من أصل {tl['count']} كتاباً مصنّفة تحت موضوع {names}. "
+                        f"القائمة بالأسفل تبدأ بها، وبعدها كتب قريبة من الموضوع.")
+            return f"عُرض {shown} من أصل {tl['count']} كتاباً في موضوع {names}، والقائمة الكاملة بالأسفل."
+        names = " and ".join(f"«{h}»" for h in tl["headings"]) + (" and its equivalents" if tl.get("synonyms") else "")
+        if related and out.get("recency"):
+            return (f"Showing {shown} of the {tl['count']} books filed under {names}. "
+                    f"The list below holds them together with related books, newest first.")
+        if related:
+            return (f"Showing {shown} of the {tl['count']} books filed under {names}. "
+                    f"The list below starts with them, followed by related books.")
+        return f"Showing {shown} of the {tl['count']} books on {names}; the full list is below."
+    al = out.get("author_list")                                    # v16: "3 of the 6 books by «X» and «Y»"
+    used = len(_books_used(out))
+    if al and not out["citations"]["is_refusal"] and used and al["count"] > used:
+        if detect_language(query) == "ar":
+            names = " و".join(f"«{a}»" for a in al["authors"])
+            word = "كتاباً" if al["count"] > 10 else "كتب"
+            who = "للمؤلف" if len(al["authors"]) == 1 else "للمؤلفين"
+            return f"عُرض {used} من أصل {al['count']} {word} {who} {names}، والقائمة الكاملة بالأسفل."
+        names = " and ".join(f"«{a}»" for a in al["authors"])
+        return f"Showing {used} of the {al['count']} books by {names}; the full list is below."
     if not _is_narrow(filt) or out["citations"]["is_refusal"] or not _books_used(out) or not shown or total <= shown:
         return None
     labels_ar = {"author": "المؤلف", "title": "العنوان", "topics": "الموضوع", "publisher": "الناشر",
@@ -157,6 +226,35 @@ def coverage_note(query, out):
 # single global list, which would mix up researchers on a server); book_card() replaces show_card().
 
 
+# v16: a question naming an author the catalog spells differently ("نفين مكرم" for نيفين غراب / مكرم عبد المسيح
+# باسيلى) gets no author filter, so its list was "the closest N books" and ended with unrelated ones. When EVERY book
+# the answer uses has an author whose name shares a word with the question (fuzzy, >= 80%), the question is treated
+# like an author question: the list = every book of those authors (as "كتب فريد النجار" lists all his books).
+NAME_WORDS = {normalize_text(w) for w in """دكتور الدكتور دكتورة الدكتورة للدكتور للدكتورة استاذ الاستاذ أستاذ الأستاذ
+    استاذة الاستاذة مهندس المهندس شيخ الشيخ dr doctor prof professor mr mrs ms by""".split()}
+AUTHOR_NAME_MATCH = 80
+
+
+def _question_names(query):
+    return [w for w in normalize_text(query).split() if len(w) >= 3 and w not in STOPWORDS and w not in NAME_WORDS]
+
+
+def author_list(query, used_ids):
+    """(author names as in the catalog, book_ids of all their books) or None -- see the note above."""
+    words = _question_names(query)
+    if not words or not used_ids:
+        return None
+    matched = {}
+    for b in used_ids:
+        hit = {a_norm: a_raw for a_norm, a_raw in zip(books_df.at[b, "authors_norm"], books_df.at[b, "authors"])
+               if any(fuzz.ratio(w, t) >= AUTHOR_NAME_MATCH for w in words for t in a_norm.split() if len(t) >= 3)}
+        if not hit:
+            return None                                            # a book by someone else -> not an author question
+        matched.update(hit)
+    ids = [b for b, authors in zip(books_df.index, books_df["authors_norm"]) if any(a in matched for a in authors)]
+    return [matched[a] for a in sorted(matched)], ids
+
+
 def all_matching_books(out):
     # Returns (DataFrame of the list, complete?, groups of book_ids per row).
     if out.get("provider") == "help" or out["citations"]["is_refusal"] or not _books_used(out):
@@ -165,6 +263,7 @@ def all_matching_books(out):
     filt = out.get("filters") or {}
     f_all = (SearchFilters(**{k: v for k, v in filt.items() if k in SearchFilters.__dataclass_fields__})
              if filt else None)
+    topic = None
     if _is_narrow(filt):                                           # every book that matches the filters
         f = SearchFilters(**{k: v for k, v in filt.items() if k in SearchFilters.__dataclass_fields__})
         cand = list(apply_filters(f))
@@ -178,6 +277,21 @@ def all_matching_books(out):
         ranked = hybrid_search(q, filters=f_all, k=CONFIG["all_books_limit"], method="rrf", rerank=reranker.available,
                                auto_filters=False)["book_id"].tolist()
         complete = False
+        topic = topic_books(out["query"], q, f_all)                # v15: topic question -> every book of the subject
+        if topic:
+            seen_ids = set(ranked)
+            rest = sorted((b for b in topic[1] if b not in seen_ids), key=lambda b: -year_of(books_df.at[b, "year"]))
+            ranked, complete = ranked + rest, True
+        else:                                                      # v16: misspelled author -> all books of the authors
+            used_tags = set(_books_used(out))
+            used_ids = [b for r in out["package"]["sources"].itertuples() if r.source in used_tags
+                        for b in r.merged_book_ids]
+            auth = author_list(out["query"], used_ids)
+            if auth:
+                keep = set(auth[1])
+                rest = sorted((b for b in keep if b not in set(ranked)), key=lambda b: -year_of(books_df.at[b, "year"]))
+                ranked, complete = [b for b in ranked if b in keep] + rest, True
+                out["author_list"] = {"authors": auth[0]}
 
     groups = []                                                    # near-duplicate records -> one entry
     for b in ranked:
@@ -191,6 +305,15 @@ def all_matching_books(out):
     cited = set(_books_used(out))
     in_answer = {b for r in src.itertuples() if r.source in cited for b in r.merged_book_ids}
     rows = []
+    if topic:                                                      # v15: how many listed books are on the subject
+        out["topic_list"] = {"headings": topic[0], "count": sum(any(b in topic[1] for b in g) for g in groups),
+                             "synonyms": topic[2]}             # v16: glossary equivalents whose headings were added
+    if out.get("author_list"):                                     # v16: how many books those authors have
+        out["author_list"]["count"] = len(groups)
+    if out.get("recency"):                                         # v14: newest first (unknown years last)
+        groups.sort(key=lambda g: -year_of(books_df.at[g[0], "year"]))
+    if topic and not out.get("recency"):                           # books filed under the subject first, then the related
+        groups.sort(key=lambda g: not any(b in topic[1] for b in g))   # ones (a "newest" question stays newest first)
     for n, g in enumerate(groups, start=1):
         b0 = g[0]
         copies = sum(int(books_df.at[b, "copies"]) for b in g if pd.notna(books_df.at[b, "copies"]))
@@ -198,6 +321,8 @@ def all_matching_books(out):
                      "year": books_df.at[b0, "year"], "call_number": books_df.at[b0, "call_number"],
                      "copies": copies, "in_answer": "✓" if any(b in in_answer for b in g) else "",
                      "book_codes": [c for b in g for c in books_df.at[b, "merged_codes"]]})
+        if topic:
+            rows[-1]["in_topic"] = any(b in topic[1] for b in g)    # v15: filed under the subject (else: a close book)
     return pd.DataFrame(rows), complete, groups
 
 
@@ -257,7 +382,11 @@ def rag_answer(query, filters: Optional[SearchFilters] = None, k=10, method="rrf
     lang = requested_language(query) or requested_language(search_query)
     if lang and not (filters and filters.language):              # v9
         filters = SearchFilters(**{**(asdict(filters) if filters else {}), "language": lang})
-    results = hybrid_search(search_query, filters=filters, k=k, method=method)
+    recent = wants_recent(query, search_query)                   # v14: "the newest books" -> ordered by year
+    results = hybrid_search(search_query, filters=filters, k=max(k, CONFIG.get("recency_pool", 20)) if recent else k,
+                            method=method)
+    if recent:
+        results = order_by_recency(results, k)
     package = build_context_package(results)
     answer, used_provider, prompt, errors = generate_answer(query, package, results.attrs.get("filters"), provider,
                                                             history_text=format_history(history))
@@ -267,12 +396,14 @@ def rag_answer(query, filters: Optional[SearchFilters] = None, k=10, method="rrf
            "citations": verify_citations(answer, package), "prompt": prompt, "fallback_errors": errors,
            "latency_s": round(time.time() - t0, 2)}
     out["model"] = last_gemini_model() if used_provider == "gemini" else None
+    out["recency"] = bool(results.attrs.get("recency"))
     if out["citations"]["is_refusal"]:                         # v10: refusal -> the refusal sentence only
         out["raw_answer"] = answer
         out["answer"] = REFUSAL_AR if detect_language(query) == "ar" else REFUSAL_EN
         out["citations"] = verify_citations(out["answer"], package)
     else:                                                      # v10: books named without [S#] tags
-        out["citations"]["inferred"] = [] if out["citations"]["cited"] else _inferred_tags(answer, package)
+        out["citations"]["inferred"] = (_named_without_tag(answer, package, out["citations"]["cited"])
+                                        if out["citations"]["cited"] else _inferred_tags(answer, package))
     out["all_books"], out["all_books_complete"], out["all_books_groups"] = all_matching_books(out)
     out["coverage_note"] = coverage_note(query, out)
     out["hint"] = ((REFUSAL_HINT_AR if detect_language(query) == "ar" else REFUSAL_HINT_EN)
@@ -297,7 +428,11 @@ def retrieve(query, filters: Optional[SearchFilters] = None, k=10, method="rrf",
     lang = requested_language(query) or requested_language(search_query)
     if lang and not (filters and filters.language):              # v9
         filters = SearchFilters(**{**(asdict(filters) if filters else {}), "language": lang})
-    results = hybrid_search(search_query, filters=filters, k=k, method=method)
+    recent = wants_recent(query, search_query)                   # v14: "the newest books" -> ordered by year
+    results = hybrid_search(search_query, filters=filters, k=max(k, CONFIG.get("recency_pool", 20)) if recent else k,
+                            method=method)
+    if recent:
+        results = order_by_recency(results, k)
     package = build_context_package(results)
     return {"query": query, "search_query": search_query, "history": history, "results": results,
             "package": package, "t0": t0}
@@ -316,12 +451,14 @@ def finish(stage, provider=None):
            "citations": verify_citations(answer, package), "prompt": prompt, "fallback_errors": errors,
            "latency_s": round(time.time() - t0, 2)}
     out["model"] = last_gemini_model() if used_provider == "gemini" else None
+    out["recency"] = bool(results.attrs.get("recency"))
     if out["citations"]["is_refusal"]:                         # v10: refusal -> the refusal sentence only
         out["raw_answer"] = answer
         out["answer"] = REFUSAL_AR if detect_language(query) == "ar" else REFUSAL_EN
         out["citations"] = verify_citations(out["answer"], package)
     else:                                                      # v10: books named without [S#] tags
-        out["citations"]["inferred"] = [] if out["citations"]["cited"] else _inferred_tags(answer, package)
+        out["citations"]["inferred"] = (_named_without_tag(answer, package, out["citations"]["cited"])
+                                        if out["citations"]["cited"] else _inferred_tags(answer, package))
     out["all_books"], out["all_books_complete"], out["all_books_groups"] = all_matching_books(out)
     out["coverage_note"] = coverage_note(query, out)
     out["hint"] = ((REFUSAL_HINT_AR if detect_language(query) == "ar" else REFUSAL_HINT_EN)

@@ -22,7 +22,10 @@ export function AnalyticsDashboardPage({ management = false }) {
   const read = useAnalyticsSnapshot(auth.token, filters);
   const snapshot = read.snapshot;
   const overview = snapshot?.overview;
-  const trends = snapshot?.trends.data || [], comparison = snapshot?.branches.data || [], top = snapshot?.top.data || [];
+  const allTrends = snapshot?.trends.data || [];
+  // Periods with no activity at all are left out so the list stays short.
+  const trends = allTrends.filter(row => series.some(([key]) => typeof row[key] === 'number' && row[key] > 0));
+  const comparison = snapshot?.branches.data || [], top = snapshot?.top.data || [];
   const max = useMemo(() => Math.max(1, ...trends.flatMap(row => series.map(([key]) => row[key])).filter(value => typeof value === 'number' && Number.isFinite(value))), [trends]);
   const num = value => reportNumber(value, language);
   function submit(event) {
@@ -44,12 +47,11 @@ export function AnalyticsDashboardPage({ management = false }) {
         <label><span>{t('admin.analytics.topItems')}</span><select aria-label={t('admin.analytics.topItems')} value={draft.metric} onChange={event => setDraft(value => ({ ...value, metric: event.target.value }))}><option value="BORROWINGS">{t('admin.analytics.borrowings')}</option><option value="RESERVATIONS">{t('admin.analytics.reservations')}</option></select></label>
         <button type="submit" className="admin-primary-button" disabled={!draft.from || !draft.to || draft.from > draft.to || read.loading && !differentDraft}>{t(differentDraft ? 'admin.reporting.apply' : 'admin.workflows.refresh')}</button>
       </form>
-      <p className="report-help">{t('admin.reporting.dateHelp')}</p>
       {differentDraft && <p role="status">{t('admin.reporting.unapplied')}</p>}
       {(branchesRead.error || branchesRead.loading) && <AdminReadState read={branchesRead} compact label={t('admin.common.branch')} />}
     </section>
     <div className="report-read-state">
-      <p role="status">{t(read.loading ? 'admin.common.loading' : read.error ? 'admin.workflows.unavailable' : 'admin.workflows.loaded')}</p>
+      <p role="status" className={read.loading || read.error ? undefined : 'sr-only'}>{t(read.loading ? 'admin.common.loading' : read.error ? 'admin.workflows.unavailable' : 'admin.workflows.loaded')}</p>
       {read.error && <><InlineAlert title={t('admin.workflows.readFailed')} message={read.error.code === 'INCOMPLETE_ANALYTICS' ? t('admin.reporting.incomplete') : read.error.message} requestId={read.error.requestId} /><button type="button" className="admin-secondary-button" onClick={retry}>{t('admin.workflows.retry')}</button></>}
     </div>
     {snapshot && <>
@@ -57,9 +59,13 @@ export function AnalyticsDashboardPage({ management = false }) {
         <strong>{t(read.stale ? 'admin.reporting.previous' : 'admin.reporting.displayedScope')}</strong>
         {read.stale && <p>{t(read.error ? 'admin.reporting.stale' : 'admin.reporting.updating')}</p>}
         <dl><div><dt>{t('admin.common.branch')}</dt><dd dir="auto">{scope?.branch?.name || (snapshot.filters.branchId ? snapshot.filters.branchId : t('admin.common.allBranches'))}</dd></div>
-          <div><dt>{t('admin.reporting.window')}</dt><dd><bdi>{reportDate(scope?.from, language)}</bdi><span> — </span><bdi>{reportDate(scope?.to, language)}</bdi></dd></div>
-          <div><dt>{t('admin.reporting.generated')}</dt><dd><bdi>{reportDate(scope?.generatedAt, language)}</bdi></dd></div></dl>
-        <p>{t('admin.reporting.meaning')}</p><small>{t('admin.reporting.missing')}</small>
+          <div><dt>{t('admin.reporting.window')}</dt><dd><bdi>{reportDate(scope?.from, language, true)}</bdi><span> — </span><bdi>{reportDate(scope?.to ? new Date(new Date(scope.to).getTime() - 1) : null, language, true)}</bdi></dd></div>
+        </dl>
+        <details className="report-notes"><summary>{t('admin.reporting.notes')}</summary>
+          <p>{t('admin.reporting.dateHelp')}</p>
+          <p>{t('admin.reporting.generated')}: <bdi>{reportDate(scope?.generatedAt, language)}</bdi></p>
+          <p>{t('admin.reporting.meaning')}</p><small>{t('admin.reporting.missing')}</small>
+        </details>
       </section>
       <section aria-labelledby="report-current"><h2 id="report-current">{t('admin.reporting.current')}</h2><div className="metric-grid report-metrics">
         <MetricCard label={t('admin.analytics.activeItems')} value={<bdi>{num(overview.catalog?.activeItems)}</bdi>} hint={<><span>{t('admin.analytics.availableCopies')}: <bdi>{num(overview.catalog?.availableCopies)}/{num(overview.catalog?.physicalCopies)}</bdi></span><span>{t('admin.analytics.availabilityRate')}: <bdi>{reportPercent(overview.catalog?.availabilityRatePercent, language)}</bdi></span></>} />
@@ -72,7 +78,7 @@ export function AnalyticsDashboardPage({ management = false }) {
         <MetricCard label={t('admin.analytics.visitsInPeriod')} value={<bdi>{num(overview.visits?.visitsInPeriod)}</bdi>} />
       </div></section>
       <div className="analytics-grid">
-        <section className="admin-card"><h2>{t('admin.analytics.trends')}</h2><p className="report-help">{t('admin.reporting.trendHelp')} · {t(`admin.analytics.bucketValue.${snapshot.filters.bucket}`)}</p>
+        <section className="admin-card"><h2>{t('admin.analytics.trends')}</h2><p className="report-help">{t(`admin.analytics.bucketValue.${snapshot.filters.bucket}`)}{allTrends.length > trends.length && <> · {t('admin.reporting.quietHidden').replace('{count}', num(allTrends.length - trends.length))}</>}</p>
           {!trends.length ? <p className="admin-empty">{t('admin.reporting.noTrends')}</p> : <div className="trend-list" role="region" aria-label={t('admin.analytics.trends')} tabIndex={0}>{trends.map(row => <div className="trend-row" key={row.bucketStart}>
             <strong><bdi>{reportDate(row.bucketStart, language, true)}</bdi></strong><dl className="trend-bars">{series.map(([key, label]) => <div key={key}><dt>{t(label)}</dt><dd><i aria-hidden="true"><b style={{ width: `${typeof row[key] === 'number' && Number.isFinite(row[key]) ? Math.max(0, row[key] / max * 100) : 0}%` }} /></i><bdi>{num(row[key])}</bdi></dd></div>)}</dl>
           </div>)}</div>}

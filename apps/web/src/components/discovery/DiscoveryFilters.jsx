@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { getCategoryLabel } from '../../features/discovery/discovery-format';
+import { getCategoryLabel, getLanguageLabel } from '../../features/discovery/discovery-format';
 import { useLanguage } from '../../hooks/useLanguage';
 
 export function DiscoveryFilters({
@@ -9,7 +9,7 @@ export function DiscoveryFilters({
   onClear,
   onShowResults
 }) {
-  const { t } = useLanguage();
+  const { t, language: uiLanguage } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const [mobile, setMobile] = useState(() =>
     window.matchMedia('(max-width: 1000px)').matches
@@ -72,6 +72,16 @@ export function DiscoveryFilters({
         <p className="discovery-filters__scope" id={scopeId}>{t('catalogRefinement.facetScope')}</p>
         {[
           [
+            'type',
+            'discovery.filters.type',
+            facets.types?.filter((item) => item.count > 0).map((item) => ({
+              value: item.value,
+              label: `${item.value === 'ACADEMIC_WORK' ? t('catalogRefinement.academicWork')
+                : t(`itemTypes.${item.value}`)} (${item.count})`
+            }))
+          ],
+          // One category is not a choice (books carry Dewey classes, not categories).
+          (facets.categories?.length ?? 0) > 1 && [
             'categoryId',
             'discovery.filters.category',
             facets.categories?.map((item) => ({
@@ -92,7 +102,7 @@ export function DiscoveryFilters({
             'discovery.filters.language',
             facets.languages?.map((item) => ({
               value: item.value,
-              label: `${item.value} (${item.count})`
+              label: `${getLanguageLabel(item.value, t, uiLanguage)} (${item.count})`
             }))
           ],
           [
@@ -111,7 +121,7 @@ export function DiscoveryFilters({
               label: `${item.name} (${item.availableItems}/${item.totalItems})`
             }))
           ]
-        ].map(([key, labelKey, options]) => (
+        ].filter(Boolean).map(([key, labelKey, options]) => (
           <label className="filter-field" key={key}>
             <span>{t(labelKey)}</span>
             <select

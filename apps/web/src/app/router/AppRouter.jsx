@@ -22,11 +22,17 @@ const ReturnPage = lazyNamed(() => import('../../pages/librarian/ReturnPage'), '
 const ReservationsOperationsPage = lazyNamed(() => import('../../pages/librarian/ReservationsOperationsPage'), 'ReservationsOperationsPage');
 const VisitsPage = lazyNamed(() => import('../../pages/librarian/VisitsPage'), 'VisitsPage');
 const CatalogAdminPage = lazyNamed(() => import('../../pages/librarian/CatalogAdminPage'), 'CatalogAdminPage');
+const CatalogTransferPage = lazyNamed(() => import('../../pages/librarian/CatalogTransferPage'), 'CatalogTransferPage');
+const StudentTransferPage = lazyNamed(() => import('../../pages/librarian/StudentTransferPage'), 'StudentTransferPage');
 const StudentsAdminPage = lazyNamed(() => import('../../pages/librarian/StudentsAdminPage'), 'StudentsAdminPage');
 const AnalyticsDashboardPage = lazyNamed(() => import('../../pages/shared/AnalyticsDashboardPage'), 'AnalyticsDashboardPage');
 const RoleHomePage = lazyNamed(() => import('../../pages/shared/RoleHomePage'), 'RoleHomePage');
 const ManagementBorrowingsPage = lazyNamed(() => import('../../pages/management/ManagementBorrowingsPage'), 'ManagementBorrowingsPage');
 const ManagementVisitsPage = lazyNamed(() => import('../../pages/management/ManagementVisitsPage'), 'ManagementVisitsPage');
+const ManagementStaffPage = lazyNamed(() => import('../../pages/management/ManagementStaffPage'), 'ManagementStaffPage');
+const ManagementAuditPage = lazyNamed(() => import('../../pages/management/ManagementAuditPage'), 'ManagementAuditPage');
+const ManagementReportsPage = lazyNamed(() => import('../../pages/management/ManagementReportsPage'), 'ManagementReportsPage');
+const ManagementAnnouncementsPage = lazyNamed(() => import('../../pages/management/ManagementAnnouncementsPage'), 'ManagementAnnouncementsPage');
 const ForbiddenPage = lazyNamed(() => import('../../pages/system/ForbiddenPage'), 'ForbiddenPage');
 const NotFoundPage = lazyNamed(() => import('../../pages/system/NotFoundPage'), 'NotFoundPage');
 
@@ -84,7 +90,9 @@ export function AppRouter() {
                 <Route path="reservations" element={<ReservationsOperationsPage />} />
                 <Route path="visits" element={<VisitsPage />} />
                 <Route path="catalog" element={<CatalogAdminPage />} />
+                <Route path="catalog/transfer" element={<CatalogTransferPage />} />
                 <Route path="students" element={<StudentsAdminPage />} />
+                <Route path="students/transfer" element={<StudentTransferPage />} />
                 <Route path="analytics" element={<AnalyticsDashboardPage />} />
                 <Route path="ai" element={assistantPage('/librarian')} />
                 <Route path="ai/items/:itemId" element={staffAssistantDetails('/librarian')} />
@@ -94,9 +102,13 @@ export function AppRouter() {
             <Route element={<RequireRole roles={['MANAGEMENT']} />}>
               <Route path="/management" element={<StaffShell mode="management" />}>
                 <Route index element={<AnalyticsDashboardPage management />} />
-                <Route path="analytics" element={<AnalyticsDashboardPage management />} />
+                <Route path="analytics" element={<Navigate to="/management" replace />} />
                 <Route path="borrowings" element={<ManagementBorrowingsPage />} />
                 <Route path="visits" element={<ManagementVisitsPage />} />
+                <Route path="staff" element={<ManagementStaffPage />} />
+                <Route path="audit" element={<ManagementAuditPage />} />
+                <Route path="reports" element={<ManagementReportsPage />} />
+                <Route path="announcements" element={<ManagementAnnouncementsPage />} />
                 <Route path="ai" element={assistantPage('/management')} />
                 <Route path="ai/items/:itemId" element={staffAssistantDetails('/management')} />
               </Route>

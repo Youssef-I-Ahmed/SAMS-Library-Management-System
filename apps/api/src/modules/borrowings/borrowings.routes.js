@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { BorrowingStatus } from '@prisma/client';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { audited } from '../../utils/audit.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import {
@@ -65,6 +67,8 @@ const checkoutSchema = z
 borrowingsRouter.post(
   '/checkout',
   authorize('LIBRARIAN'),
+  requireGrant('circulation.checkout'),
+  audited('BORROWING_CHECKED_OUT', 'Borrowing'),
   async (req, res, next) => {
     try {
       const body =
@@ -106,6 +110,8 @@ const returnSchema = z.object({
 borrowingsRouter.post(
   '/:id/return',
   authorize('LIBRARIAN'),
+  requireGrant('circulation.return'),
+  audited('BORROWING_RETURNED', 'Borrowing'),
   async (req, res, next) => {
     try {
       const { id } =

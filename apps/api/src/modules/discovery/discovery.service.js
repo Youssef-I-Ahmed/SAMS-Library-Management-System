@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma.js';
+import { withCover } from '../catalog/covers.js';
 import { buildCatalogSearchWhere } from '../catalog/catalog-search.js';
 
 function buildInventoryFilter({ branchId, availableOnly }) {
@@ -278,6 +279,8 @@ export async function searchDiscoveryItems({
           id: true,
           type: true,
           title: true,
+          coverImagePath: true,
+          coverUpdatedAt: true,
           deweyCodeRaw: true,
           callNumber: true,
           language: true,
@@ -367,7 +370,7 @@ export async function searchDiscoveryItems({
 
   return {
     data: items.map((item) => ({
-      ...item,
+      ...withCover(item),
       availability:
         availabilityMap.get(item.id) ?? {
           totalCopies: 0,

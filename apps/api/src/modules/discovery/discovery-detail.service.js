@@ -1,5 +1,6 @@
 import { prisma } from '../../config/prisma.js';
 import { AppError } from '../../utils/app-error.js';
+import { withCover } from '../catalog/covers.js';
 import { getItemAvailability } from '../availability/availability.service.js';
 
 export async function getDiscoveryItemDetail(itemId) {
@@ -12,6 +13,8 @@ export async function getDiscoveryItemDetail(itemId) {
       id: true,
       type: true,
       title: true,
+      coverImagePath: true,
+      coverUpdatedAt: true,
       deweyCodeRaw: true,
       callNumber: true,
       language: true,
@@ -107,7 +110,7 @@ export async function getDiscoveryItemDetail(itemId) {
     }));
 
   return {
-    ...item,
+    ...withCover(item),
     availability: {
       totalCopies: availability.totalCopies,
       availableCopies: availability.availableCopies,

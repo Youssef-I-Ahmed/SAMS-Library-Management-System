@@ -72,11 +72,11 @@ const config = (overrides = {}) => ({
 });
 function setup(overrides = {}, options = {}) {
   const cfg = config(overrides);
-  const { research, ...gatewayOptions } = options;
+  const { research, classifier, clustering, ...gatewayOptions } = options;
   gateway = createAiGateway({ config: cfg, db: prisma, now: () => clock,
     transportOptions: { jitter: () => 0 }, ...gatewayOptions });
   app = express(); app.use(requestContext);
-  app.use('/api/v1/ai', createAiRouter({ config: cfg, gateway, research, logging: true }));
+  app.use('/api/v1/ai', createAiRouter({ config: cfg, gateway, research, classifier, clustering, logging: true }));
   return gateway;
 }
 const get = (path, who = USER) => request(app).get(`/api/v1/ai${path}`).set('Authorization', `Bearer ${tokens[who]}`);
@@ -211,9 +211,28 @@ describe('authentication and trusted outbound identity', () => {
     expect(search.status).toBe(200);
     expect(search.body.data).toEqual(metadata);
     expect(research.ask).toHaveBeenCalledTimes(1);
-    expect(research.ask).toHaveBeenCalledWith('Fixture academic work');
+    expect(research.ask).toHaveBeenCalledWith('Fixture academic work', expect.objectContaining({ id: USER }));
     expect(calls).toHaveLength(5);
     expect(calls.every(({ headers }) => headers['x-user-role'] === role)).toBe(true);
+  });
+  it('offers the cataloguing models to staff only', async () => {
+    const classifier = { configured: true, health: vi.fn().mockResolvedValue({}),
+      classify: vi.fn().mockResolvedValue({ subject: 'Accounting', confidence: 0.8, topK: [] }) };
+    const clustering = { configured: false, health: vi.fn(), predict: vi.fn().mockResolvedValue({ cluster: 3 }) };
+    setup({}, { classifier, clustering });
+    users.set(USER, makeUser(USER, ['STUDENT']));
+    expect((await post('/classify-subject', { title: 'Cost accounting' })).status).toBe(403);
+    users.set(USER, makeUser(USER, ['LIBRARIAN']));
+    const classified = await post('/classify-subject', { title: 'Cost accounting' });
+    expect(classified.status).toBe(200);
+    expect(classified.body.data.subject).toBe('Accounting');
+    expect(classifier.classify).toHaveBeenCalledWith('Cost accounting');
+    expect((await post('/classify-subject', { title: 'x', extra: 1 })).status).toBe(400);
+    const cluster = await post('/book-cluster', { title: 'Marketing', subjects: 'Marketing | Management' });
+    expect(cluster.body.data).toEqual({ cluster: 3 });
+    expect(clustering.predict).toHaveBeenCalledWith({ title: 'Marketing', subjects: 'Marketing | Management' });
+    expect((await get('/services')).body.data).toEqual({ subjectClassifier: 'ok', bookClustering: 'disabled' });
+    expect(calls).toHaveLength(0);
   });
   it('does not invent ADMIN permissions or trust a JWT-only student role', async () => {
     users.set(USER, makeUser(USER, ['ADMIN']));
@@ -455,6 +474,41 @@ describe('owned sessions, jobs, reset and admission', () => {
     clock += 60 * 60 * 1000;
     expect((await get('/jobs/' + data.job_id)).status).toBe(404);
     expect(gateway.state.work.size).toBe(1); expect(calls).toHaveLength(1);
+  });
+  it('reconciles a completed abandoned job before admitting a fresh question without replay', async () => {
+    const original = await startPending();
+    const oldSession = sessionForJob;
+    clock += 5000;
+    handler = async (req, res, body) => req.url.startsWith('/api/jobs/')
+      ? send(res, done(oldSession)) : send(res, done(body.session_id));
+    const next = await post('/ask', { question: 'new question' });
+    expect(next.status).toBe(200);
+    expect(calls.map(call => call.method)).toEqual(['POST', 'GET', 'POST']);
+    expect(calls[1].path).toContain('?wait=0');
+    expect(calls[2].body.question).toBe('new question');
+    expect(gateway.state.work.size).toBe(0);
+    expect((await get('/jobs/' + original.job_id)).body.data.status).toBe('done');
+    expect(calls).toHaveLength(3);
+  });
+  it('reconciles completed abandoned jobs on availability checks without asking again', async () => {
+    await startPending();
+    const oldSession = sessionForJob;
+    clock += 5000;
+    handler = async (req, res) => send(res, req.url.startsWith('/api/jobs/') ? done(oldSession) : health());
+    expect((await get('/health')).status).toBe(200);
+    expect(gateway.state.work.size).toBe(0);
+    expect(calls.map(call => call.method)).toEqual(['POST', 'GET', 'GET']);
+  });
+  it.each(['pending', 'missing', 'unavailable'])('retains abandoned work after an unconfirmed %s reconciliation', async mode => {
+    await startPending();
+    clock += 5000;
+    handler = async (_req, res) => mode === 'pending' ? send(res, pending(sessionForJob))
+      : send(res, {}, mode === 'missing' ? 404 : 503);
+    const blocked = await post('/ask');
+    expect(blocked.status).toBe(503);
+    expect(blocked.body.error.code).toBe('AI_CAPACITY_BUSY');
+    expect(gateway.state.work.size).toBe(1);
+    expect(calls.filter(call => call.method === 'POST')).toHaveLength(1);
   });
   it('maps missing or failed jobs without releasing unknown work or resubmitting a question', async () => {
     const data = await startPending();

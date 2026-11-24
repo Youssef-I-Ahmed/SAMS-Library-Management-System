@@ -1,0 +1,15 @@
+# Final delivery report (2026-10-30)
+
+1. **Baseline:** my previous ZIP (B). Original (A) = recovery reference; checkpoint (C) = selective improvements.
+2. **Checkpoint fixes merged:** completion-verb counts, premise-mismatch warnings, "المشروع رقم 1113 لسنة 2007" parsing, PostgreSQL role fix, extra tests (`docs/VERSION_MERGE_REPORT.md`). C's reported 437 tests were not re-run by me; the final merged suite is 458.
+3. **Restored/added:** `google-genai` line; topic+year route (marketing 2023 → 4 by subject, 22 by title/subject, both stated); sibling-subject note; approval wording; unified test docs.
+4. **Gemini:** preserved (code, settings, Secrets example identical to the original). Enable with `LLM_PROVIDER=gemini`, `LLM_API_KEY`, `LLM_MODEL=auto` in Secrets (your existing Secrets work unchanged). Optional: structured/SQL/search never use it; no evidence → no call; invented content withheld; missing/failed Gemini → records fallback. **Live Google request: NOT tested** (sandbox gateway rejects Google; no key).
+5. **Dataset:** sha256 unchanged, 3,983 records, no duplicate IDs, #1113 = "Development and analysis of sadat academy's Digital library" 2007, 2023 = 165, 10 records have no valid year (reported, not altered). The historical v1 file is not in the package.
+6. **Search tests:** see TEST_REPORT §3 (all executed on the real data).
+7. **Semantic:** model `paraphrase-multilingual-MiniLM-L12-v2` (384-d, fastembed/ONNX) configured; **not downloadable here → not tested**; graceful keyword fallback tested. Exact details and the way to obtain real evidence: `docs/SEMANTIC_SEARCH.md`.
+8. **Tests:** 458 passed / 0 failed / 0 skipped (final); Express gateway 11/11; browser 95/95.
+9. **UI:** tested with Playwright on Chromium (desktop, tablet, phone; AR and EN).
+10. **React/Express/PostgreSQL:** reference gateway + disposable PostgreSQL tested; the team's own code NOT tested.
+11. **Deployment readiness:** the package is ready to upload; hosted behaviour is unverified (see risks).
+12. **Known limitations / risks:** (a) real semantic search unverified, and the model download + embedding happen after each cold start on an ephemeral disk (a precomputed `data/cache/embeddings.npz` built on a machine with internet would shorten it); (b) Community Cloud memory limit (~1 GB per Streamlit's blog, may change) may be tight with the model — fallback `EMBEDDING_BACKEND=hashing`; (c) the app sleeps when idle; (d) admin edits don't persist (leave `PILOT_ADMIN_PASSWORD` empty); (e) topic+year counts are defined by the stored subject/title fields (two numbers are shown), not by reading project content; (f) cross-language matching of topics relies on a small alias table for the 8 dataset subjects.
+13. **Your next steps:** `docs/GITHUB_STREAMLIT_UPDATE.md` (copy the package over your clone, `git add -f data/raw/Project.xlsx`, `predeploy_check.py`, commit, push — only when you decide), keep Secrets as they are, set Python 3.13, then run `docs/POST_DEPLOY_TEST_PLAN.md` from another device. Needs your accounts: GitHub push, Streamlit app settings.

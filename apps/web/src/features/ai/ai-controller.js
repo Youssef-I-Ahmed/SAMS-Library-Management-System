@@ -19,7 +19,7 @@ export function createAiController({ client, enabled = true, now = Date.now, pat
     blocked: false, retryAt: null, retryKnown: true, errorStatus: null, errorCode: null };
   const listeners = new Set();
   let destroyed = false, attached = false, operation = 0, pollVersion = 0;
-  let pollTimer, patienceTimer, requestAbort, pollAbort, startedAt = 0;
+  let pollTimer, patienceTimer, requestAbort, pollAbort, startedAt = 0, pollFailures = 0;
   const emit = (patch) => {
     if (destroyed) return;
     state = { ...state, ...patch };
@@ -79,10 +79,18 @@ export function createAiController({ client, enabled = true, now = Date.now, pat
       if (!valid(id) || version !== pollVersion || abort.signal.aborted) return;
       pollAbort = null;
       if (reply.job_id && reply.job_id !== jobId) throw { status: 502, code: 'AI_UPSTREAM_PROTOCOL_ERROR' };
+      pollFailures = 0;
       apply(reply, id, !manual || now() - startedAt < patienceMs);
       if (reply.status === 'pending' && manual && now() - startedAt >= patienceMs) emit({ phase: 'still-working' });
     } catch (error) {
-      if (valid(id) && version === pollVersion && !abort.signal.aborted) fail(error, { polling: true });
+      if (valid(id) && version === pollVersion && !abort.signal.aborted) {
+        if ([503, 504].includes(error.status) && pollFailures < 2 && now() - startedAt < patienceMs) {
+          // Retain delivered preview/handles while retrying the same read-only
+          // job lookup. Never automatically replay ask/reset POST requests.
+          pollFailures++;
+          pollTimer = setTimer(() => poll(id, false), 1000 * pollFailures);
+        } else fail(error, { polling: true });
+      }
     } finally { if (pollAbort === abort) pollAbort = null; }
   }
   async function check() {
@@ -110,7 +118,7 @@ export function createAiController({ client, enabled = true, now = Date.now, pat
         state.retryAt > now()) return false;
       let q;
       try { q = normalizeQuestion(question); } catch (error) { fail(error); return false; }
-      haltPoll(); const id = ++operation; startedAt = now();
+      haltPoll(); const id = ++operation; startedAt = now(); pollFailures = 0;
       requestAbort = new AbortController();
       emit({ phase: 'submitting', turns: [...state.turns, { question: q, result: null }].slice(-4), preview: null, jobId: null, blocked: true, ...clearErrors() });
       try { apply(await client.ask(q, state.sessionId, requestAbort.signal), id); }
@@ -122,7 +130,7 @@ export function createAiController({ client, enabled = true, now = Date.now, pat
     stop() { if (!state.jobId) return; haltPoll(); emit({ phase: 'stopped' }); },
     resume() {
       if (!state.jobId || pollAbort || !attached || state.retryAt > now() || ['submitting', 'resetting'].includes(state.phase)) return;
-      haltPoll(); return poll(operation, true);
+      haltPoll(); pollFailures = 0; return poll(operation, true);
     },
     async reset() {
       if (!state.sessionId || state.blocked || state.jobId || destroyed || !attached || state.retryAt > now() || ['checking', 'resetting', 'submitting'].includes(state.phase)) return false;

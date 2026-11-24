@@ -1,10 +1,13 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 import { ContributorRole, ItemType } from '@prisma/client';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { audited } from '../../utils/audit.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import { assertInactiveAccess, canSeeInactive } from './catalog-visibility.js';
+import { MAX_COVER_BYTES, deleteCover, saveCover } from './covers.js';
 import {
   listLibraryItems,
   getLibraryItem,
@@ -172,6 +175,8 @@ libraryItemsRouter.get('/:id/contributors', async (req, res, next) => {
 libraryItemsRouter.put(
   '/:id/contributors',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
+  audited('CATALOG_ITEM_UPDATED', 'LibraryItem', { entityId: (req) => req.params.id }),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(
@@ -226,6 +231,8 @@ libraryItemsRouter.get('/:id', async (req, res, next) => {
 libraryItemsRouter.post(
   '/',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.create'),
+  audited('CATALOG_ITEM_CREATED', 'LibraryItem', { label: (_req, body) => body?.data?.title }),
   async (req, res, next) => {
     try {
       const body = parseOrThrow(createSchema, req.body);
@@ -240,6 +247,11 @@ libraryItemsRouter.post(
 libraryItemsRouter.patch(
   '/:id',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
+  (req, res, next) => (req.body && Object.hasOwn(req.body, 'isActive')
+    ? requireGrant(req.body.isActive === false ? 'catalog.archive' : 'catalog.restore')(req, res, next) : next()),
+  audited((req) => (req.body?.isActive === false ? 'CATALOG_ITEM_ARCHIVED' : req.body?.isActive === true ? 'CATALOG_ITEM_RESTORED' : 'CATALOG_ITEM_UPDATED'),
+    'LibraryItem', { label: (_req, body) => body?.data?.title }),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(
@@ -260,6 +272,8 @@ libraryItemsRouter.patch(
 libraryItemsRouter.put(
   '/:id/book-details',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
+  audited('CATALOG_ITEM_UPDATED', 'LibraryItem', { entityId: (req) => req.params.id }),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(
@@ -280,6 +294,8 @@ libraryItemsRouter.put(
 libraryItemsRouter.put(
   '/:id/academic-work-details',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
+  audited('CATALOG_ITEM_UPDATED', 'LibraryItem', { entityId: (req) => req.params.id }),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(
@@ -294,5 +310,34 @@ libraryItemsRouter.put(
     } catch (error) {
       next(error);
     }
+  }
+);
+
+const coverUpload = express.raw({ type: ['image/jpeg', 'image/png', 'image/webp', 'application/octet-stream'], limit: MAX_COVER_BYTES });
+const coverId = (req) => parseOrThrow(z.object({ id: z.string().uuid() }), req.params).id;
+
+libraryItemsRouter.put(
+  '/:id/cover',
+  authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
+  audited('CATALOG_COVER_UPLOADED', 'LibraryItem', { label: (_req, body) => body?.data?.title }),
+  coverUpload,
+  async (req, res, next) => {
+    try {
+      if (!Buffer.isBuffer(req.body) || !req.body.length) throw new AppError(400, 'COVER_INVALID', 'Upload the image as the request body.');
+      res.json({ data: await saveCover(coverId(req), req.body) });
+    } catch (error) { next(error); }
+  }
+);
+
+libraryItemsRouter.delete(
+  '/:id/cover',
+  authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
+  audited('CATALOG_COVER_REMOVED', 'LibraryItem', { label: (_req, body) => body?.data?.title }),
+  async (req, res, next) => {
+    try {
+      res.json({ data: await deleteCover(coverId(req)) });
+    } catch (error) { next(error); }
   }
 );

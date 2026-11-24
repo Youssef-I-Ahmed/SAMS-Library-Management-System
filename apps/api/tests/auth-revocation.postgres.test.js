@@ -156,7 +156,7 @@ describe.skipIf(!enabled)('auth migration on a newly created disposable PostgreS
       || sql("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';") !== '0') {
       throw new Error('Disposable database identity/emptiness check failed');
     }
-    const migrations = join(root, 'prisma/migrations');
+    const migrations = join(root, 'database/prisma/migrations');
     const names = readdirSync(migrations, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
     for (const name of names) {
       if (name.endsWith('_permission_storage')) {
@@ -181,7 +181,7 @@ describe.skipIf(!enabled)('auth migration on a newly created disposable PostgreS
     writeFileSync(join(workdir, 'package.json'), JSON.stringify({ name: 'sams-auth-pg-fixture', private: true }));
     const generator = join(root, 'node_modules/@prisma/client/generator-build/index.js').replaceAll('\\', '/');
     const output = join(workdir, 'client').replaceAll('\\', '/');
-    const schema = readFileSync(join(root, 'prisma/schema.prisma'), 'utf8')
+    const schema = readFileSync(join(root, 'database/prisma/schema.prisma'), 'utf8')
       .replace('provider = "prisma-client-js"', `provider = "node ${generator}"\n  output = "${output}"`)
       .replace('env("DATABASE_URL")', JSON.stringify(connection));
     writeFileSync(join(workdir, 'schema.prisma'), schema);

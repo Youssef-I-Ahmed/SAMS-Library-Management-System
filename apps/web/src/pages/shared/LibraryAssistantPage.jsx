@@ -123,7 +123,7 @@ export function LibraryAssistantPage({ itemDetailsBase, catalogueTo }) {
   }, [state.retryAt]);
   const count = [...draft].length;
   const retrySeconds = Math.max(0, Math.ceil(((state.retryAt || 0) - clock) / 1000));
-  const number = (n) => new Intl.NumberFormat(language).format(n);
+  const number = (n) => new Intl.NumberFormat(language === 'ar' ? 'ar-u-nu-latn' : language).format(n);
   const showBooks = scope !== 'research';
   const showResearch = scope !== 'books';
   const suggestions = scope === 'research' ? ['sampleResearch'] :

@@ -38,7 +38,7 @@ const EMPTY_FACETS = {
 
 export function CatalogPage() {
   const auth = useAuth();
-  const { t } = useLanguage();
+  const { t, language: uiLanguage } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -209,7 +209,7 @@ export function CatalogPage() {
       facets.deweyClassifications?.find((item) => item.id === filters.deweyClassificationId)?.code
       || filters.deweyClassificationId
     ), t('discovery.filters.dewey')],
-    ['language', getLanguageLabel(filters.language, t), t('discovery.filters.language')],
+    ['language', getLanguageLabel(filters.language, t, uiLanguage), t('discovery.filters.language')],
     ['publicationYear', filters.publicationYear, t('discovery.filters.year')],
     ['branchId', filters.branchId && (
       facets.branches?.find((item) => item.id === filters.branchId)?.name || filters.branchId
@@ -245,12 +245,16 @@ export function CatalogPage() {
       </form>
 
       <div className="catalog-types" role="group" aria-label={t('discovery.filters.type')}>
-        {['', 'BOOK', 'PROJECT', 'THESIS', 'ACADEMIC_WORK'].map((type) => (
-          <button type="button" key={type} aria-pressed={filters.type === type}
+        {['', 'BOOK', 'PROJECT', 'THESIS', 'ACADEMIC_WORK'].filter((type) => !type || filters.type === type ||
+          !facets.types || (facets.types.find((item) => item.value === type)?.count ?? 0) > 0).map((type) => {
+          const count = type ? facets.types?.find((item) => item.value === type)?.count
+            : facets.types?.reduce((sum, item) => sum + item.count, 0);
+          return <button type="button" key={type} aria-pressed={filters.type === type}
             onClick={() => apply({ ...filters, type, page: 1 })}>
             {type ? typeLabel(type) : t('discovery.catalog.allResources')}
-          </button>
-        ))}
+            {count !== undefined && <span className="catalog-types__count"> ({count})</span>}
+          </button>;
+        })}
       </div>
 
       {facetsError && (

@@ -6,9 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { chromium, expect } from '@playwright/test';
 import axe from 'axe-core';
 import { translate } from '../src/i18n/index.js';
-import { createAuditServer } from '../../../docs/frontend/qa/sprint10b5/serve.mjs';
+import { createAuditServer } from './qa/sprint10b5/serve.mjs';
 let browser, server, origin;
-const evidence = fileURLToPath(new URL('../../../docs/frontend/screenshots/sprint10b5/states/', import.meta.url));
+const evidence = fileURLToPath(new URL('../../../.output/screenshots/sprint10b5/states/', import.meta.url));
 before(async()=>{
   await mkdir(evidence,{recursive:true}); server=createAuditServer();
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

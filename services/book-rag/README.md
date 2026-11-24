@@ -1,3 +1,32 @@
+# book-rag (port 8001)
+
+Book search and grounded Q&A. The retrieval engine (`sams_rag/`) is Zahraa's latest
+version (`zahraaRag/sams-library-search`) merged with the SAMS runtime changes
+(read-only PostgreSQL source, strict local models, service key). Engine notes:
+[docs/ENGINE.md](docs/ENGINE.md). Optional Streamlit UIs: `streamlit_app.py`, `book_app.py`.
+
+## Run locally
+
+```bash
+python -m venv .venv && .venv/Scripts/activate     # Windows (Linux/macOS: source .venv/bin/activate)
+pip install -r requirements-source.txt
+copy .env.example .env                              # set API_SERVICE_KEY, SAMS_MODELS_DIR and the source
+uvicorn app.main:app --host 127.0.0.1 --port 8001
+```
+
+`BOOK_RAG_SOURCE=postgres` reads the catalog through the read-only `sams_book_rag_ro` role;
+`BOOK_RAG_SOURCE=excel` with `SAMS_DATA_PATH` reads the spreadsheet instead.
+The models (multilingual-e5-small and the mMiniLM cross-encoder, see MODEL_PROVENANCE.json)
+must already be in `SAMS_MODELS_DIR`; the service never downloads them.
+
+## Tests
+
+`python -m pytest -q`. The engine tests run only when the models are in `models/`
+(or `SAMS_MODELS_DIR`) and the catalog is at `data/raw/SAMS_Books_Merged_Book_Names_Corrected.xlsx`
+in the repository root; otherwise only the runtime tests run.
+
+---
+
 # Controlled PostgreSQL Book RAG — Sprint 10D.3 / Linux runtime
 
 Original `RAG/sams-library-search` remains immutable (34 files pinned in SOURCE_PROVENANCE.json). This controlled copy contains no workbook/model/index copies. The opt-in Linux Docker runtime requires no change to Windows security policy. Ordinary SAMS and the Student flag remain disabled by default. requirements-source.txt is provenance, not an install instruction; requirements-linux.lock pins all Linux CPython 3.12 dependencies and wheel hashes, with CPU-only PyTorch.
@@ -38,4 +67,4 @@ Canonical joined-content fingerprints detect relation/detail changes without upd
 
 The source projection itself participates in the fingerprint, so a role-only contributor edit also invalidates the snapshot even when the flattened searchable name stays the same. Unchanged passage text still reuses its vectors. The 5s poll is not a universal indexing SLA: local fixture visibility is measured in the sprint report; bulk changes/first builds take longer and fail closed when the observed-data stale guard is exceeded.
 
-See [the sprint report](../../docs/planning/SPRINT_10D3_REAL_RUNTIME.md) for actual results, commands, limitations and exact file inventory. No model, prompt, retrieval/evaluation parameter, paid service, schema migration or persistent production-data write is part of this runtime.
+See [the sprint report](../../docs/archive/sprints/SPRINT_10D3_REAL_RUNTIME.md) for actual results, commands, limitations and exact file inventory. No model, prompt, retrieval/evaluation parameter, paid service, schema migration or persistent production-data write is part of this runtime.

@@ -1,0 +1,29 @@
+{
+  "trained_at_utc": "2026-11-17T20:03:44+00:00",
+  "n_training_books": 2717,
+  "books_per_language": {
+    "ar": 1890,
+    "en": 827
+  },
+  "k": {
+    "ar": 10,
+    "en": 6
+  },
+  "settings": {
+    "svd_dims": 30,
+    "subject_weight": 3,
+    "codes_weight": 2
+  },
+  "agreement_with_dewey_on_training_books": {
+    "NMI": 0.307,
+    "ARI": 0.121,
+    "Purity": 0.68,
+    "books_evaluated": 2713
+  },
+  "versions": {
+    "python": "3.12.3",
+    "scikit-learn": "1.9.1",
+    "pandas": "3.0.6",
+    "numpy": "2.5.4"
+  }
+}

@@ -4,9 +4,22 @@ export const API_URL = (
   import.meta.env.VITE_API_URL || DEFAULT_API_URL
 ).replace(/\/+$/, '');
 
+// Server messages are English; these codes get a message in the page language.
+const FRIENDLY = {
+  PERMISSION_DENIED: {
+    ar: 'الإدارة مدّتش حسابك صلاحية للعملية دي. كلّم الإدارة لو محتاجها.',
+    en: 'Management has not given your account permission for this action. Ask Management if you need it.'
+  },
+  AUTH_UNAVAILABLE: {
+    ar: 'السيستم مش قادر يتأكد من الدخول دلوقتي. استنى ثواني وجرب تاني.',
+    en: 'Sign-in could not be checked right now. Wait a few seconds and try again.'
+  }
+};
+const pageLanguage = () => (typeof document !== 'undefined' && document.documentElement.lang === 'en' ? 'en' : 'ar');
+
 export class ApiError extends Error {
   constructor({ status, code, message, requestId, payload }) {
-    super(message || 'Request failed.');
+    super(FRIENDLY[code]?.[pageLanguage()] || message || 'Request failed.');
     this.name = 'ApiError';
     this.status = status;
     this.code = code || 'REQUEST_FAILED';

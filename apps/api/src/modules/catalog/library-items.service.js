@@ -1,6 +1,7 @@
 import { prisma } from '../../config/prisma.js';
 import { buildCatalogSearchWhere } from './catalog-search.js';
 import { AppError } from '../../utils/app-error.js';
+import { withCover } from './covers.js';
 
 const itemDetailInclude = {
   category: {
@@ -150,7 +151,7 @@ export async function getLibraryItem(
     throw new AppError(404, 'NOT_FOUND', 'Library item not found');
   }
 
-  return item;
+  return withCover(item);
 }
 
 export async function createLibraryItem(data) {

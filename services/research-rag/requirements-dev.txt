@@ -1,0 +1,5 @@
+-r requirements-ui.txt
+pytest==9.1.1
+pytest-cov==7.1.0
+# Optional: runs the PostgreSQL tests against a throw-away local PostgreSQL server (otherwise they skip, or use TEST_POSTGRES_URL)
+pixeltable-pgserver==0.6.0

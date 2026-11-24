@@ -6,8 +6,14 @@ import { healthRouter } from './routes/health.routes.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { masterDataRouter } from './modules/master-data/master-data.routes.js';
 import { studentsRouter } from './modules/students/students.routes.js';
+import { staffRouter } from './modules/staff/staff.routes.js';
+import { auditRouter } from './modules/audit/audit.routes.js';
+import { reportsRouter } from './modules/reports/reports.routes.js';
+import { notificationsRouter } from './modules/notifications/notifications.routes.js';
+import { COVER_DIR } from './modules/catalog/covers.js';
 import { catalogMasterRouter } from './modules/catalog-master/catalog-master.routes.js';
 import { libraryItemsRouter } from './modules/catalog/library-items.routes.js';
+import { catalogTransferRouter } from './modules/catalog-transfer/catalog-transfer.routes.js';
 import { contributorsRouter } from './modules/catalog/contributors.routes.js';
 import { physicalCopiesRouter } from './modules/inventory/physical-copies.routes.js';
 import { availabilityRouter } from './modules/availability/availability.routes.js';
@@ -86,6 +92,15 @@ app.get(
   }
 );
 
+// Uploaded cover images: public, named by random suffix, cached by version stamp.
+app.use('/api/v1/covers', express.static(COVER_DIR, {
+  dotfiles: 'deny', index: false, fallthrough: false, maxAge: '30d',
+  setHeaders(res) {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+  }
+}));
+
 app.use(
   '/api/v1/health',
   healthRouter
@@ -107,8 +122,33 @@ app.use(
 );
 
 app.use(
+  '/api/v1/staff',
+  staffRouter
+);
+
+app.use(
+  '/api/v1/audit-logs',
+  auditRouter
+);
+
+app.use(
+  '/api/v1/reports',
+  reportsRouter
+);
+
+app.use(
+  '/api/v1/notifications',
+  notificationsRouter
+);
+
+app.use(
   '/api/v1/catalog-master',
   catalogMasterRouter
+);
+
+app.use(
+  '/api/v1/catalog-transfer',
+  catalogTransferRouter
 );
 
 app.use(

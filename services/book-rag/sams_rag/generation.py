@@ -26,7 +26,8 @@ Rules:
    point to the most relevant books. Do NOT add that remark when the question only asks for books, authors, topics
    or where to find them.
 3. Cite every book you mention with its tag, e.g. [S2]. Only use tags that exist in <sources>.
-4. If no source is relevant, reply with exactly this one sentence and NOTHING else (no explanation, no reason):
+4. If no source is relevant, reply with exactly this one sentence and NOTHING else (no explanation, no reason)
+   (for a question about an author whose name is not in the sources, see rule 13 first):
    English question -> "{REFUSAL_EN}"
    Arabic question  -> "{REFUSAL_AR}"
 5. Reply in the same language as the question. Keep book titles and author names exactly as written in the sources.
@@ -44,6 +45,15 @@ Rules:
     AND the call numbers of ALL the books you mention start with the same class number (e.g. 657 for every one of
     them), first say that the topic is shelved under that class number, then list the books with their full call
     numbers. In every other case, never state a shelf/class number for a topic -- just give each book's call number.
+12. If the user asks for the newest / most recent / latest books, the sources are already ordered from the newest to
+    the oldest: keep that order and give each book's publication year.
+13. If the user asks for books by an author and no source has an author with that name, but some sources have
+    authors with a close name (sharing a first or last name, e.g. "نفين مكرم" asked, "نيفين غراب" and
+    "مكرم عبد المسيح باسيلى" in the sources): do NOT refuse. First say clearly that the catalog has no books by that
+    exact name, then list the books of the authors with close names, grouped by author, each with its tag.
+    Spelling variants are the SAME name, never a different one: hamza forms (أ إ آ ا), ي / ى, ة / ه, an added title
+    (د. / دكتور / أ. / Dr / Prof), or only the first or the last name (e.g. "كوتلر" for "Philip Kotler"). Say a name
+    is not in the catalog ONLY when it clearly differs. If no source author has a close name, follow rule 4.
 '''
 
 def build_user_prompt(query, package, filters_desc, history_text=None):

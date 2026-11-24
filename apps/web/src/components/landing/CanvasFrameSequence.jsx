@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { frameFor, readProgress } from './heroProgress';
 
 const frameUrl = (variant, index) => `/images/scrollVideo/v001/${variant}/frame-${String(index + 1).padStart(3, '0')}.webp`;
 // Gate 1–10, courtyard 11–20, doorway 21–28, shelves 29–34,
@@ -9,10 +10,11 @@ export default function CanvasFrameSequence({ track, stage, onChapter }) {
   useEffect(() => {
     const element = canvas.current, ctx = element.getContext('2d', { alpha: false });
     if (!ctx || !window.createImageBitmap) return;
-    track.current.style.setProperty('--campus-outro', '0');
     const cache = new Map(), pending = new Map(), failed = new Set();
     let disposed = false, inView = false, raf = 0, target = 0, drawn = -1, chapter = -1, revision = 0;
-    let variant = innerWidth < 1000 ? 'mobile' : 'desktop';
+    // The stage is drawn as a cover image, so pick the variant from the size it is shown at.
+    const pickVariant = () => Math.max(innerWidth, innerHeight * 16 / 9) * Math.min(devicePixelRatio || 1, 1.5) <= 960 ? 'mobile' : 'desktop';
+    let variant = pickVariant();
     const isActive = () => !disposed && inView && !document.hidden;
     function cancelRequests() { for (const job of pending.values()) job.abort(); pending.clear(); }
     function trim() {
@@ -41,11 +43,8 @@ export default function CanvasFrameSequence({ track, stage, onChapter }) {
     }
     function paint() {
       raf=0; if (!isActive()) return;
-      const rect = track.current.getBoundingClientRect(), offset = parseFloat(getComputedStyle(track.current).getPropertyValue('--campus-header')) || 0;
-      const distance = Math.max(1, rect.height-stage.current.getBoundingClientRect().height);
-      target = Math.round(Math.max(0,Math.min(1,(offset-rect.top)/distance))*49);
-      // The last six steps dissolve the fictional screen into ordinary page HTML.
-      track.current.style.setProperty('--campus-outro', String(Math.max(0, Math.min(1, (target - 43) / 6))));
+      if (!track.current || !stage.current) return;
+      target = frameFor(readProgress(track.current, stage.current));
       const nextChapter = chapterFor(target); if (nextChapter!==chapter) { chapter=nextChapter; onChapter(chapter); }
       const next = cache.has(target) ? target : [...cache.keys()].sort((a,b)=>Math.abs(a-target)-Math.abs(b-target))[0];
       if (next !== undefined && next !== drawn) {
@@ -56,10 +55,10 @@ export default function CanvasFrameSequence({ track, stage, onChapter }) {
     }
     function resize() {
       if (disposed) return;
-      const nextVariant=innerWidth<1000?'mobile':'desktop';
+      const nextVariant=pickVariant();
       if (nextVariant!==variant) { revision++;cancelRequests();for(const image of cache.values())image.close();cache.clear();failed.clear();variant=nextVariant; }
       const rect=element.getBoundingClientRect(), limit=variant==='mobile'?640:1280;
-      element.width=Math.max(1,Math.round(Math.min(rect.width*Math.min(devicePixelRatio||1,1.5),limit)));element.height=Math.round(element.width*9/16);
+      element.width=Math.max(1,Math.round(Math.min(Math.max(rect.width,rect.height*16/9)*Math.min(devicePixelRatio||1,1.5),limit)));element.height=Math.round(element.width*9/16);
       drawn=-1;schedule();
     }
     function visibility() { if (!isActive()) { cancelAnimationFrame(raf);raf=0;cancelRequests(); } else schedule(); }

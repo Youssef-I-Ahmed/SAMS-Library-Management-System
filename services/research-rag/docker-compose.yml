@@ -1,0 +1,45 @@
+# Standalone RAG backend. docker compose up -d --build  (needs .env: copy .env.example and fill LLM_API_KEY + SERVICE_JWT_SECRET)
+# Local/dev example. Secrets come from your shell or an untracked .env file (never commit it).
+# Production: set DATABASE_URL to a managed PostgreSQL instead of the SQLite volume.
+services:
+  rag-api:
+    build:
+      context: .
+      args:
+        BASE_IMAGE: ${BASE_IMAGE:-python:3.13-slim}     # override only in registry-less environments
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////app/data/store/rag.db}
+      SERVICE_JWT_SECRET: ${SERVICE_JWT_SECRET:?set SERVICE_JWT_SECRET (32+ chars) in your shell or .env}
+    ports: ["8000:8000"]
+    volumes:
+      - rag-store:/app/data/store
+    restart: unless-stopped
+
+  # One-off private data import (the dataset is NOT baked into the image).
+  #   mkdir -p private-import && cp /secure/Project.xlsx private-import/
+  #   docker compose --profile import run --rm rag-import
+  rag-import:
+    build:
+      context: .
+      args:
+        BASE_IMAGE: ${BASE_IMAGE:-python:3.13-slim}
+    profiles: ["import"]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////app/data/store/rag.db}
+    volumes:
+      - rag-store:/app/data/store
+      - ./private-import:/import:ro
+      - import-work:/work
+    command: >
+      sh -c "python scripts/prepare_data.py --source /import/Project.xlsx --out /work &&
+             python scripts/build_index.py --records /work/records.jsonl &&
+             python scripts/build_index.py --verify"
+volumes:
+  rag-store:
+  import-work:

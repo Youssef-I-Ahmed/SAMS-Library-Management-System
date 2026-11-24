@@ -43,7 +43,7 @@ export function useAnalyticsSnapshot(token, filters, enabled = true) {
 }
 
 export function reportNumber(value, language) {
-  return typeof value === 'number' && Number.isFinite(value) ? new Intl.NumberFormat(language, { maximumFractionDigits: 2 }).format(value) : '—';
+  return typeof value === 'number' && Number.isFinite(value) ? new Intl.NumberFormat(language === 'ar' ? 'ar-u-nu-latn' : language, { maximumFractionDigits: 2 }).format(value) : '—';
 }
 export function reportPercent(value, language) {
   return typeof value === 'number' && Number.isFinite(value) ? `${reportNumber(value, language)}%` : '—';
@@ -51,5 +51,5 @@ export function reportPercent(value, language) {
 export function reportDate(value, language, dateOnly = false) {
   const date = value ? new Date(value) : null;
   if (!date || Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat(language === 'ar' ? 'ar-EG' : 'en-GB', { dateStyle: 'medium', ...(dateOnly ? {} : { timeStyle: 'short' }), timeZone: 'UTC' }).format(date);
+  return new Intl.DateTimeFormat(language === 'ar' ? 'ar-EG-u-nu-latn' : 'en-GB', { dateStyle: 'medium', ...(dateOnly ? {} : { timeStyle: 'short' }), timeZone: 'UTC' }).format(date);
 }

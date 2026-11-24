@@ -104,7 +104,7 @@ Invoke-RestMethod http://localhost:4000/api/v1/health/ready
 Then refresh the pages:
 
 - **Student**: `http://localhost:5173/student/catalog?type=BOOK`; use Search, browse a book, check availability, reserve one.
-- **Librarian**: process reservation, borrow/checkout the reserved item to `DEV-STUDENT-001` (or the authenticated Dev Student), return it, and test check-in/out for that student.
+- **Librarian**: process reservation, borrow/checkout the reserved item to `DEV-STUDENT-001` (or the authenticated dev student), return it, and test check-in/out for that student.
 - **Management**: open read-only analytics/borrowing/visit views; test that mutation controls remain inaccessible.
 
 Use the existing `student@sams.dev`, `librarian@sams.dev` and `management@sams.dev` accounts. If missing, follow your existing `npm run db:seed` and Sprint 1 seed verification procedure (development only). With 2,821 records, use pagination and filters, not an unrestricted client-side full load.

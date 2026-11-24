@@ -5,7 +5,7 @@
     12.3 citation / refusal checks (Gemini)  -> generation_checks()
     12.5 RAG Triad with an LLM judge         -> run_rag_triad() + triad_summary()
 
-REFERENCE holds the notebook v12 results; scripts/evaluate.py compares a new run against them.
+REFERENCE holds the reference results (v13); scripts/evaluate.py compares a new run against them.
 """
 import json
 import math
@@ -27,13 +27,18 @@ from .text import detect_language, normalize_text
 
 K = 10
 
-# Notebook v12 run (Hybrid_RAG_v12_run_.ipynb): the numbers a new version must not fall below.
+# The numbers a new version must not fall below.
+# v13 = v12 + cross-language expansion (expansion.py), measured with the real models (production pipeline rrf+rerank).
+# Adopted after the held-out check (scripts/holdout_expansion.py, 28 new questions): glossary questions 0.764 -> 0.883,
+# control questions unchanged. v12 was 0.887 overall (arabic_morph 0.843, concept 0.764, mixed_lang 0.749).
+# The other retrievers (rrf, weighted, semantic, bm25) are still the v12 values -- shown for information only.
+REFERENCE_NAME = "v13"
 REFERENCE = {
-    "overall": {"rrf+rerank": {"P@10": 0.489, "R@10": 0.658, "Hit@10": 1.000, "MRR": 0.950, "nDCG@10": 0.887},
+    "overall": {"rrf+rerank": {"P@10": 0.500, "R@10": 0.656, "Hit@10": 1.000, "MRR": 0.952, "nDCG@10": 0.897},
                 "rrf": {"nDCG@10": 0.863}, "weighted": {"nDCG@10": 0.853},
                 "semantic": {"nDCG@10": 0.824}, "bm25": {"nDCG@10": 0.805}},
-    "by_family_rrf+rerank": {"arabic_morph": 0.843, "author": 0.990, "concept": 0.764,
-                             "known_item": 1.000, "mixed_lang": 0.749, "topic_heading": 0.792},
+    "by_family_rrf+rerank": {"arabic_morph": 0.858, "author": 0.990, "concept": 0.782,
+                             "known_item": 1.000, "mixed_lang": 0.813, "topic_heading": 0.792},
     "triad": {"citation_validity": 1.000, "refusal_accuracy": 1.000, "faithfulness": 1.000,
               "answer_relevance": 1.000, "context_relevance": 0.917},
 }

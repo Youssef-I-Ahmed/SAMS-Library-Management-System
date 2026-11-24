@@ -8,3 +8,23 @@ coverage/
 .DS_Store
 /RAG/projects-research-handoff/
 /data/analysis-starter/projects-research/
+# Local outputs
+.output/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Private / local data: student names and legacy extracts stay on the local machine.
+/data/raw/**
+!/data/raw/README.md
+/data/processed/**
+!/data/processed/.gitkeep
+!/data/processed/README.md
+
+# Large model weights (book-rag, research-rag) are git-ignored inside each service.
+# Small trained models (subject-classifier, book-clustering) are committed.
+
+# Uploaded cover images (local files, served by the API)
+/apps/api/uploads/
