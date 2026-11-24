@@ -8,6 +8,7 @@ import { masterDataRouter } from './modules/master-data/master-data.routes.js';
 import { studentsRouter } from './modules/students/students.routes.js';
 import { catalogMasterRouter } from './modules/catalog-master/catalog-master.routes.js';
 import { libraryItemsRouter } from './modules/catalog/library-items.routes.js';
+import { catalogTransferRouter } from './modules/catalog-transfer/catalog-transfer.routes.js';
 import { contributorsRouter } from './modules/catalog/contributors.routes.js';
 import { physicalCopiesRouter } from './modules/inventory/physical-copies.routes.js';
 import { availabilityRouter } from './modules/availability/availability.routes.js';
@@ -109,6 +110,11 @@ app.use(
 app.use(
   '/api/v1/catalog-master',
   catalogMasterRouter
+);
+
+app.use(
+  '/api/v1/catalog-transfer',
+  catalogTransferRouter
 );
 
 app.use(
