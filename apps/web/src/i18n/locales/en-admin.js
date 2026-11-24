@@ -70,7 +70,7 @@ export const enAdmin = { admin: {
     "emptyItems": "No items match this search.",
     "emptyCopies": "No copies match these filters.",
     "selectItem": "Select an item from the independent search above.",
-    "confirmed": "Save confirmed by the server",
+    "confirmed": "Saved",
     "dismiss": "Dismiss notification",
     "unfinished": "An unfinished catalog operation is retained. Resume it before starting another write.",
     "resume": "Resume unfinished operation",
