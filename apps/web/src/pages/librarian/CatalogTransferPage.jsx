@@ -114,7 +114,7 @@ export function CatalogTransferPage() {
         <Link className="admin-secondary-button catalog-transfer__back" to="/librarian/catalog">{t('admin.transfer.back')}</Link>
       </header>
 
-      {download.error && <InlineAlert title={t('admin.workflows.readFailed')} message={download.error.message} requestId={download.error.requestId} />}
+      {download.error && <InlineAlert title={t(download.error.code === 'PERMISSION_DENIED' ? 'admin.transfer.deniedTitle' : 'admin.workflows.readFailed')} message={download.error.message} requestId={download.error.requestId} />}
 
       <div className="catalog-transfer__grid">
         <section className="admin-card catalog-transfer__card">
@@ -185,7 +185,7 @@ export function CatalogTransferPage() {
           </>
         )}
 
-        {importError && <InlineAlert title={t('admin.workflows.readFailed')} message={importError.message} requestId={importError.requestId} />}
+        {importError && <InlineAlert title={t(importError.code === 'PERMISSION_DENIED' ? 'admin.transfer.deniedTitle' : 'admin.workflows.readFailed')} message={importError.message} requestId={importError.requestId} />}
 
         {preview && phase !== 'done' && <>
           <details className="catalog-transfer__mapping" open={preview.missingRequired.length > 0}>

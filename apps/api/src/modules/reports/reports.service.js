@@ -90,11 +90,14 @@ const AR_HEADERS = {
 export async function staffPerformanceFile(filters, format, db = prisma, language = 'en') {
   const { data } = await staffPerformance(filters, db);
   const header = (key) => (language === 'ar' ? AR_HEADERS[key] : key);
+  const roleName = (role) => (language === 'ar' ? { LIBRARIAN: 'أمين مكتبة', MANAGEMENT: 'إدارة' }[role] ?? role : role);
+  // Excel reads "YYYY-MM-DD HH:MM" as a date; times are shown in Cairo time.
+  const when = (value) => (value ? new Intl.DateTimeFormat('sv-SE', { timeZone: TIME_ZONE, dateStyle: 'short', timeStyle: 'short' }).format(new Date(value)) : '');
   const rows = data.map((entry) => ({
-    name: entry.displayName, email: entry.universityEmail, roles: entry.roles.join(', '),
+    name: entry.displayName, email: entry.universityEmail, roles: entry.roles.map(roleName).join('، '),
     checkouts: entry.checkouts, returns: entry.returns, visits: entry.visits, catalog: entry.catalog, copies: entry.copies,
     students: entry.students, reservations: entry.reservations, total: entry.total, active_days: entry.activeDays,
-    last_active: entry.lastActive ? new Date(entry.lastActive).toISOString() : ''
+    last_active: when(entry.lastActive)
   }));
   return serializeTable(format, PERFORMANCE_COLUMNS.map(header),
     rows.map((row) => Object.fromEntries(Object.entries(row).map(([key, value]) => [header(key), value]))),
