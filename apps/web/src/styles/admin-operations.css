@@ -68,3 +68,28 @@
 .ai-catalog-suggest__result dt { font-weight: 600; }
 .ai-catalog-suggest__result dd { margin: 0; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 .ai-catalog-suggest__note { margin: 0; font-size: .875rem; opacity: .8; }
+
+/* Catalog import / export */
+.catalog-transfer__grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+.catalog-transfer__card { display: grid; gap: 12px; align-content: start; }
+.catalog-transfer__card > h2 { margin: 0; font-size: 1.05rem; }
+.catalog-transfer__card > p { margin: 0; color: var(--text-secondary); }
+.catalog-transfer__card > button, .catalog-transfer__card > .admin-primary-button { justify-self: start; }
+.catalog-transfer__back { justify-self: start; margin-block-start: 8px; text-decoration: none; }
+.catalog-transfer__card small { color: var(--text-secondary); }
+.catalog-transfer__mapping { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--border-subtle, rgba(127,127,127,.25)); border-radius: 12px; }
+.catalog-transfer__mapping summary { cursor: pointer; font-weight: 700; }
+.catalog-transfer__filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.catalog-transfer__filters button { border-radius: 999px; padding: 6px 14px; }
+.catalog-transfer__filters button[aria-pressed='true'] { background: var(--brand-accent); color: #fff; border-color: transparent; }
+.catalog-transfer__issues { margin: 0; padding-inline-start: 16px; display: grid; gap: 2px; font-size: .85rem; color: var(--text-secondary); }
+.catalog-transfer__issues .is-error { color: var(--status-danger, #b42318); }
+.catalog-transfer__rows td:nth-child(3) { min-width: 220px; }
+.catalog-transfer__warning { margin: 0; color: var(--status-danger, #b42318); font-weight: 700; }
+.catalog-transfer__policy { display: grid; gap: 6px; }
+.catalog-transfer__confirm { display: grid; gap: 10px; padding: 12px; border-radius: 12px; border: 1px solid var(--brand-accent); }
+.catalog-transfer__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 0; }
+.catalog-transfer__stats div { padding: 12px; border-radius: 12px; border: 1px solid var(--border-subtle, rgba(127,127,127,.25)); }
+.catalog-transfer__stats dt { color: var(--text-secondary); font-size: .85rem; }
+.catalog-transfer__stats dd { margin: 4px 0 0; font-size: 1.5rem; font-weight: 800; }
+.catalog-transfer__report { display: grid; gap: 12px; }

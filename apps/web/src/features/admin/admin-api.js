@@ -1,4 +1,4 @@
-import { apiRequest } from '../../lib/api';
+import { API_URL, ApiError, apiRequest } from '../../lib/api';
 import { buildAdminQuery, toIsoNextDay, toIsoStartOfDay } from './admin-query';
 
 export async function listCatalogItems(token, filters = {}, signal) {
@@ -53,4 +53,36 @@ export async function getBranchesAnalytics(token, filters = {}, signal) {
 export async function getTopItems(token, filters = {}, signal) {
   const p = buildAdminQuery({ ...period(filters), metric: filters.metric || 'BORROWINGS', limit: 10 });
   return apiRequest(`/analytics/top-items?${p}`, { token, signal });
+}
+
+// Catalog import/export: files go up as raw bytes and come back as downloads.
+async function fileRequest(path, { token, method = 'GET', file, signal } = {}) {
+  const response = await fetch(`${API_URL}${path}`, {
+    method, signal,
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(file ? { 'Content-Type': 'application/octet-stream' } : {}) },
+    body: file
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new ApiError({ status: response.status, code: payload?.error?.code,
+      message: payload?.error?.message || `Request failed with status ${response.status}.`,
+      requestId: response.headers.get('x-request-id') || payload?.error?.requestId, payload });
+  }
+  return response;
+}
+export async function downloadCatalogFile(token, kind, params) {
+  const response = await fileRequest(`/catalog-transfer/${kind}?${buildAdminQuery(params)}`, { token });
+  const blob = await response.blob();
+  const name = /filename="([^"]+)"/.exec(response.headers.get('content-disposition') || '')?.[1]
+    || `sams-catalog.${params.format}`;
+  const url = URL.createObjectURL(blob);
+  const link = Object.assign(document.createElement('a'), { href: url, download: name });
+  document.body.append(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+export async function runCatalogImport(token, step, file, params, signal) {
+  const query = buildAdminQuery({ ...params, mapping: params.mapping ? JSON.stringify(params.mapping) : undefined });
+  const response = await fileRequest(`/catalog-transfer/import/${step}?${query}`, { token, method: 'POST', file, signal });
+  return response.json();
 }

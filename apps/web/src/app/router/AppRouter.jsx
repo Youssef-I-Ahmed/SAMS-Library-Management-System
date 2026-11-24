@@ -22,6 +22,7 @@ const ReturnPage = lazyNamed(() => import('../../pages/librarian/ReturnPage'), '
 const ReservationsOperationsPage = lazyNamed(() => import('../../pages/librarian/ReservationsOperationsPage'), 'ReservationsOperationsPage');
 const VisitsPage = lazyNamed(() => import('../../pages/librarian/VisitsPage'), 'VisitsPage');
 const CatalogAdminPage = lazyNamed(() => import('../../pages/librarian/CatalogAdminPage'), 'CatalogAdminPage');
+const CatalogTransferPage = lazyNamed(() => import('../../pages/librarian/CatalogTransferPage'), 'CatalogTransferPage');
 const StudentsAdminPage = lazyNamed(() => import('../../pages/librarian/StudentsAdminPage'), 'StudentsAdminPage');
 const AnalyticsDashboardPage = lazyNamed(() => import('../../pages/shared/AnalyticsDashboardPage'), 'AnalyticsDashboardPage');
 const RoleHomePage = lazyNamed(() => import('../../pages/shared/RoleHomePage'), 'RoleHomePage');
@@ -84,6 +85,7 @@ export function AppRouter() {
                 <Route path="reservations" element={<ReservationsOperationsPage />} />
                 <Route path="visits" element={<VisitsPage />} />
                 <Route path="catalog" element={<CatalogAdminPage />} />
+                <Route path="catalog/transfer" element={<CatalogTransferPage />} />
                 <Route path="students" element={<StudentsAdminPage />} />
                 <Route path="analytics" element={<AnalyticsDashboardPage />} />
                 <Route path="ai" element={assistantPage('/librarian')} />
