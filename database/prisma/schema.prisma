@@ -103,6 +103,8 @@ model User {
   idempotencyRecords    IdempotencyRecord[]
   permissionGrants      PermissionGrant[]    @relation("PermissionGrantTarget")
   permissionGrantsIssued PermissionGrant[]   @relation("PermissionGrantIssuer")
+  notifications         Notification[]      @relation("NotificationRecipient")
+  sentNotifications     Notification[]      @relation("NotificationSender")
 
   @@map("users")
 }
@@ -583,4 +585,26 @@ model IdempotencyRecord {
   @@unique([userId, operation, key])
   @@index([expiresAt])
   @@map("idempotency_records")
+}
+
+// In-app notifications. Text is built on the web from `type` and `data`, so
+// it follows the reader's language. `dedupeKey` keeps one row per event.
+model Notification {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  type       String
+  data       Json      @default("{}") @db.JsonB
+  link       String?
+  dedupeKey  String?   @map("dedupe_key")
+  senderId   String?   @map("sender_id") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  readAt     DateTime? @map("read_at") @db.Timestamptz(6)
+
+  user   User  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  sender User? @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, dedupeKey])
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+  @@map("notifications")
 }
