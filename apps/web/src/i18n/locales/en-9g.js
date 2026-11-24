@@ -180,6 +180,11 @@ export const en9g = {
       "STUDENT_UPDATED": "Student details changed",
       "STUDENT_DEACTIVATED": "Student account deactivated",
       "STUDENT_ACTIVATED": "Student account activated",
+      "ACCESS_DENIED": "Attempt without permission",
+      "LOGIN_FAILED": "Failed sign-in",
+      "LOGIN_SUCCEEDED": "Signed in",
+      "CATALOG_COVER_UPLOADED": "Cover uploaded",
+      "CATALOG_COVER_REMOVED": "Cover removed",
       "LIBRARIAN_CREATED": "Librarian added",
       "LIBRARIAN_UPDATED": "Librarian changed",
       "LIBRARIAN_ACTIVATED": "Librarian activated",
@@ -207,7 +212,57 @@ export const en9g = {
       "PhysicalCopy": "Copy",
       "Borrowing": "Loan",
       "Reservation": "Reservation",
-      "LibraryVisit": "Visit"
+      "LibraryVisit": "Visit",
+      "Security": "Security"
+    }
+  },
+  reports: {
+    "title": "Reports & alerts",
+    "subtitle": "Each staff member's work for the period you choose, and security alerts worth a look.",
+    "tabs": {
+      "performance": "Staff performance",
+      "security": "Security alerts"
+    },
+    "lastDays": "Last {days} days",
+    "export": "Export {format}",
+    "performanceHint": "Counts come from the audit log and the lending and visit records. Work done before the audit log started may not appear in every column.",
+    "securityHint": "Alerts come from the audit log: attempts without permission, failed sign-ins, permission changes, bulk changes, and work at night (10 pm to 6 am).",
+    "columns": {
+      "checkouts": "Loans",
+      "returns": "Returns",
+      "visits": "Visits",
+      "catalog": "Catalog",
+      "copies": "Copies",
+      "students": "Students",
+      "reservations": "Reservations",
+      "total": "Total",
+      "activeDays": "Active days",
+      "lastActive": "Last active"
+    },
+    "roles": {
+      "LIBRARIAN": "Librarian",
+      "MANAGEMENT": "Management"
+    },
+    "severity": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "info": "Info"
+    },
+    "noAlerts": "No alerts in this period.",
+    "attempted": "Tried",
+    "removed": "Removed",
+    "added": "Added",
+    "alerts": {
+      "ACCESS_DENIED": "{who} tried {count} times to do something without permission.",
+      "LOGIN_FAILED": "{count} failed sign-ins with {email}.",
+      "LIBRARIAN_PERMISSIONS_CHANGED": "{who} changed the permissions of {target}.",
+      "LIBRARIAN_CREATED": "{who} added a librarian: {target}.",
+      "LIBRARIAN_ACTIVATED": "{who} activated {target}.",
+      "LIBRARIAN_DEACTIVATED": "{who} deactivated {target}.",
+      "BULK_IMPORT": "{who} imported catalog records from a file ({label}).",
+      "BULK_STUDENT_CHANGES": "{who} changed {count} student accounts from a file on {day}.",
+      "OFF_HOURS": "{who} did {count} actions at night on {day}."
     }
   }
 };

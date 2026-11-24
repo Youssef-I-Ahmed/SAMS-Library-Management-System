@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
 import { AppError } from '../../utils/app-error.js';
 import { devLogin, revokeOwnSessions } from './auth.service.js';
+import { recordSecurityEvent } from '../../utils/audit.js';
 
 export const authRouter = Router();
 
@@ -18,7 +19,16 @@ authRouter.post('/dev-login', async (req, res, next) => {
       throw new AppError(400, 'VALIDATION_ERROR', 'A valid universityEmail is required');
     }
 
-    const result = await devLogin(parsed.data.universityEmail);
+    let result;
+    try {
+      result = await devLogin(parsed.data.universityEmail);
+    } catch (error) {
+      if (error?.code === 'INVALID_DEV_USER') {
+        recordSecurityEvent('LOGIN_FAILED', { entityId: 'login', metadata: { email: parsed.data.universityEmail.toLowerCase().slice(0, 254) } });
+      }
+      throw error;
+    }
+    recordSecurityEvent('LOGIN_SUCCEEDED', { actor: { id: result.user.id }, entityId: result.user.id });
     res.json(result);
   } catch (error) {
     next(error);

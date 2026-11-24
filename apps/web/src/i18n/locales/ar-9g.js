@@ -180,6 +180,11 @@ export const ar9g = {
       "STUDENT_UPDATED": "تعديل بيانات طالب",
       "STUDENT_DEACTIVATED": "إيقاف حساب طالب",
       "STUDENT_ACTIVATED": "تفعيل حساب طالب",
+      "ACCESS_DENIED": "محاولة من غير صلاحية",
+      "LOGIN_FAILED": "دخول فاشل",
+      "LOGIN_SUCCEEDED": "تسجيل دخول",
+      "CATALOG_COVER_UPLOADED": "رفع غلاف",
+      "CATALOG_COVER_REMOVED": "شيل غلاف",
       "LIBRARIAN_CREATED": "إضافة أمين مكتبة",
       "LIBRARIAN_UPDATED": "تعديل أمين مكتبة",
       "LIBRARIAN_ACTIVATED": "تفعيل أمين مكتبة",
@@ -207,7 +212,57 @@ export const ar9g = {
       "PhysicalCopy": "نسخة",
       "Borrowing": "إعارة",
       "Reservation": "حجز",
-      "LibraryVisit": "زيارة"
+      "LibraryVisit": "زيارة",
+      "Security": "أمان"
+    }
+  },
+  reports: {
+    "title": "التقارير والتنبيهات",
+    "subtitle": "أداء كل موظف في الفترة اللي تختارها، وتنبيهات الأمان اللي محتاجة نظرة.",
+    "tabs": {
+      "performance": "أداء الموظفين",
+      "security": "تنبيهات الأمان"
+    },
+    "lastDays": "آخر {days} يوم",
+    "export": "تصدير {format}",
+    "performanceHint": "العدد ده من سجل العمليات وجداول الإعارة والزيارات. الحاجات اللي حصلت قبل تشغيل السجل ممكن متظهرش في كل الأعمدة.",
+    "securityHint": "التنبيهات محسوبة من سجل العمليات: محاولات من غير صلاحية، ودخول فاشل، وتغيير صلاحيات، وتعديلات كتير مرة واحدة، وشغل بالليل (من 10 بالليل لـ 6 الصبح).",
+    "columns": {
+      "checkouts": "إعارات",
+      "returns": "إرجاعات",
+      "visits": "زيارات",
+      "catalog": "الكتالوج",
+      "copies": "النسخ",
+      "students": "الطلبة",
+      "reservations": "الحجوزات",
+      "total": "الإجمالي",
+      "activeDays": "أيام نشاط",
+      "lastActive": "آخر نشاط"
+    },
+    "roles": {
+      "LIBRARIAN": "أمين مكتبة",
+      "MANAGEMENT": "إدارة"
+    },
+    "severity": {
+      "high": "عالي",
+      "medium": "متوسط",
+      "low": "منخفض",
+      "info": "للعلم"
+    },
+    "noAlerts": "مفيش تنبيهات في الفترة دي.",
+    "attempted": "حاول يعمل",
+    "removed": "اتشال",
+    "added": "اتضاف",
+    "alerts": {
+      "ACCESS_DENIED": "{who} حاول {count} مرة يعمل حاجة من غير صلاحية.",
+      "LOGIN_FAILED": "{count} محاولة دخول فاشلة بالبريد {email}.",
+      "LIBRARIAN_PERMISSIONS_CHANGED": "{who} غيّر صلاحيات {target}.",
+      "LIBRARIAN_CREATED": "{who} ضاف أمين مكتبة جديد: {target}.",
+      "LIBRARIAN_ACTIVATED": "{who} فعّل حساب {target}.",
+      "LIBRARIAN_DEACTIVATED": "{who} أوقف حساب {target}.",
+      "BULK_IMPORT": "{who} استورد كتالوج من ملف ({label}).",
+      "BULK_STUDENT_CHANGES": "{who} عدّل {count} حساب طالب من ملف يوم {day}.",
+      "OFF_HOURS": "{who} عمل {count} عملية بالليل يوم {day}."
     }
   }
 };

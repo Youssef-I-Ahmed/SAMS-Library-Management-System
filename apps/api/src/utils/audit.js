@@ -43,3 +43,11 @@ export function audited(action, entityType, { entityId, label } = {}) {
     next();
   };
 }
+
+/** Fire-and-forget security event (denied access, failed sign-in). Never throws. */
+export function recordSecurityEvent(action, { actor, entityId = 'request', metadata } = {}) {
+  Promise.resolve().then(async () => {
+    const { prisma } = await import('../config/prisma.js');
+    await writeAudit(prisma, { actor, action, entityType: 'Security', entityId, metadata });
+  }).catch((error) => console.error(`[audit] ${action} not recorded: ${error?.code || error?.name || 'error'}`));
+}

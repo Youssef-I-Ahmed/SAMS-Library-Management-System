@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { AppError } from '../utils/app-error.js';
 import { evaluatePermission } from '../modules/authorization/permission.service.js';
+import { recordSecurityEvent } from '../utils/audit.js';
 
 const unavailable = () => new AppError(503, 'AUTHORIZATION_POLICY_UNAVAILABLE', 'Authorization policy is temporarily unavailable');
 
@@ -32,6 +33,7 @@ export function requireGrant(permission) {
         grants, permission, action: 'USE', scope: { type: 'GLOBAL' }
       });
       if (!decision.allowed) {
+        recordSecurityEvent('ACCESS_DENIED', { actor: req.auth, metadata: { permission, method: req.method, path: req.baseUrl + req.route?.path } });
         throw new AppError(403, 'PERMISSION_DENIED', 'Management has not given this account permission for this action');
       }
       next();

@@ -8,6 +8,7 @@ import { masterDataRouter } from './modules/master-data/master-data.routes.js';
 import { studentsRouter } from './modules/students/students.routes.js';
 import { staffRouter } from './modules/staff/staff.routes.js';
 import { auditRouter } from './modules/audit/audit.routes.js';
+import { reportsRouter } from './modules/reports/reports.routes.js';
 import { COVER_DIR } from './modules/catalog/covers.js';
 import { catalogMasterRouter } from './modules/catalog-master/catalog-master.routes.js';
 import { libraryItemsRouter } from './modules/catalog/library-items.routes.js';
@@ -127,6 +128,11 @@ app.use(
 app.use(
   '/api/v1/audit-logs',
   auditRouter
+);
+
+app.use(
+  '/api/v1/reports',
+  reportsRouter
 );
 
 app.use(
