@@ -116,7 +116,7 @@ export const enDiscovery = {
       branch: 'Branch',
       availableOnly: 'Listed as available',
       availableOnlyHint:
-        'Show items with a copy recorded as available, including any demo copies.'
+        'Show items with a copy recorded as available.'
     },
 
     sort: {

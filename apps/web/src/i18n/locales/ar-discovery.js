@@ -116,7 +116,7 @@ export const arDiscovery = {
       branch: 'الفرع',
       availableOnly: 'مسجل كمتاح',
       availableOnlyHint:
-        'اعرض المواد التي لها نسخة مسجلة كمتاحة، بما فيها أي نسخ تجريبية.'
+        'اعرض المواد التي لها نسخة مسجلة كمتاحة.'
     },
 
     sort: {

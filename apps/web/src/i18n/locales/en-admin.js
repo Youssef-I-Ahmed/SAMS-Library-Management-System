@@ -12,7 +12,7 @@ export const enAdmin = { admin: {
     "previous": "Previous report — not current",
     "stale": "The refresh failed. Values below belong to the last successfully loaded report, not the requested filter selection.",
     "updating": "A refresh is in progress. Values below still belong to the previous report.",
-    "window": "Activity window (UTC, end excluded)",
+    "window": "Report period",
     "generated": "Overview generated at (UTC)",
     "meaning": "Inventory, active loans and holds are current snapshots. The date range applies to activity totals, trends and rankings. Branch comparison always includes all active branches.",
     "missing": "— means the server did not supply this value.",

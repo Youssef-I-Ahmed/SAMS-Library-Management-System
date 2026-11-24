@@ -23,7 +23,7 @@ function HomeIcon({ type }) {
 
 export function StudentHomePage() {
   const auth = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
 
@@ -73,7 +73,7 @@ export function StudentHomePage() {
             <span>{t('studentHome.browseEyebrow')}</span>
             <h2 id="home-collections-title">{t('studentHome.browseTitle')}</h2>
           </div>
-          <p>{t('studentHome.greeting')}, <bdi>{auth.user?.displayName?.split(' ')[0]}</bdi>.</p>
+          <p>{t('studentHome.greeting')}{language === 'ar' ? '،' : ','} <bdi>{auth.user?.displayName?.split(' ')[0]}</bdi>.</p>
         </div>
         <div className="collection-grid">
           {['BOOK', 'ACADEMIC_WORK'].map((type, index) => (
