@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import {
@@ -106,6 +107,7 @@ masterDataRouter.get('/faculties', async (req, res, next) => {
 masterDataRouter.post(
   '/faculties',
   authorize('LIBRARIAN'),
+  requireGrant('master_data.manage'),
   async (req, res, next) => {
     try {
       const body = parseOrThrow(facultyCreateSchema, req.body);
@@ -120,6 +122,7 @@ masterDataRouter.post(
 masterDataRouter.patch(
   '/faculties/:id',
   authorize('LIBRARIAN'),
+  requireGrant('master_data.manage'),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(idParamSchema, req.params);
@@ -158,6 +161,7 @@ masterDataRouter.get('/departments', async (req, res, next) => {
 masterDataRouter.post(
   '/departments',
   authorize('LIBRARIAN'),
+  requireGrant('master_data.manage'),
   async (req, res, next) => {
     try {
       const body = parseOrThrow(departmentCreateSchema, req.body);
@@ -172,6 +176,7 @@ masterDataRouter.post(
 masterDataRouter.patch(
   '/departments/:id',
   authorize('LIBRARIAN'),
+  requireGrant('master_data.manage'),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(idParamSchema, req.params);
@@ -206,6 +211,7 @@ masterDataRouter.get('/branches', async (req, res, next) => {
 masterDataRouter.post(
   '/branches',
   authorize('LIBRARIAN'),
+  requireGrant('master_data.manage'),
   async (req, res, next) => {
     try {
       const body = parseOrThrow(branchCreateSchema, req.body);
@@ -220,6 +226,7 @@ masterDataRouter.post(
 masterDataRouter.patch(
   '/branches/:id',
   authorize('LIBRARIAN'),
+  requireGrant('master_data.manage'),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(idParamSchema, req.params);

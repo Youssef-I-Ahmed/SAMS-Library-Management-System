@@ -103,3 +103,11 @@ export async function runStudentImport(token, step, file, params, signal) {
   const response = await fileRequest(`/students/transfer/${step}?${query}`, { token, method: 'POST', file, signal });
   return response.json();
 }
+
+// Librarian accounts (Management).
+export async function listPermissionGroups(token, signal) { return apiRequest('/staff/permission-groups', { token, signal }); }
+export async function listLibrarians(token, signal) { return apiRequest('/staff/librarians', { token, signal }); }
+export async function createLibrarian(token, body) { return apiRequest('/staff/librarians', { method: 'POST', token, body }); }
+export async function updateLibrarian(token, id, body) {
+  return apiRequest(`/staff/librarians/${encodeURIComponent(id)}`, { method: 'PATCH', token, body });
+}

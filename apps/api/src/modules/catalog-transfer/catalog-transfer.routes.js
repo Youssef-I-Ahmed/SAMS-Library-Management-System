@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import { analyzeImport, buildExport, buildTemplate, commitImport } from './catalog-transfer.service.js';
@@ -54,7 +55,7 @@ function importOptions(req) {
 
 const upload = express.raw({ type: 'application/octet-stream', limit: MAX_UPLOAD });
 
-catalogTransferRouter.get('/template', authorize('LIBRARIAN', 'MANAGEMENT'), (req, res, next) => {
+catalogTransferRouter.get('/template', authorize('LIBRARIAN', 'MANAGEMENT'), requireGrant('catalog.import'), (req, res, next) => {
   try {
     const query = parse(z.object({ type, format }).strict(), req.query);
     sendFile(res, buildTemplate(query.type, query.format), query.format,
@@ -62,7 +63,7 @@ catalogTransferRouter.get('/template', authorize('LIBRARIAN', 'MANAGEMENT'), (re
   } catch (error) { next(error); }
 });
 
-catalogTransferRouter.get('/export', authorize('LIBRARIAN', 'MANAGEMENT'), async (req, res, next) => {
+catalogTransferRouter.get('/export', authorize('LIBRARIAN', 'MANAGEMENT'), requireGrant('catalog.export'), async (req, res, next) => {
   try {
     const query = parse(z.object({
       format,
@@ -76,13 +77,13 @@ catalogTransferRouter.get('/export', authorize('LIBRARIAN', 'MANAGEMENT'), async
   } catch (error) { next(error); }
 });
 
-catalogTransferRouter.post('/import/preview', authorize('LIBRARIAN'), upload, async (req, res, next) => {
+catalogTransferRouter.post('/import/preview', authorize('LIBRARIAN'), requireGrant('catalog.import'), upload, async (req, res, next) => {
   try {
     res.json({ data: await analyzeImport(req.body, importOptions(req)) });
   } catch (error) { next(error); }
 });
 
-catalogTransferRouter.post('/import/commit', authorize('LIBRARIAN'), upload, async (req, res, next) => {
+catalogTransferRouter.post('/import/commit', authorize('LIBRARIAN'), requireGrant('catalog.import'), requireGrant('catalog.create'), upload, async (req, res, next) => {
   try {
     res.json({ data: await commitImport(req.body, importOptions(req)) });
   } catch (error) { next(error); }

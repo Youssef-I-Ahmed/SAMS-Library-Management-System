@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import {
@@ -114,6 +115,7 @@ analyticsRouter.get(
     'LIBRARIAN',
     'MANAGEMENT'
   ),
+  requireGrant('analytics.read'),
   async (req, res, next) => {
     try {
       const parsed =
@@ -166,6 +168,7 @@ analyticsRouter.get(
     'LIBRARIAN',
     'MANAGEMENT'
   ),
+  requireGrant('analytics.read'),
   async (req, res, next) => {
     try {
       const parsed =
@@ -233,6 +236,7 @@ analyticsRouter.get(
     'LIBRARIAN',
     'MANAGEMENT'
   ),
+  requireGrant('analytics.read'),
   async (req, res, next) => {
     try {
       const parsed =
@@ -279,6 +283,7 @@ analyticsRouter.get(
     'LIBRARIAN',
     'MANAGEMENT'
   ),
+  requireGrant('analytics.read'),
   async (req, res, next) => {
     try {
       const parsed =

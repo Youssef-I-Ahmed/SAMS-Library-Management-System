@@ -106,5 +106,57 @@ export const en9g = {
       EMAIL_WILL_CHANGE: '{field}: updating changes it from {from}',
       NAME_WILL_CHANGE: '{field}: updating changes it from {from}'
     }
+  },
+  staffAdmin: {
+    eyebrow: 'Management',
+    title: 'Librarians',
+    subtitle: 'Add a librarian, choose what they can do, or deactivate their account.',
+    hint: 'A librarian can only do what you turn on for them. Changing their permissions ends their open session, so they sign in again.',
+    add: 'Add librarian',
+    addTitle: 'Add a librarian',
+    empty: 'No librarians yet.',
+    name: 'Name',
+    email: 'University email',
+    permissions: 'Permissions',
+    allPermissions: 'All permissions',
+    selectAll: 'Select all',
+    selectNone: 'Clear all',
+    manage: 'Manage',
+    protected: 'Protected account',
+    save: 'Save',
+    create: 'Add',
+    saving: 'Saving...',
+    cancel: 'Cancel',
+    close: 'Close',
+    yes: 'Yes, confirm',
+    activate: 'Activate account',
+    deactivate: 'Deactivate account',
+    confirmActivate: 'Activate this account?',
+    confirmDeactivate: 'Deactivating ends any open session for this account. Continue?',
+    created: 'Librarian added.',
+    saved: 'Changes saved.',
+    activated: 'Account activated.',
+    deactivated: 'Account deactivated.',
+    saveFailed: 'Not saved',
+    sessionHint: 'Changing permissions ends this librarian\'s open session.',
+    loginHint: 'The new account cannot sign in until the official sign-in method is set up.',
+    errors: {
+      EMAIL_ALREADY_IN_USE: 'This email belongs to an existing account.',
+      PROTECTED_ACCOUNT: 'This account is protected or has more than one role and cannot be changed here.',
+      SELF_CHANGE_NOT_ALLOWED: 'You cannot change your own account here.',
+      VALIDATION_ERROR: 'Check the name and the email format.'
+    },
+    groups: {
+      catalog_edit: { title: 'Add and edit catalog records', body: 'Create records and edit their details and authors.' },
+      catalog_archive: { title: 'Archive and restore records', body: 'Hide a record from the catalog or bring it back.' },
+      catalog_transfer: { title: 'Catalog import and export', body: 'Excel, CSV and JSON files.' },
+      catalog_reference: { title: 'Reference data', body: 'Categories, Dewey, faculties, departments and branches.' },
+      inventory: { title: 'Copies', body: 'Add copies and change their status and location.' },
+      circulation: { title: 'Borrowing and returns', body: 'Lend books to students and take them back.' },
+      reservations: { title: 'Reservations', body: 'Cancel reservations and expire overdue ones.' },
+      visits: { title: 'Visits', body: 'Check visitors in and out.' },
+      students: { title: 'Student accounts', body: 'View, add, edit and import students.' },
+      analytics: { title: 'Analytics', body: 'View library reports.' }
+    }
   }
 };

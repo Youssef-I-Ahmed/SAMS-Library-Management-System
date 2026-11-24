@@ -11,6 +11,7 @@
     "prisma:migrate": "dotenv -e ../../.env -- prisma migrate dev --schema=../../database/prisma/schema.prisma",
     "prisma:seed": "dotenv -e ../../.env -- node ../../database/prisma/seed.js",
     "test": "dotenv -e ../../.env -- vitest run",
+    "staff:baseline": "dotenv -e ../../.env -- node scripts/grant-librarian-baseline.mjs",
     "prisma:validate": "dotenv -e ../../.env -- prisma validate --schema=../../database/prisma/schema.prisma"
   },
   "dependencies": {

@@ -5,6 +5,7 @@ import {
 } from '@prisma/client';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import {
@@ -83,6 +84,7 @@ physicalCopiesRouter.get('/:id', async (req, res, next) => {
 physicalCopiesRouter.post(
   '/',
   authorize('LIBRARIAN'),
+  requireGrant('inventory.copies.manage'),
   async (req, res, next) => {
     try {
       const body = parseOrThrow(
@@ -109,6 +111,7 @@ physicalCopiesRouter.post(
 physicalCopiesRouter.patch(
   '/:id',
   authorize('LIBRARIAN'),
+  requireGrant('inventory.copies.manage'),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(

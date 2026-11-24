@@ -6,20 +6,20 @@ import { useLanguage } from '../hooks/useLanguage';
 import { AI_ASSISTANT_ENABLED } from '../features/ai/ai-config.js';
 const navigation = {
   librarian: [['/librarian','nav.dashboard'],['/librarian/borrow','nav.borrow'],['/librarian/return','nav.return'],['/librarian/reservations','nav.reservations'],['/librarian/visits','nav.visits'],['/librarian/catalog','nav.catalog'],['/librarian/students','admin.nav.students'],['/librarian/analytics','admin.nav.analytics']],
-  management: [['/management','nav.overview'],['/management/borrowings','nav.borrowings'],['/management/visits','nav.visits']]
+  management: [['/management','nav.overview'],['/management/borrowings','nav.borrowings'],['/management/visits','nav.visits'],['/management/staff','admin.nav.staff']]
 };
 export function StaffShell({ mode }) {
   const { t, language } = useLanguage();
   const homePath = mode === 'management' ? '/management' : '/librarian';
   const isAssistant = useMatch(`${homePath}/ai`);
-  const circulationRoute = useMatch('/librarian/:workflow');
+  const circulationRoute = useMatch('/librarian/:workflow/*');
   const librarianHome = useMatch('/librarian');
   const managementHome = useMatch('/management');
-  const managementRoute = useMatch('/management/:workflow');
+  const managementRoute = useMatch('/management/:workflow/*');
   const managementAnalyticsAlias = Boolean(useMatch('/management/analytics'));
   const isCirculation = mode === 'librarian'
     ? Boolean(librarianHome) || ['borrow', 'return', 'reservations', 'visits', 'catalog', 'students', 'analytics'].includes(circulationRoute?.params.workflow)
-    : Boolean(managementHome) || ['analytics', 'borrowings', 'visits'].includes(managementRoute?.params.workflow);
+    : Boolean(managementHome) || ['analytics', 'borrowings', 'visits', 'staff'].includes(managementRoute?.params.workflow);
   const navRef = useRef(null);
   useEffect(() => {
     if (!isCirculation) return;

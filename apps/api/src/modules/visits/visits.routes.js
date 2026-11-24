@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { VisitSource } from '@prisma/client';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import {
@@ -41,6 +42,7 @@ function parseOrThrow(
 visitsRouter.post(
   '/check-in',
   authorize('LIBRARIAN'),
+  requireGrant('visits.check_in'),
   async (req, res, next) => {
     try {
       const body =
@@ -80,6 +82,7 @@ visitsRouter.post(
 visitsRouter.post(
   '/:id/check-out',
   authorize('LIBRARIAN'),
+  requireGrant('visits.check_out'),
   async (req, res, next) => {
     try {
       const { id } =

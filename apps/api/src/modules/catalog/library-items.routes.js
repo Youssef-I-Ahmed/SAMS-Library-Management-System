@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ContributorRole, ItemType } from '@prisma/client';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import { assertInactiveAccess, canSeeInactive } from './catalog-visibility.js';
@@ -172,6 +173,7 @@ libraryItemsRouter.get('/:id/contributors', async (req, res, next) => {
 libraryItemsRouter.put(
   '/:id/contributors',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(
@@ -226,6 +228,7 @@ libraryItemsRouter.get('/:id', async (req, res, next) => {
 libraryItemsRouter.post(
   '/',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.create'),
   async (req, res, next) => {
     try {
       const body = parseOrThrow(createSchema, req.body);
@@ -240,6 +243,9 @@ libraryItemsRouter.post(
 libraryItemsRouter.patch(
   '/:id',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
+  (req, res, next) => (req.body && Object.hasOwn(req.body, 'isActive')
+    ? requireGrant(req.body.isActive === false ? 'catalog.archive' : 'catalog.restore')(req, res, next) : next()),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(
@@ -260,6 +266,7 @@ libraryItemsRouter.patch(
 libraryItemsRouter.put(
   '/:id/book-details',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(
@@ -280,6 +287,7 @@ libraryItemsRouter.put(
 libraryItemsRouter.put(
   '/:id/academic-work-details',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(

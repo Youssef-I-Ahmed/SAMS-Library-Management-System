@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ReservationStatus } from '@prisma/client';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import {
@@ -129,6 +130,7 @@ reservationsRouter.get(
 reservationsRouter.post(
   '/expire-due',
   authorize('LIBRARIAN'),
+  requireGrant('reservations.expire'),
   async (req, res, next) => {
     try {
       const query = parseOrThrow(
@@ -224,6 +226,7 @@ reservationsRouter.get(
 
 reservationsRouter.post(
   '/:id/cancel',
+  requireGrant('reservations.cancel'),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(

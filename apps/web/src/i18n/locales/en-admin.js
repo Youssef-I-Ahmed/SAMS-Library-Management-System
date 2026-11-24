@@ -79,7 +79,7 @@ export const enAdmin = { admin: {
     "confirmRestore": "Confirm item restoration",
     "archiveHelp": "The server checks the current version and confirms the resulting item status."
 },
-  nav:{students:'Students',analytics:'Analytics'},
+  nav:{students:'Students',analytics:'Analytics',staff:'Librarians'},
   common:{search:'Search',loading:'Loading...',saving:'Saving...',save:'Save',cancel:'Cancel',edit:'Edit',archive:'Archive',restore:'Restore',actions:'Actions',active:'Active',inactive:'Inactive',archived:'Archived',status:'Status',branch:'Branch',allBranches:'All branches',allStatuses:'All statuses',allTypes:'All material types',operationFailed:'Operation could not be completed'},
   catalog:{eyebrow:'Catalog administration',title:'Catalog & Inventory',subtitle:'Create and maintain library items and physical copies.',items:'Library items',copies:'Physical copies',searchItems:'Search title or call number...',addItem:'Add item',editItem:'Edit item',item:'Item',type:'Type',titleField:'Title',callNumber:'Call number',category:'Category',dewey:'Dewey classification',deweyRaw:'Raw Dewey code',language:'Language',publicationYear:'Publication year',abstract:'Description / abstract',publisher:'Publisher',edition:'Edition',faculty:'Faculty',department:'Department',academicYear:'Academic year',created:'Library item created.',updated:'Library item updated.',archived:'Library item archived.',restored:'Library item restored.'},
   aiSuggest:{button:'Suggest subject & topic',loading:'Suggesting...',subject:'Suggested subject',cluster:'Suggested topic',confidence:'confidence',hint:'AI suggestion, review it before saving.',unavailable:'The suggestion service is not available right now.',needTitle:'Enter the title first.',select:'Select this subject'},

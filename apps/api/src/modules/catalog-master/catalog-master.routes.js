@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import {
@@ -67,6 +68,7 @@ catalogMasterRouter.get('/categories', async (req, res, next) => {
 catalogMasterRouter.post(
   '/categories',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.reference.manage'),
   async (req, res, next) => {
     try {
       const body = parseOrThrow(
@@ -88,6 +90,7 @@ catalogMasterRouter.post(
 catalogMasterRouter.patch(
   '/categories/:id',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.reference.manage'),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(idSchema, req.params);
@@ -135,6 +138,7 @@ catalogMasterRouter.get('/dewey', async (req, res, next) => {
 catalogMasterRouter.post(
   '/dewey',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.reference.manage'),
   async (req, res, next) => {
     try {
       const body = parseOrThrow(
@@ -157,6 +161,7 @@ catalogMasterRouter.post(
 catalogMasterRouter.patch(
   '/dewey/:id',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.reference.manage'),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(idSchema, req.params);

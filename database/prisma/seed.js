@@ -126,6 +126,11 @@ async function main() {
 
   await ensureUserRole(managementUser.id, roles.MANAGEMENT.id);
 
+  // Librarians act only with permissions Management gives them; start the dev
+  // librarian with the full set.
+  const { grantBaselineToUnconfiguredLibrarians } = await import('../../apps/api/src/modules/staff/staff.service.js');
+  await grantBaselineToUnconfiguredLibrarians('management@sams.dev', prisma);
+
   console.log('Seeded roles and Sprint 1 development users');
   console.log('  student@sams.dev');
   console.log('  librarian@sams.dev');

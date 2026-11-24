@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import { assertInactiveAccess } from './catalog-visibility.js';
@@ -70,6 +71,7 @@ contributorsRouter.get('/:id', async (req, res, next) => {
 contributorsRouter.post(
   '/',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
   async (req, res, next) => {
     try {
       const body = parseOrThrow(
@@ -90,6 +92,7 @@ contributorsRouter.post(
 contributorsRouter.patch(
   '/:id',
   authorize('LIBRARIAN'),
+  requireGrant('catalog.update'),
   async (req, res, next) => {
     try {
       const { id } = parseOrThrow(

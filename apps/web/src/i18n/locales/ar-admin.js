@@ -79,7 +79,7 @@ export const arAdmin = { admin: {
     "confirmRestore": "تأكيد استعادة المادة",
     "archiveHelp": "يتحقق الخادم من الإصدار الحالي ويؤكد الحالة الناتجة للمادة."
 },
-  nav:{students:'الطلاب',analytics:'التحليلات'},
+  nav:{students:'الطلاب',analytics:'التحليلات',staff:'أمناء المكتبة'},
   common:{search:'بحث',loading:'جارٍ التحميل...',saving:'جارٍ الحفظ...',save:'حفظ',cancel:'إلغاء',edit:'تعديل',archive:'أرشفة',restore:'استعادة',actions:'الإجراءات',active:'نشط',inactive:'غير نشط',archived:'مؤرشف',status:'الحالة',branch:'الفرع',allBranches:'كل الفروع',allStatuses:'كل الحالات',allTypes:'كل أنواع المواد',operationFailed:'تعذر إتمام العملية'},
   catalog:{eyebrow:'إدارة الفهرس',title:'الفهرس والمخزون',subtitle:'إنشاء وتحديث مواد المكتبة والنسخ الفعلية.',items:'مواد المكتبة',copies:'النسخ الفعلية',searchItems:'ابحث بالعنوان أو رقم الكتاب...',addItem:'إضافة مادة',editItem:'تعديل المادة',item:'المادة',type:'النوع',titleField:'العنوان',callNumber:'رقم الكتاب',category:'الفئة',dewey:'تصنيف ديوي',deweyRaw:'كود ديوي الخام',language:'اللغة',publicationYear:'سنة النشر',abstract:'الوصف / الملخص',publisher:'الناشر',edition:'الطبعة',faculty:'الكلية',department:'القسم',academicYear:'العام الأكاديمي',created:'تم إنشاء المادة.',updated:'تم تحديث المادة.',archived:'تمت أرشفة المادة.',restored:'تمت استعادة المادة.'},
   aiSuggest:{button:'اقتراح المادة والموضوع',loading:'جارٍ الاقتراح...',subject:'المادة المقترحة',cluster:'الموضوع المقترح',confidence:'الثقة',hint:'اقتراح من نموذج الذكاء الاصطناعي، راجعه قبل الحفظ.',unavailable:'خدمة الاقتراح غير متاحة الآن.',needTitle:'اكتب العنوان أولًا.',select:'اختيار هذه المادة'},

@@ -100,3 +100,16 @@
 .admin-operations .catalog-transfer__report .admin-row-actions :is(.admin-primary-button, .admin-secondary-button) { padding-inline: 14px; }
 .admin-operations .catalog-transfer__report .admin-row-actions .admin-secondary-button { border: 1px solid var(--border-default); color: var(--text-primary); background: var(--surface-elevated); }
 @media (max-width: 760px) { .admin-operations .student-directory__actions > * { flex: 1 1 auto; text-align: center; } }
+
+/* Librarian management */
+.admin-operations .staff-admin__hint { margin: 0; color: var(--text-muted); font-size: 12px; max-width: 640px; }
+.admin-operations .staff-admin__form { display: grid; gap: 16px; }
+.admin-operations .staff-permissions { margin: 0; padding: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; border: 1px solid var(--border-default); border-radius: var(--sams-radius-lg); }
+.admin-operations .staff-permissions legend { padding-inline: 6px; font-weight: 800; }
+.admin-operations .staff-permissions__actions { grid-column: 1 / -1; display: flex; gap: 12px; }
+.admin-operations .staff-permissions__actions button { border: 0; background: transparent; color: var(--brand-primary); font-weight: 800; padding: 0; }
+.admin-operations .staff-permissions__item { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border-radius: var(--sams-radius-md); background: var(--surface-subtle); }
+.admin-operations .staff-permissions__item input { margin-top: 3px; accent-color: var(--sams-primary-700); }
+.admin-operations .staff-permissions__item span { display: grid; gap: 2px; }
+.admin-operations .staff-permissions__item small { color: var(--text-muted); font-size: 11px; }
+@media (max-width: 760px) { .admin-operations .staff-permissions { grid-template-columns: 1fr; } }

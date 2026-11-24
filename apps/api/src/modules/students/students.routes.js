@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import { z } from 'zod';
 import { AcademicStatus } from '@prisma/client';
 import { authenticate } from '../../middleware/authenticate.js';
+import { requireGrant } from '../../middleware/require-grant.js';
 import { authorize } from '../../middleware/authorize.js';
 import { AppError } from '../../utils/app-error.js';
 import { listStudents, getStudentByStudentId, saveStudent, updateStudent } from './students.service.js';
@@ -27,7 +28,7 @@ function parseOrThrow(schema, input) {
 
 studentsRouter.get(
   '/',
-  authorize('LIBRARIAN', 'MANAGEMENT'),
+  authorize('LIBRARIAN', 'MANAGEMENT'), requireGrant('students.directory.read'),
   async (req, res, next) => {
     try {
       const query = parseOrThrow(
@@ -77,14 +78,14 @@ function sendFile(res, buffer, fileFormat, name) {
 
 const format = z.enum(FORMATS);
 
-studentsRouter.get('/transfer/template', authorize('LIBRARIAN', 'MANAGEMENT'), (req, res, next) => {
+studentsRouter.get('/transfer/template', authorize('LIBRARIAN', 'MANAGEMENT'), requireGrant('students.directory.read'), (req, res, next) => {
   try {
     const query = parseOrThrow(z.object({ format }).strict(), req.query);
     sendFile(res, buildStudentTemplate(query.format), query.format, 'sams-students-template');
   } catch (error) { next(error); }
 });
 
-studentsRouter.get('/transfer/export', authorize('LIBRARIAN', 'MANAGEMENT'), async (req, res, next) => {
+studentsRouter.get('/transfer/export', authorize('LIBRARIAN', 'MANAGEMENT'), requireGrant('students.directory.read'), async (req, res, next) => {
   try {
     const query = parseOrThrow(z.object({
       format,
@@ -118,19 +119,19 @@ function importOptions(req) {
   return { format: query.format, mapping, updateExisting: query.updateExisting === 'true', actor: req.auth };
 }
 
-studentsRouter.post('/transfer/preview', authorize('LIBRARIAN'), upload, async (req, res, next) => {
+studentsRouter.post('/transfer/preview', authorize('LIBRARIAN'), requireGrant('students.directory.read'), upload, async (req, res, next) => {
   try {
     res.json({ data: await analyzeStudentImport(req.body, importOptions(req)) });
   } catch (error) { next(error); }
 });
 
-studentsRouter.post('/transfer/commit', authorize('LIBRARIAN'), upload, async (req, res, next) => {
+studentsRouter.post('/transfer/commit', authorize('LIBRARIAN'), requireGrant('students.directory.read'), upload, async (req, res, next) => {
   try {
     res.json({ data: await commitStudentImport(req.body, importOptions(req)) });
   } catch (error) { next(error); }
 });
 
-studentsRouter.post('/', authorize('LIBRARIAN'), async (req, res, next) => {
+studentsRouter.post('/', authorize('LIBRARIAN'), requireGrant('students.directory.read'), async (req, res, next) => {
   try {
     const body = parseOrThrow(z.object({ studentId: z.string().trim().min(1).max(80), ...studentFields }).strict(), req.body);
     const result = await saveStudent(body, { mode: 'create', actor: req.auth });
@@ -138,7 +139,7 @@ studentsRouter.post('/', authorize('LIBRARIAN'), async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
-studentsRouter.patch('/:studentId', authorize('LIBRARIAN'), async (req, res, next) => {
+studentsRouter.patch('/:studentId', authorize('LIBRARIAN'), requireGrant('students.directory.read'), async (req, res, next) => {
   try {
     const { studentId } = parseOrThrow(z.object({ studentId: z.string().trim().min(1).max(80) }), req.params);
     const body = parseOrThrow(z.object({
@@ -153,7 +154,7 @@ studentsRouter.patch('/:studentId', authorize('LIBRARIAN'), async (req, res, nex
 
 studentsRouter.get(
   '/:studentId',
-  authorize('LIBRARIAN', 'MANAGEMENT'),
+  authorize('LIBRARIAN', 'MANAGEMENT'), requireGrant('students.directory.read'),
   async (req, res, next) => {
     try {
       const { studentId } = parseOrThrow(
