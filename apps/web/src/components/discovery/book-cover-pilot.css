@@ -20,3 +20,8 @@
   outline-offset: 3px;
 }
 .item-detail-page .discovery-cover--pilot img { width: 135px; height: 195px; }
+
+/* While an Open Library cover loads, show the placeholder and keep the image
+   out of view (it still loads); a found cover then replaces the placeholder. */
+.discovery-cover-stack { display: contents; }
+.discovery-cover-stack.is-loading > .discovery-cover--pilot { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }

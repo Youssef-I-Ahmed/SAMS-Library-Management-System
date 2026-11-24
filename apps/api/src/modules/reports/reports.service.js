@@ -81,14 +81,24 @@ export async function staffPerformance(filters, db = prisma) {
   return { range: { from: when.gte, to: when.lt }, data, truncated: events.length === MAX_EVENTS };
 }
 
-export async function staffPerformanceFile(filters, format, db = prisma) {
+const AR_HEADERS = {
+  name: 'الاسم', email: 'البريد', roles: 'الدور', checkouts: 'إعارات', returns: 'إرجاعات', visits: 'زيارات',
+  catalog: 'الكتالوج', copies: 'النسخ', students: 'الطلبة', reservations: 'الحجوزات', total: 'الإجمالي',
+  active_days: 'أيام النشاط', last_active: 'آخر نشاط'
+};
+
+export async function staffPerformanceFile(filters, format, db = prisma, language = 'en') {
   const { data } = await staffPerformance(filters, db);
-  return serializeTable(format, PERFORMANCE_COLUMNS, data.map((entry) => ({
+  const header = (key) => (language === 'ar' ? AR_HEADERS[key] : key);
+  const rows = data.map((entry) => ({
     name: entry.displayName, email: entry.universityEmail, roles: entry.roles.join(', '),
     checkouts: entry.checkouts, returns: entry.returns, visits: entry.visits, catalog: entry.catalog, copies: entry.copies,
     students: entry.students, reservations: entry.reservations, total: entry.total, active_days: entry.activeDays,
     last_active: entry.lastActive ? new Date(entry.lastActive).toISOString() : ''
-  })), { sheetName: 'Staff performance' });
+  }));
+  return serializeTable(format, PERFORMANCE_COLUMNS.map(header),
+    rows.map((row) => Object.fromEntries(Object.entries(row).map(([key, value]) => [header(key), value]))),
+    { sheetName: language === 'ar' ? 'أداء الموظفين' : 'Staff performance' });
 }
 
 const SEVERITY_ORDER = { high: 0, medium: 1, low: 2, info: 3 };

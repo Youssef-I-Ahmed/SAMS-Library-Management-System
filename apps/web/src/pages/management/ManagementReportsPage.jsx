@@ -40,7 +40,7 @@ export function ManagementReportsPage() {
 
   async function exportFile(format) {
     setDownload({ busy: true, error: null });
-    try { await downloadStaffPerformance(auth.token, { ...filters, format }); setDownload({ busy: false, error: null }); }
+    try { await downloadStaffPerformance(auth.token, { ...filters, format, lang: language === 'en' ? 'en' : 'ar' }); setDownload({ busy: false, error: null }); }
     catch (error) { setDownload({ busy: false, error }); }
   }
 

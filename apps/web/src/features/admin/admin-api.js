@@ -127,7 +127,7 @@ export async function uploadCover(token, itemId, file) {
 export async function removeCover(token, itemId) { return apiRequest(`/catalog/items/${encodeURIComponent(itemId)}/cover`, { method: 'DELETE', token }); }
 
 // Management reports.
-const reportRange = (filters) => buildAdminQuery({ from: toIsoStartOfDay(filters.from), to: toIsoNextDay(filters.to), format: filters.format });
+const reportRange = (filters) => buildAdminQuery({ from: toIsoStartOfDay(filters.from), to: toIsoNextDay(filters.to), format: filters.format, lang: filters.lang });
 export async function getStaffPerformance(token, filters = {}, signal) { return apiRequest(`/reports/staff-performance?${reportRange(filters)}`, { token, signal }); }
 export async function getSecurityAlerts(token, filters = {}, signal) { return apiRequest(`/reports/security-alerts?${reportRange(filters)}`, { token, signal }); }
 export async function downloadStaffPerformance(token, filters) {

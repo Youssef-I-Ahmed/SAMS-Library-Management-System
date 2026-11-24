@@ -12,7 +12,8 @@ reportsRouter.use(authenticate, authorize('MANAGEMENT'));
 const rangeQuery = z.object({
   from: z.string().datetime({ offset: true }).optional(),
   to: z.string().datetime({ offset: true }).optional(),
-  format: z.enum(FORMATS).optional()
+  format: z.enum(FORMATS).optional(),
+  lang: z.enum(['ar', 'en']).optional()
 }).strict().refine((value) => !value.from || !value.to || new Date(value.from) < new Date(value.to), 'from must be before to');
 
 function parse(input) {
@@ -25,7 +26,7 @@ reportsRouter.get('/staff-performance', async (req, res, next) => {
   try {
     const query = parse(req.query);
     if (query.format) {
-      const buffer = await staffPerformanceFile(query, query.format);
+      const buffer = await staffPerformanceFile(query, query.format, undefined, query.lang);
       res.setHeader('Content-Type', CONTENT_TYPES[query.format]);
       res.setHeader('Content-Disposition', `attachment; filename="sams-staff-performance-${new Date().toISOString().slice(0, 10)}.${query.format}"`);
       res.setHeader('Cache-Control', 'no-store');
